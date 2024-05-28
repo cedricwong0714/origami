@@ -1,6 +1,6 @@
 # Team TeamName Software Tool
 
-If you team competes in the [**Software & AI** village](https://competition.ISEF.org/participation/villages) or wants to
+If your team competes in the [**Software & AI** village](https://competition.ISEF.org/participation/villages) or wants to
 apply for the [**Best Software Tool** prize](https://competition.ISEF.org/judging/awards), you **MUST** host all the
 code of your team's software tool in this repository, `main` branch. By the **Wiki Freeze**, a
 [release](https://docs.gitlab.com/ee/user/project/releases/) will be automatically created as the judging artifact of
