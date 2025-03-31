@@ -1,15 +1,13 @@
 # Team TeamName Software Tool
 
-If your team competes in the [**Software & AI** village](https://competition.ISEF.org/participation/villages) or wants to
-apply for the [**Best Software Tool** prize](https://competition.ISEF.org/judging/awards), you **MUST** host all the
-code of your team's software tool in this repository, `main` branch. By the **Wiki Freeze**, a
+If your team competes in the [**Software & AI** village](https://villages.ISEF.org) or wants to
+apply for the [**Best Software Tool** prize](https://competition.ISEF.org/judging/special-prizes), you **MUST** host all the
+source code of your team's software tool in this repository, `main` branch. By the **Wiki Freeze**, a
 [release](https://docs.gitlab.com/ee/user/project/releases/) will be automatically created as the judging artifact of
 this software tool. You will be able to keep working on your software after the Grand Jamboree.
 
 > If your team does not have any software tool, you can totally ignore this repository. If left unchanged, this
 repository will be automatically deleted by the end of the season.
-
-
 
 ## Description
 Let people know what your project can do specifically. Provide context and add a link to any reference visitors might
