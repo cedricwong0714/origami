@@ -1,13 +1,18 @@
-# Team TeamName Software Tool
+# Team TeamName Software
 
 If your team competes in the [**Software & AI** village](https://villages.ISEF.org) or wants to
-apply for the [**Best Software Tool** prize](https://competition.ISEF.org/judging/special-prizes), you **MUST** host all the
+apply for the [**Best Software** award](https://competition.ISEF.org/judging/awards/special), you **MUST** host all the
 source code of your team's software tool in this repository, `main` branch. By the **Wiki Freeze**, a
 [release](https://docs.gitlab.com/ee/user/project/releases/) will be automatically created as the judging artifact of
 this software tool. You will be able to keep working on your software after the Grand Jamboree.
 
+See the [Software Project](https://teams.ISEF.org/go/deliverables/software) page for the full requirements (including the
+open-source license requirement; note that **Software & AI** village teams are not eligible for the Best Software award).
+
 > If your team does not have any software tool, you can totally ignore this repository. If left unchanged, this
 repository will be automatically deleted by the end of the season.
+
+> **Using an AI assistant (e.g. Claude Code)?** Please read [.claude/RESPONSIBLE_AI_USE.md](.claude/RESPONSIBLE_AI_USE.md) first. You remain fully responsible for everything you commit: don't misrepresent what your tool does, never commit secrets, and review every change.
 
 ## Description
 Let people know what your project can do specifically. Provide context and add a link to any reference visitors might
@@ -26,6 +31,12 @@ Use examples liberally, and show the expected output if you can. It's helpful to
 usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably
 include in the README.
 
+## Data and large files
+Keep this repository for **source code**. For datasets, machine-learning model weights, large media, and other heavy
+artifacts, use [Zenodo](https://teams.ISEF.org/go/deliverables/software/zenodo) — it gives each upload a citable DOI and
+is the recommended long-term archive for ISEF teams. Reference your Zenodo records from this README so judges and future
+teams can find them.
+
 ## Contributing
 State if you are open to contributions and what your requirements are for accepting them.
 
@@ -39,3 +50,11 @@ helpful if it requires external setup, such as starting a Selenium server for te
 
 ## Authors and acknowledgment
 Show your appreciation to those who have contributed to the project.
+
+## License
+This repository is licensed under the [Apache License 2.0](LICENSE) — a permissive
+open-source license recommended for software (Creative Commons licenses are *not*
+intended for source code). You are free to use, modify, and distribute this software,
+provided you keep the license and attribution notices. If you prefer different terms
+for your own tool, you may replace this license, but it must remain an
+[OSI-approved open-source license](https://opensource.org/licenses).
