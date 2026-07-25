@@ -1,4 +1,4 @@
-# Team TeamName Software
+# Hong Kong team 2026 Software
 
 If your team competes in the [**Software & AI** village](https://villages.ISEF.org) or wants to
 apply for the [**Best Software** award](https://competition.ISEF.org/judging/awards/special), you **MUST** host all the
