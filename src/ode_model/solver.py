@@ -1,52 +1,31 @@
 # src/ode_model/solver.py
+from typing import Tuple, Dict
 import numpy as np
-from scipy.integrate import solve_ivp
-
-def system_derivatives(t: float, y: list[float], k_f: float, k_r: float, k_cat: float) -> list[float]:
-    """
-    Computes mass balance rate of change for S, E, ES, and P.
-    y = [S, E, ES, P]
-    """
-    S, E, ES, P = y
-    dS_dt = -k_f * E * S + k_r * ES
-    dE_dt = -k_f * E * S + (k_r + k_cat) * ES
-    dES_dt = k_f * E * S - (k_r + k_cat) * ES
-    dP_dt = k_cat * ES
-    return [dS_dt, dE_dt, dES_dt, dP_dt]
+from src.core.schema import MechanismType
+from src.ode_model.mechanisms.intermediate import simulate_intermediate_transfer
+from src.ode_model.mechanisms.complementation import simulate_complementation
+from src.ode_model.mechanisms.redox import simulate_redox_transfer
+from src.ode_model.mechanisms.covalent import simulate_covalent_capture
 
 def run_system_simulation(
-    initial_concentrations: dict[str, float], 
-    time_span: tuple[float, float],
-    k_f: float = 1.0,
-    k_r: float = 0.1,
-    k_cat: float = 0.5
-) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    initial_concentrations: Dict[str, float],
+    time_span: Tuple[float, float] = (0.0, 100.0),
+    mechanism_type: MechanismType = MechanismType.INTERMEDIATE_TRANSFER,
+    params: Dict[str, float] = None,
+    num_points: int = 100
+) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
     """
-    Integrates the differential equation system using SciPy solve_ivp.
+    Routes kinetic simulations to the corresponding mechanism solver.
     """
-    y0 = [
-        initial_concentrations["S"],
-        initial_concentrations["E"],
-        initial_concentrations["ES"],
-        initial_concentrations["P"]
-    ]
-    
-    t_eval = np.linspace(time_span[0], time_span[1], 100)
-    
-    solution = solve_ivp(
-        fun=system_derivatives,
-        t_span=time_span,
-        y0=y0,
-        args=(k_f, k_r, k_cat),
-        t_eval=t_eval,
-        method="Radau"  # Stiff ODE solver
-    )
-    
-    concentrations = {
-        "S": solution.y[0],
-        "E": solution.y[1],
-        "ES": solution.y[2],
-        "P": solution.y[3]
-    }
-    
-    return solution.t, concentrations
+    params = params or {}
+
+    if mechanism_type == MechanismType.INTERMEDIATE_TRANSFER:
+        return simulate_intermediate_transfer(initial_concentrations, params, time_span, num_points)
+    elif mechanism_type == MechanismType.TARGET_COMPLEMENTATION:
+        return simulate_complementation(initial_concentrations, params, time_span, num_points)
+    elif mechanism_type == MechanismType.REDOX_TRANSFER:
+        return simulate_redox_transfer(initial_concentrations, params, time_span, num_points)
+    elif mechanism_type == MechanismType.COVALENT_CAPTURE:
+        return simulate_covalent_capture(initial_concentrations, params, time_span, num_points)
+    else:
+        raise ValueError(f"Unsupported mechanism type: {mechanism_type}")
