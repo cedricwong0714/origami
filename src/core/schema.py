@@ -1,40 +1,51 @@
 # src/core/schema.py
-from typing import Literal
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from enum import Enum
+from typing import Optional, List, Dict
+from pydantic import BaseModel, Field
 
-class MoCloPart(BaseModel):
-    model_config = ConfigDict(frozen=True)
-    part_id: str
-    overhang_5prime: str = Field(min_length=4, max_length=4)
-    overhang_3prime: str = Field(min_length=4, max_length=4)
-    sequence: str
+class MechanismType(str, Enum):
+    INTERMEDIATE_TRANSFER = "intermediate_transfer"   # Reference (OtsA/OtsB)
+    TARGET_COMPLEMENTATION = "target_complementation" # Split-reporter / biosensor
+    REDOX_TRANSFER = "redox_transfer"                 # Electron transfer partners
+    COVALENT_CAPTURE = "covalent_capture"             # Reversible -> Covalent
 
-    @field_validator("sequence")
-    @classmethod
-    def validate_dna_sequence(cls, v: str) -> str:
-        v_upper = v.upper()
-        if not set(v_upper).issubset(set("ATCG")):
-            raise ValueError("Sequence contains non-canonical nucleotides.")
-        return v_upper
+class EvidenceMaturity(str, Enum):
+    TIER_1_CALIBRATED = "Tier 1: Experimentally Calibrated"
+    TIER_2_LITERATURE = "Tier 2: Literature Parameterized"
+    TIER_3_COMPUTATIONAL = "Tier 3: Computational Baseline"
+
+class ControlPlan(BaseModel):
+    mandatory_control_type: str
+    description: str
+    expected_negative_signal: str
 
 class ScaffoldSpec(BaseModel):
-    model_config = ConfigDict(frozen=True)
     scaffold_id: str
-    repeat_count: int = Field(gt=0)
-    docking_positions: list[int]
-    persistence_length_nm: float = Field(default=15.0, ge=0.0)
+    repeat_count: int = Field(..., ge=1, le=20)
+    docking_positions: List[int]
+    persistence_length_nm: float = 15.0
+
+class MoCloPart(BaseModel):
+    part_id: str
+    overhang_5prime: str = Field(..., min_length=4, max_length=4)
+    overhang_3prime: str = Field(..., min_length=4, max_length=4)
+    sequence: str
 
 class DesignSpec(BaseModel):
-    model_config = ConfigDict(frozen=True)
     design_id: str
-    chassis: Literal["cell_free", "E_coli", "B_subtilis"]
+    chassis: str
+    mechanism_type: MechanismType = MechanismType.INTERMEDIATE_TRANSFER
     scaffold: ScaffoldSpec
-    payload_ids: list[str] = Field(min_length=1)
-    operating_mode: Literal["reversible", "locking"]
+    payload_ids: List[str]
+    operating_mode: str = "reversible"
 
 class VerificationReport(BaseModel):
     design_id: str
+    mechanism_type: MechanismType
     is_valid: bool
     overhang_check: bool
     mass_balance_check: bool
-    errors: list[str] = Field(default_factory=list)
+    docking_bounds_check: bool
+    evidence_maturity: EvidenceMaturity
+    control_plan: ControlPlan
+    errors: List[str] = []
