@@ -1,0 +1,16 @@
+{
+  "baseline_id": "SYN_STAGE2_CTPR5_001",
+  "data_class": "synthetic_fixture",
+  "mechanism_type": "intermediate_transfer",
+  "scaffold_id": "CTPR5",
+  "repeat_count": 5,
+  "docking_positions": [1, 3],
+  "metrics": {
+    "relative_product_yield": {
+      "value": 0.42,
+      "unit": "dimensionless",
+      "ci95": [0.30, 0.55]
+    }
+  },
+  "notes": "SYNTHETIC FIXTURE illustrating baseline schema — replace with SCALE geometry-series results."
+}

@@ -1,0 +1,17 @@
+{
+  "mechanism_type": "target_complementation",
+  "profile_id": "target_complementation",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 3: Computational Baseline",
+  "params": {
+    "k_on": 10.0,
+    "k_off": 1.0,
+    "k_rec": 2.0
+  },
+  "units": {
+    "k_on": "relative",
+    "k_off": "relative",
+    "k_rec": "relative"
+  },
+  "notes": "Computational baseline for target-bridged reporter reconstitution. Screening-assay POC — not a clinical diagnostic model."
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "description": "Held-out evaluation index. Entries marked synthetic_fixture are for CI smoke tests only — not wet-lab claims.",
+  "entries": [
+    {
+      "benchmark_id": "syn_intermediate_transfer_smoke",
+      "mechanism_type": "intermediate_transfer",
+      "fixture_path": "tests/golden_references/clasp_ctpr5_intermediate_transfer.json",
+      "primary_metric": "trehalose_yield_fraction",
+      "synthetic_fixture": true
+    },
+    {
+      "benchmark_id": "scale_ca_dose_response",
+      "mechanism_type": "intermediate_transfer",
+      "fixture_path": null,
+      "primary_metric": "AES",
+      "synthetic_fixture": false,
+      "status": "awaiting_tier1_data",
+      "notes": "Populate after SCALE M1 Ca2+ dose–response is archived."
+    }
+  ]
+}

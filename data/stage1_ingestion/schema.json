@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ORIGAMIStage1IngestionRecord",
+  "type": "object",
+  "required": ["record_id", "data_class", "assay_type", "created_utc", "metadata"],
+  "properties": {
+    "record_id": { "type": "string" },
+    "data_class": {
+      "type": "string",
+      "enum": ["synthetic_fixture", "tier1_experimental", "literature_extracted"]
+    },
+    "assay_type": {
+      "type": "string",
+      "enum": ["nanobit_plate", "spy_kinetics", "solubility", "other"]
+    },
+    "created_utc": { "type": "string" },
+    "operator": { "type": ["string", "null"] },
+    "metadata": {
+      "type": "object",
+      "required": ["temperature_C", "buffer", "host_or_format"],
+      "properties": {
+        "temperature_C": { "type": "number" },
+        "buffer": { "type": "string" },
+        "host_or_format": { "type": "string" },
+        "instrument": { "type": "string" },
+        "n_technical_replicates": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

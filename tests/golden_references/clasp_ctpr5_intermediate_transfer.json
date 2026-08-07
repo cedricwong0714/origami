@@ -1,0 +1,44 @@
+{
+  "golden_id": "clasp_ctpr5_intermediate_transfer",
+  "version": "1.0.0",
+  "synthetic_fixture": true,
+  "description": "Software golden for CTPR5 intermediate-transfer Design Mode path.",
+  "design": {
+    "design_id": "GOLDEN_CTPR5_IT_001",
+    "chassis": "E_coli",
+    "mechanism_type": "intermediate_transfer",
+    "scaffold": {
+      "scaffold_id": "CTPR5",
+      "repeat_count": 5,
+      "docking_positions": [1, 3],
+      "persistence_length_nm": 15.0
+    },
+    "payload_ids": ["OtsA", "OtsB"],
+    "operating_mode": "reversible"
+  },
+  "parts": [
+    {
+      "part_id": "Promoter_J23100",
+      "overhang_5prime": "GGAG",
+      "overhang_3prime": "AATG",
+      "sequence": "TTGACAGCTAGCTCAGTCCTAGGTATAATACTAGT"
+    },
+    {
+      "part_id": "RBS_B0034",
+      "overhang_5prime": "AATG",
+      "overhang_3prime": "CGCT",
+      "sequence": "AAAGAGGAGAAA"
+    }
+  ],
+  "expression_plan": {
+    "scaffold_vector_id": "vector_pETDuet",
+    "payload_vector_ids": ["vector_dual_plasmid_set"],
+    "coexpression_strategy": "dual_cassette"
+  },
+  "expectations": {
+    "design_status": "SUCCESS",
+    "mechanism_profile": "trehalose_synthesis",
+    "verification_is_valid": true,
+    "min_prediction_value": 0.0
+  }
+}

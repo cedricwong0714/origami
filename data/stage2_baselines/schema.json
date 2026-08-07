@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ORIGAMIStage2BaselineRecord",
+  "type": "object",
+  "required": ["baseline_id", "data_class", "mechanism_type", "scaffold_id", "metrics"],
+  "properties": {
+    "baseline_id": { "type": "string" },
+    "data_class": {
+      "type": "string",
+      "enum": ["synthetic_fixture", "tier1_experimental", "literature_extracted"]
+    },
+    "mechanism_type": { "type": "string" },
+    "scaffold_id": { "type": "string" },
+    "repeat_count": { "type": "integer", "minimum": 1 },
+    "docking_positions": {
+      "type": "array",
+      "items": { "type": "integer" }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "unit"],
+        "properties": {
+          "value": { "type": "number" },
+          "unit": { "type": "string" },
+          "ci95": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

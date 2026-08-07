@@ -1,0 +1,15 @@
+{
+  "record_id": "SYN_STAGE1_NANOBIT_001",
+  "data_class": "synthetic_fixture",
+  "assay_type": "nanobit_plate",
+  "created_utc": "2026-08-07T00:00:00Z",
+  "operator": null,
+  "metadata": {
+    "temperature_C": 25.0,
+    "buffer": "PBS + 0.1 mg/mL BSA (fixture)",
+    "host_or_format": "cell_free_fixture",
+    "instrument": "unspecified_luminometer",
+    "n_technical_replicates": 3
+  },
+  "notes": "SYNTHETIC FIXTURE for schema/CI only — not a measured CLASP result."
+}

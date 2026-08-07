@@ -1,0 +1,24 @@
+{
+  "session_id": "YYYYMMDD_OPERATOR_ASSAY",
+  "date_local": "YYYY-MM-DD",
+  "operator": "",
+  "assay": "",
+  "host_or_format": "",
+  "temperature_C": null,
+  "buffer": "",
+  "media": "",
+  "lysis_method": "",
+  "instrument": "",
+  "wavelength_or_mode": "",
+  "ca2_free_uM_range": [],
+  "controls_present": {
+    "no_ca2": false,
+    "scrambled_docking": false,
+    "dead_cam": false,
+    "no_scaffold": false,
+    "reporter_halves_alone": false,
+    "free_enzymes": false
+  },
+  "notes": "",
+  "data_class": "tier1_experimental"
+}

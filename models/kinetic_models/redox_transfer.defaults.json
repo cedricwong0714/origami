@@ -1,0 +1,15 @@
+{
+  "mechanism_type": "redox_transfer",
+  "profile_id": "redox_transfer",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 3: Computational Baseline",
+  "params": {
+    "k_et": 3.0,
+    "k_leak": 0.2
+  },
+  "units": {
+    "k_et": "relative",
+    "k_leak": "relative"
+  },
+  "notes": "Relative electron-transfer ranking only. Do not interpret as absolute H2 production without wet-lab calibration."
+}

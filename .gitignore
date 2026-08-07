@@ -7,9 +7,47 @@ env/
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+report.xml
 
-# Data & Models artifacts
-models/*
-!models/.gitkeep
-data/raw/*
-data/processed/*
+# Local secrets / env
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# ---- Heavy scientific artifacts (keep schemas, READMEs, small JSON) ----
+# Structure dumps
+models/structure_predictions/**/*.pdb
+models/structure_predictions/**/*.cif
+models/structure_predictions/**/*.mmcif
+models/**/weights/
+models/**/*.pt
+models/**/*.pth
+models/**/*.onnx
+models/**/*.h5
+
+# Raw instrument / large tables (schemas + examples stay tracked)
+data/**/raw_binaries/
+data/**/*.csv
+data/**/*.tsv
+data/**/*.xlsx
+data/**/*.parquet
+data/**/*.h5
+data/**/*.zip
+!data/**/examples/**
+!data/**/*template*.json
+!data/**/schema.json
+!data/**/README.md
+
+# Keep tracked model JSON / docs
+!models/**/README.md
+!models/**/*.json
+!models/**/.gitkeep

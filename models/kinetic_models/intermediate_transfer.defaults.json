@@ -1,0 +1,19 @@
+{
+  "mechanism_type": "intermediate_transfer",
+  "profile_id": "trehalose_synthesis",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 2: Literature Parameterized",
+  "params": {
+    "k_cat1": 0.5,
+    "k_cat2": 0.8,
+    "k_channel": 5.0,
+    "k_escape": 0.1
+  },
+  "units": {
+    "k_cat1": "s^-1",
+    "k_cat2": "s^-1",
+    "k_channel": "s^-1",
+    "k_escape": "s^-1"
+  },
+  "notes": "Literature-parameterized MVP priors for OtsA/OtsB channeling ODE. Replace with Tier-1 calibrated values after SCALE experiments."
+}

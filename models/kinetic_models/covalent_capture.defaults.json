@@ -1,0 +1,15 @@
+{
+  "mechanism_type": "covalent_capture",
+  "profile_id": "covalent_capture",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 2: Literature Parameterized",
+  "params": {
+    "k_bond": 2.0,
+    "k_rev": 0.05
+  },
+  "units": {
+    "k_bond": "relative",
+    "k_rev": "relative"
+  },
+  "notes": "SpyTag/SpyCatcher proximity-lock priors. Calibrate k_bond from SDS-PAGE time courses when available."
+}
