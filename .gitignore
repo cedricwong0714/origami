@@ -15,6 +15,7 @@ report.xml
 # Local secrets / env
 .env
 .env.*
+.streamlit/credentials.toml
 
 # Jupyter
 .ipynb_checkpoints/

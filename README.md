@@ -69,6 +69,14 @@ pip install -e ".[ui]"
 streamlit run app.py
 ```
 
+**Windows sandbox (venv + Streamlit + static demos):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\run_sandbox.ps1
+```
+
+See [`scripts/SANDBOX.md`](scripts/SANDBOX.md). Default URLs: http://localhost:8501 (UI) and http://localhost:8080/ (static demos).
+
 Opens a local dashboard with four modes:
 
 1. **Explore evidence** — retrieve parameters or refuse honestly  
