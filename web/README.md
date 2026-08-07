@@ -11,4 +11,4 @@ Published on **GitLab Pages** when `pages` CI job runs on `main`.
 
 Open in a browser, or use the Python-backed **Optimize CTPR spacing** mode in Streamlit (`streamlit run app.py`), which calls `src/scaffold_optimizer/`.
 
-Geometry constants must match `src/core/ctpr_geometry.py` (1.1 nm rise, 20° twist).
+Geometry constants must match `src/core/ctpr_geometry.py` (1.1 nm rise, 45° twist).

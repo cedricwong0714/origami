@@ -776,7 +776,7 @@ def page_optimize() -> None:
     st.header("Optimize CTPR spacing")
     st.caption(
         "Rank docking-repeat spacings (Δi) with ORIGAMI screw geometry "
-        "(1.1 nm rise, 20° twist). Scores are Tier-3 computational rankings."
+        "(1.1 nm rise, 45° twist). Scores are Tier-3 computational rankings."
     )
 
     col_in, col_out = st.columns([1, 2], gap="large")

@@ -7,9 +7,11 @@ from src.scaffold_optimizer import InteractionClass, optimize_ctpr_spacing
 
 
 def test_optimizer_uses_origami_geometry_constants():
-    result = optimize_ctpr_spacing(45.0, 25.0, InteractionClass.METABOLIC, km_M=1e-4)
+    # Payload radii chosen so ≥1 Δi clears sterics under 45°/repeat twist
+    result = optimize_ctpr_spacing(20.0, 20.0, InteractionClass.METABOLIC, km_M=1e-4)
     assert result.geometry_constants["CTPR_RISE_NM"] == CTPR_RISE_NM
     assert result.geometry_constants["CTPR_TWIST_DEG"] == CTPR_TWIST_DEG
+    assert result.geometry_constants["CTPR_TWIST_DEG"] == 45.0
     assert result.optimal_delta_i >= 1
     assert result.recommended_scaffold_repeats == result.anchor_repeat + result.optimal_delta_i + 1
     assert len(result.candidates) == 6
@@ -33,5 +35,5 @@ def test_static_html_demo_exists_and_uses_origami_priors():
 
     html = (REPO_ROOT / "web" / "ctpr_scaffold_optimizer.html").read_text(encoding="utf-8")
     assert "1.1 nm" in html or "dz = 11.0" in html
-    assert "20.0" in html or "20°" in html
-    assert "45.0 * (Math.PI" not in html  # legacy demo twist must not ship
+    assert "45.0" in html or "45°" in html
+    assert "const theta = 20.0" not in html  # superseded: Kajander 2007 → 45°/repeat

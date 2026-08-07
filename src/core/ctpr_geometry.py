@@ -5,9 +5,9 @@ Implements rigid-body screw-matrix transformations based on validated structural
 
 Key Invariants (CLASP Docs / AGENTS.md §15.1):
 - Rise per repeat: 1.1 nm (axial translation)
-- Twist per repeat: ~20 degrees (helical rotation)
+- Twist per repeat: 45 degrees (superhelical rotation; 8 repeats ≈ 1 turn)
 - Persistence length: 15 nm (rigid rod approximation for N<14)
-- Inter-site spacing example: 3 repeats ≈ 5.5 nm center-to-center
+- Inter-site spacing example: 5 repeats ≈ 5.5 nm contour (axial)
 
 Uncertainty (CLASP Docs §1.1): first-order propagation of rise/twist std
 devs through the screw transform, plus worm-like-chain flexibility when
@@ -25,9 +25,31 @@ from pydantic import BaseModel, Field, field_validator
 
 from .schema import ScaffoldSpec
 
-# Structural Constants (SCABs 2024 / Dueber 2009)
+# Structural Constants
+# Parameter: CTPR axial rise per repeat
+# Value: 1.1
+# Units: nm
+# Source: CLASP Docs (nanometer precision claim); Dueber et al. 2009; SCABs 2024
+# System: Consensus TPR (CTPR) scaffold
+# Method: Structural / design documentation for CLASP geometry
+# Notes: Axial contour only; do not confuse with superhelical pitch
 CTPR_RISE_NM = 1.1
-CTPR_TWIST_DEG = 20.0
+
+# Parameter: CTPR superhelical twist per repeat
+# Value: 45.0
+# Units: degrees
+# Source: Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800–811,
+#   DOI: 10.1107/S0907444907024353, PMID: 17582171
+#   (CTPR8 crystal structures: eight tandem repeats complete one superhelical turn
+#   → 360°/8 = 45° per repeat). Same framing: Bismut et al. (2025) Protein Science
+#   34:e70150, DOI: 10.1002/pro.70150 (explicitly cites Kajander 2007 for
+#   eight-repeat turn; 2-repeat motif offset ≈90° on CTPR4).
+# System: Designed consensus TPR arrays (CTPR8 / CTPR20), crystal lattice
+# Method: X-ray crystallography of CTPR superhelices (PDB 2AVP / 2FO7 / 2HYZ)
+# Notes: This is the *superhelical* twist between successive repeats, not the
+#   ~24° intra-repeat A/B helix tilt sometimes quoted in reviews.
+CTPR_TWIST_DEG = 45.0
+
 CTPR_RADIUS_NM = 1.8
 PERSISTENCE_LENGTH_NM = 15.0
 DOCKING_LOOP_OFFSET_NM = 0.35

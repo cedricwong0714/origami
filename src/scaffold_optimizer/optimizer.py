@@ -2,7 +2,7 @@
 CTPR scaffold spacing optimizer.
 
 Ranks docking-repeat spacings (Δi) with screw-geometry distances from
-``src.core.ctpr_geometry`` (rise 1.1 nm, twist 20°). Scoring heuristics are
+``src.core.ctpr_geometry`` (rise 1.1 nm, twist 45°). Scoring heuristics are
 **Tier-3 computational rankings** for design triage — not wet-lab validated
 Φ scores.
 """
@@ -259,7 +259,7 @@ def optimize_ctpr_spacing(
         ),
         honesty_note=(
             "Φ scores are computational ranking heuristics (Tier 3), not experimentally "
-            "calibrated fitness. Distances use ORIGAMI CTPR priors (1.1 nm rise, 20° twist). "
+            "calibrated fitness. Distances use ORIGAMI CTPR priors (1.1 nm rise, 45° twist). "
             "d_active is a payload-surface estimate, not a crystallographic active-site vector."
         ),
     )

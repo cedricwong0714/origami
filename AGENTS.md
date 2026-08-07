@@ -1556,7 +1556,7 @@ If code and docs disagree on a physical constant, **stop and ask a human** befor
 | Quantity | Canonical value / rule | Code home |
 |----------|------------------------|-----------|
 | CTPR rise per repeat | **1.1 nm** | `src/core/ctpr_geometry.py` |
-| CTPR twist per repeat | **~20°** | `src/core/ctpr_geometry.py` |
+| CTPR twist per repeat | **45°** (8 repeats ≈ 1 turn; Kajander 2007) | `src/core/ctpr_geometry.py` |
 | Docking position indexing | **1-based** repeats in `[1, N]` | `ScaffoldSpec` / `ctpr_geometry.py` |
 | Persistence length | **15 nm** (rigid-rod approx. for short scaffolds) | `src/core/ctpr_geometry.py` |
 | Scaffold cylinder radius | **1.8 nm** | `src/core/steric_checker.py` |

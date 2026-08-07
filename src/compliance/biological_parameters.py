@@ -94,11 +94,19 @@ ORIGAMI_PARAMETER_LIBRARY: dict[str, BiologicalParameter] = {
         name="CTPR twist per repeat",
         value=CTPR_TWIST_DEG,
         units="deg",
-        lower_bound=18.0,
-        upper_bound=22.0,
-        source="Dueber 2009; SCABs 2024 (CLASP Docs §2)",
-        system="CTPR scaffold repeat",
+        lower_bound=40.0,
+        upper_bound=50.0,
+        source=(
+            "Kajander et al. (2007) Acta Crystallogr D 63:800–811, "
+            "DOI: 10.1107/S0907444907024353 (CTPR8 = 1 superhelical turn → 45°/repeat); "
+            "Bismut et al. (2025) Protein Science 34:e70150, DOI: 10.1002/pro.70150"
+        ),
+        system="Designed CTPR superhelix (crystal)",
         confidence="high",
+        notes=(
+            "Superhelical twist between successive repeats (360°/8), "
+            "not intra-repeat A/B helix tilt (~24°)."
+        ),
     ),
     "PERSISTENCE_LENGTH_NM": BiologicalParameter(
         name="CTPR persistence length (short scaffolds)",
