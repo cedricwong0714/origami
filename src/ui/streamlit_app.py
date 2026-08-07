@@ -107,20 +107,22 @@ def page_explore() -> None:
 
     explorer = ExploreMode()
     keys = explorer.list_available_evidence()
-    st.write("Parameters currently in the local evidence store:")
-    st.code(", ".join(keys) if keys else "(empty)")
+    st.write(f"Local evidence corpus: **{len(keys)}** parameters")
+    with st.expander("All parameter keys"):
+        st.code("\n".join(keys) if keys else "(empty)")
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        parameter_key = st.text_input(
-            "Parameter key",
-            value="k_cat_OtsA",
-            help="Try a missing key (e.g. made_up_kcat) to see an honest refusal.",
-        )
-    with col2:
-        st.write("")
-        st.write("")
-        run = st.button("Ask evidence engine", type="primary", use_container_width=True)
+    pick = st.selectbox(
+        "Select a curated parameter",
+        options=keys,
+        index=keys.index("k_cat_OtsA") if "k_cat_OtsA" in keys else 0,
+    )
+    custom = st.text_input(
+        "Or type a key (including unknown keys to test refusal)",
+        value="",
+        placeholder="e.g. made_up_kcat",
+    )
+    parameter_key = custom.strip() or pick
+    run = st.button("Ask evidence engine", type="primary")
 
     if run and parameter_key.strip():
         result = explorer.ask(parameter_key.strip())
