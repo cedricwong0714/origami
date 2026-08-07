@@ -9,12 +9,15 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import numpy as np
+
 from src.compiler.expression_vector import (
     ExpressionPlan,
     validate_expression_plan,
     verify_parts_against_allowlist,
 )
 from src.core.calcium_kinetics import recruitment_occupancy
+from src.core.clasp_assembly import CLASPParameters, predict_luminescence
 from src.core.ctpr_geometry import generate_scaffold_geometry
 from src.core.linker_ensemble import compute_effective_concentration, parse_linker
 from src.core.schema import DesignSpec, MoCloPart
@@ -51,9 +54,11 @@ class DesignMode:
         recruitment = recruitment_occupancy(ca2_free_M)
 
         linker = parse_linker(linker_sequence)
+        distance_uncertainty_nm = None
         # Use first inter-site distance when ≥2 docking sites exist
         if len(geometry.docking_sites) >= 2:
             distance = geometry.get_inter_site_distance_nm(0, 1)
+            distance_uncertainty_nm = geometry.get_inter_site_distance_uncertainty_nm(0, 1)
         else:
             distance = geometry.total_length_nm
         reach = compute_effective_concentration(linker, anchor_distance_nm=distance)
@@ -75,6 +80,21 @@ class DesignMode:
         if not input_errors:
             prediction = profile.predict(spec)
 
+        # Stream 1 assembly dose-response (Docs-6 Layer 1) — shared physical engine
+        ca_grid_M = np.logspace(-8, -4, 9)
+        r_series = predict_luminescence(
+            ca_grid_M, params=CLASPParameters(), E_T=1e-6, M_T=1e-6, t_end=1800.0
+        )
+        assembly_dose_response = {
+            "calcium_M": [float(x) for x in ca_grid_M],
+            "luminescence_RLU": [float(x) for x in r_series],
+            "operating_ca2_M": float(ca2_free_M),
+            "note": (
+                "Mechanistic CLASP assembly ODE prediction (literature-parameterized). "
+                "Not a wet-lab measurement. Hill n=4 ORIGAMI invariant."
+            ),
+        }
+
         verification = evaluate_design(
             spec,
             parts,
@@ -90,6 +110,8 @@ class DesignMode:
         warnings: list[str] = []
         warnings.extend(allowlist_report.get("warnings", []))
         warnings.extend(expression_report.get("warnings", []))
+        if geometry.rigid_rod_warning:
+            warnings.append(geometry.rigid_rod_warning)
         if not steric.is_feasible:
             warnings.append(
                 "Steric check reported clashes (review geometry; not an automatic hard reject in MVP)."
@@ -111,6 +133,8 @@ class DesignMode:
             expression_report=expression_report,
             blocking=blocking,
             warnings=warnings,
+            inter_site_distance_nm=distance,
+            inter_site_distance_uncertainty_nm=distance_uncertainty_nm,
         )
 
         return {
@@ -118,10 +142,13 @@ class DesignMode:
             "errors": blocking,
             "warnings": warnings,
             "geometry": geometry.model_dump(),
+            "inter_site_distance_nm": distance,
+            "inter_site_distance_uncertainty_nm": distance_uncertainty_nm,
             "recruitment": recruitment.model_dump(),
             "linker_reach": reach.model_dump(),
             "steric": steric.model_dump(),
             "prediction": prediction.model_dump() if prediction else None,
+            "assembly_dose_response": assembly_dose_response,
             "verification_report": verification,
             "passport": passport,
         }
@@ -151,6 +178,11 @@ class DesignMode:
                 "total_length_nm": ctx["geometry"].total_length_nm,
                 "is_rigid": ctx["geometry"].is_rigid,
                 "n_docking_sites": len(ctx["geometry"].docking_sites),
+                "wlc_end_to_end_rms_nm": ctx["geometry"].wlc_end_to_end_rms_nm,
+                "inter_site_distance_nm": ctx.get("inter_site_distance_nm"),
+                "inter_site_distance_uncertainty_nm": ctx.get(
+                    "inter_site_distance_uncertainty_nm"
+                ),
             },
             "recruitment_occupancy": ctx["recruitment"].occupancy_fraction,
             "linker_c_eff_mM": ctx["reach"].c_eff_mM,
@@ -178,7 +210,7 @@ class DesignMode:
             "warnings": ctx.get("warnings", []),
             "model_versions": {
                 "profile": profile.version,
-                "physical_engine": "ctpr+linker+steric+calcium_v1",
+                "physical_engine": "ctpr+linker+steric+calcium+clasp_assembly_v1",
             },
         }
 

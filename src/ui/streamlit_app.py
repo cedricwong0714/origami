@@ -330,113 +330,232 @@ def page_design() -> None:
                 linker_sequence=linker,
             )
         result["design_id"] = design_id
+        st.session_state["last_design_result"] = result
+        st.session_state["last_design_spec"] = spec
+        st.session_state["last_design_id"] = design_id
 
-        if result["status"] == "SUCCESS":
-            st.success("Design accepted (software checks). Not a wet-lab validation.")
-        else:
-            st.error("Design rejected — see blocking errors.")
-            for err in result.get("errors", []):
-                st.write(f"- {err}")
+    result = st.session_state.get("last_design_result")
+    if not result:
+        return
 
-        for w in result.get("warnings", []):
-            st.warning(w)
+    design_id = result.get("design_id") or st.session_state.get("last_design_id", "UI_DESIGN_001")
+    spec = st.session_state.get("last_design_spec")
+    mechanism = (
+        spec.mechanism_type
+        if spec is not None
+        else MechanismType.INTERMEDIATE_TRANSFER
+    )
 
-        passport = result.get("passport") or {}
-        st.subheader("Proximity Design Passport")
-        dl1, dl2 = st.columns(2)
-        with dl1:
-            st.download_button(
-                "Download passport JSON",
-                data=passport_json_bytes(result),
-                file_name=f"{design_id}_passport.json",
-                mime="application/json",
+    if result["status"] == "SUCCESS":
+        st.success("Design accepted (software checks). Not a wet-lab validation.")
+    else:
+        st.error("Design rejected — see blocking errors.")
+        for err in result.get("errors", []):
+            st.write(f"- {err}")
+
+    for w in result.get("warnings", []):
+        st.warning(w)
+
+    passport = result.get("passport") or {}
+    st.subheader("Proximity Design Passport")
+    dl1, dl2 = st.columns(2)
+    with dl1:
+        st.download_button(
+            "Download passport JSON",
+            data=passport_json_bytes(result),
+            file_name=f"{design_id}_passport.json",
+            mime="application/json",
+        )
+    with dl2:
+        st.download_button(
+            "Download wiki markdown snippet",
+            data=wiki_markdown_snippet(result, spec=spec).encode("utf-8"),
+            file_name=f"{design_id}_wiki_snippet.md",
+            mime="text/markdown",
+        )
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Profile", passport.get("mechanism_profile", "—"))
+    m2.metric("Evidence maturity", str(passport.get("evidence_maturity", "—"))[:28])
+    m3.metric("Biosecurity", passport.get("biosecurity_review_state", "—"))
+    m4.metric("Steric OK", str(passport.get("steric_feasible")))
+    if passport.get("payload_roles"):
+        st.caption(
+            "Payload roles: "
+            + ", ".join(f"{k}→{v}" for k, v in passport["payload_roles"].items())
+        )
+
+    pred = result.get("prediction")
+    if pred:
+        st.subheader("Prediction (with uncertainty)")
+        lo, hi = pred["uncertainty_95ci"]
+        st.metric(
+            pred["primary_metric_name"],
+            f"{pred['primary_metric_value']:.4g} {pred['unit']}",
+            help=f"95% CI [{lo:.4g}, {hi:.4g}] — computational/literature tier until calibrated",
+        )
+        st.caption(f"95% CI: [{lo:.4g}, {hi:.4g}]")
+        for a in pred.get("assumptions", []):
+            st.write(f"- assumption: {a}")
+        for w in pred.get("warnings", []):
+            st.write(f"- warning: {w}")
+
+    geo = result.get("geometry") or {}
+    if geo:
+        st.subheader("Geometry summary")
+        g1, g2, g3, g4 = st.columns(4)
+        g1.metric("Length (nm)", f"{geo.get('total_length_nm', 0):.2f}")
+        g2.metric("Rigid", str(geo.get("is_rigid")))
+        g3.metric("Docking sites", len(geo.get("docking_sites") or []))
+        dist = result.get("inter_site_distance_nm")
+        dunc = result.get("inter_site_distance_uncertainty_nm")
+        if dist is not None:
+            g4.metric(
+                "Inter-site (nm)",
+                f"{dist:.2f}",
+                help=(f"1σ uncertainty ≈ {dunc:.3f} nm" if dunc is not None else None),
             )
-        with dl2:
-            st.download_button(
-                "Download wiki markdown snippet",
-                data=wiki_markdown_snippet(result, spec=spec).encode("utf-8"),
-                file_name=f"{design_id}_wiki_snippet.md",
-                mime="text/markdown",
+        if geo.get("wlc_end_to_end_rms_nm") is not None and not geo.get("is_rigid"):
+            st.caption(
+                f"WLC end-to-end RMS ≈ {geo['wlc_end_to_end_rms_nm']:.2f} nm "
+                f"(rigid rod would be {geo.get('total_length_nm', 0):.2f} nm)"
             )
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Profile", passport.get("mechanism_profile", "—"))
-        m2.metric("Evidence maturity", str(passport.get("evidence_maturity", "—"))[:28])
-        m3.metric("Biosecurity", passport.get("biosecurity_review_state", "—"))
-        m4.metric("Steric OK", str(passport.get("steric_feasible")))
-        if passport.get("payload_roles"):
-            st.caption("Payload roles: " + ", ".join(
-                f"{k}→{v}" for k, v in passport["payload_roles"].items()
-            ))
+        try:
+            import plotly.graph_objects as go
 
-        pred = result.get("prediction")
-        if pred:
-            st.subheader("Prediction (with uncertainty)")
-            lo, hi = pred["uncertainty_95ci"]
-            st.metric(
-                pred["primary_metric_name"],
-                f"{pred['primary_metric_value']:.4g} {pred['unit']}",
-                help=f"95% CI [{lo:.4g}, {hi:.4g}] — computational/literature tier until calibrated",
-            )
-            st.caption(f"95% CI: [{lo:.4g}, {hi:.4g}]")
-            for a in pred.get("assumptions", []):
-                st.write(f"- assumption: {a}")
-            for w in pred.get("warnings", []):
-                st.write(f"- warning: {w}")
-
-        geo = result.get("geometry") or {}
-        if geo:
-            st.subheader("Geometry summary")
-            g1, g2, g3 = st.columns(3)
-            g1.metric("Length (nm)", f"{geo.get('total_length_nm', 0):.2f}")
-            g2.metric("Rigid", str(geo.get("is_rigid")))
-            g3.metric("Docking sites", len(geo.get("docking_sites") or []))
-            # Simple 2D projection of backbone
-            try:
-                import plotly.graph_objects as go
-
-                backbone = geo.get("backbone_coordinates_nm") or []
-                if backbone:
-                    xs = [p[0] for p in backbone]
-                    ys = [p[2] for p in backbone]
-                    fig = go.Figure()
+            backbone = geo.get("backbone_coordinates_nm") or []
+            if backbone:
+                xs = [p[0] for p in backbone]
+                ys = [p[2] for p in backbone]
+                fig = go.Figure()
+                fig.add_trace(
+                    go.Scatter(
+                        x=xs,
+                        y=ys,
+                        mode="lines+markers",
+                        name="CTPR backbone (x–z)",
+                        line=dict(color="#266FB1"),
+                    )
+                )
+                for site in geo.get("docking_sites") or []:
+                    pos = site["position_nm"]
                     fig.add_trace(
                         go.Scatter(
-                            x=xs,
-                            y=ys,
-                            mode="lines+markers",
-                            name="CTPR backbone (x–z)",
-                            line=dict(color="#266FB1"),
+                            x=[pos[0]],
+                            y=[pos[2]],
+                            mode="markers",
+                            name=f"dock r{site['repeat_index']}",
+                            marker=dict(size=12, color="#FF8000"),
                         )
                     )
-                    for site in geo.get("docking_sites") or []:
-                        pos = site["position_nm"]
-                        fig.add_trace(
-                            go.Scatter(
-                                x=[pos[0]],
-                                y=[pos[2]],
-                                mode="markers",
-                                name=f"dock r{site['repeat_index']}",
-                                marker=dict(size=12, color="#FF8000"),
-                            )
-                        )
-                    fig.update_layout(
-                        height=360,
-                        margin=dict(l=20, r=20, t=30, b=20),
-                        paper_bgcolor="rgba(0,0,0,0)",
-                        plot_bgcolor="rgba(235,228,217,0.65)",
-                        font=dict(color="#242220"),
-                        xaxis_title="x (nm)",
-                        yaxis_title="z (nm)",
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-            except Exception as exc:  # plotly optional at runtime
-                st.info(f"Geometry plot unavailable: {exc}")
+                fig.update_layout(
+                    height=360,
+                    margin=dict(l=20, r=20, t=30, b=20),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(235,228,217,0.65)",
+                    font=dict(color="#242220"),
+                    xaxis_title="x (nm)",
+                    yaxis_title="z (nm)",
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        except Exception as exc:
+            st.info(f"Geometry plot unavailable: {exc}")
 
-        with st.expander("Full passport JSON"):
-            st.code(json.dumps(passport, indent=2, default=str))
-        with st.expander("Required controls & measurements"):
-            st.json(passport.get("required_controls"))
-            st.write(passport.get("required_measurements"))
+    adr = result.get("assembly_dose_response")
+    if adr:
+        st.subheader("CLASP assembly Ca²⁺ dose-response (Stream 1 ODE)")
+        st.caption(adr.get("note", ""))
+        try:
+            import plotly.graph_objects as go
+
+            ca_uM_axis = [c * 1e6 for c in adr["calcium_M"]]
+            fig2 = go.Figure()
+            fig2.add_trace(
+                go.Scatter(
+                    x=ca_uM_axis,
+                    y=adr["luminescence_RLU"],
+                    mode="lines+markers",
+                    name="predicted RLU",
+                    line=dict(color="#FF8000"),
+                )
+            )
+            op_uM = float(adr["operating_ca2_M"]) * 1e6
+            fig2.add_vline(
+                x=op_uM,
+                line_dash="dash",
+                line_color="#266FB1",
+                annotation_text=f"operating {op_uM:.2g} µM",
+            )
+            fig2.update_layout(
+                height=340,
+                margin=dict(l=20, r=20, t=30, b=20),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(235,228,217,0.65)",
+                font=dict(color="#242220"),
+                xaxis_title="free Ca²⁺ (µM)",
+                yaxis_title="predicted luminescence (RLU)",
+                xaxis_type="log",
+            )
+            st.plotly_chart(fig2, use_container_width=True)
+        except Exception as exc:
+            st.info(f"Dose-response plot unavailable: {exc}")
+
+    st.subheader("Freeze prospective prediction (Docs §1.6)")
+    st.caption(
+        "Writes a checksummed prediction file before wet-lab comparison. "
+        "Immutable once written — use a new prediction_id to revise."
+    )
+    freeze_id = st.text_input("Prediction ID", value=f"{design_id}_assembly_v1")
+    if st.button("Freeze this Design prediction"):
+        try:
+            from src.predictions.freeze import freeze_prediction
+
+            pred_block: dict[str, Any] = {}
+            if result.get("prediction"):
+                p = result["prediction"]
+                lo, hi = p["uncertainty_95ci"]
+                pred_block["primary"] = {
+                    "predicted_value": p["primary_metric_value"],
+                    "uncertainty_95_lower": lo,
+                    "uncertainty_95_upper": hi,
+                    "confidence_tier": "hypothesis_only",
+                    "units": p.get("unit", ""),
+                }
+            if adr:
+                for ca, rlu in zip(adr["calcium_M"], adr["luminescence_RLU"]):
+                    pred_block[f"ca_{ca * 1e6:g}uM"] = {
+                        "predicted_value": rlu,
+                        "uncertainty_95_lower": rlu * 0.7,
+                        "uncertainty_95_upper": rlu * 1.3,
+                        "confidence_tier": "hypothesis_only",
+                        "units": "RLU",
+                    }
+            path = freeze_prediction(
+                freeze_id.strip() or f"{design_id}_v1",
+                design_spec={
+                    "design_id": design_id,
+                    "mechanism": mechanism.value,
+                    "scaffold": geo,
+                },
+                predictions=pred_block,
+                model_version=str(passport.get("profile_version", "unknown")),
+                parameter_sources=[
+                    "models/kinetic_models/",
+                    "src/core/clasp_assembly.py",
+                ],
+                assumptions=[
+                    "Frozen before wet-lab comparison",
+                    "Assembly dose-response is literature-parameterized",
+                ],
+            )
+            st.success(f"Frozen at `{path}`")
+        except Exception as exc:
+            st.error(f"Freeze failed: {exc}")
+
+    with st.expander("Full passport JSON"):
+        st.code(json.dumps(passport, indent=2, default=str))
+    with st.expander("Required controls & measurements"):
+        st.json(passport.get("required_controls"))
+        st.write(passport.get("required_measurements"))
 
 
 def page_learn() -> None:
@@ -453,7 +572,11 @@ def page_learn() -> None:
         format_func=lambda m: _MECHANISM_LABELS[m],
         key="learn_mech",
     )
-    strategy = st.selectbox("Acquisition strategy", ["UCB", "EI"])
+    strategy = st.selectbox(
+        "Acquisition strategy",
+        ["UCB", "EI", "information_gain"],
+        help="information_gain (EIG) maximizes learning for model calibration",
+    )
     n_points = st.slider("Time points", 10, 100, 40)
 
     source = st.radio(

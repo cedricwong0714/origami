@@ -67,7 +67,7 @@ class LearnMode:
         time_span: tuple[float, float] = (0.0, 100.0),
         experimental_time: Optional[Sequence[float]] = None,
         initial_concentrations: Optional[dict[str, float]] = None,
-        strategy: Literal["UCB", "EI"] = "UCB",
+        strategy: Literal["UCB", "EI", "information_gain"] = "UCB",
         top_k: int = 3,
         data_class: Optional[str] = None,
         package_warnings: Optional[list[str]] = None,
@@ -103,14 +103,40 @@ class LearnMode:
         rmse = float(np.sqrt(np.mean(residual ** 2)))
         max_abs_err = float(np.max(np.abs(residual)))
 
-        generator = ExperimentGenerator(gp)
-        recommendations = generator.suggest_next_experiments(
-            candidate_time_points=t,
-            candidate_ode_baseline=ode_product,
-            top_k=top_k,
-            strategy=strategy,
-            current_best=float(np.max(exp)),
-        )
+        if strategy == "information_gain":
+            from src.experiment_design.bayesian_selector import BayesianExperimentSelector
+            from src.gp_model.residual_gp import ResidualGP
+
+            # Fit Matérn ResidualGP on the same residual surface for EIG
+            residual_gp = ResidualGP()
+            X = t.reshape(-1, 1)
+            residual_gp.fit(X, exp, ode_product)
+            selector = BayesianExperimentSelector(residual_gp)
+            eig_recs = selector.recommend(
+                X,
+                ode_product,
+                objective="information_gain",
+                n_recommendations=top_k,
+            )
+            recommendations = [
+                {
+                    "time_point": float(r.features[0]),
+                    "predicted_mean": r.predicted_mean,
+                    "uncertainty_std": r.uncertainty_std,
+                    "acquisition_score": r.acquisition_score,
+                    "objective": r.objective,
+                }
+                for r in eig_recs
+            ]
+        else:
+            generator = ExperimentGenerator(gp)
+            recommendations = generator.suggest_next_experiments(
+                candidate_time_points=t,
+                candidate_ode_baseline=ode_product,
+                top_k=top_k,
+                strategy=strategy,
+                current_best=float(np.max(exp)),
+            )
 
         honesty = (
             "Positive residual means observation exceeded mechanistic baseline; "
