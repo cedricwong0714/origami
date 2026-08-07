@@ -141,12 +141,13 @@ src/
   moclo_compiler/  Level-1 assembly + GenBank draft
   verification/    Multi-layer design checks
   ui/              Explore / Design / Learn + CLI
+  data_ingestion/  Learn timeseries package loaders
 models/
   kinetic_models/        Tracked JSON rate priors (loaded by profiles)
   structure_predictions/ AF/ESM summaries (PDBs gitignored → Zenodo)
   benchmarks/            Held-out evaluation index
 data/
-  stage1_ingestion/      Early assay metadata + schema
+  stage1_ingestion/      Assay metadata + Learn CSV templates/schema
   stage2_baselines/      Geometry / intracellular baselines + schema
   raw_metadata/          Assay-condition templates
 tests/

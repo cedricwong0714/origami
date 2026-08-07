@@ -339,7 +339,8 @@ def page_learn() -> None:
     st.header("Learn from data")
     st.caption(
         "Compare mechanistic ODE baseline with observations; recommend the next informative measurement. "
-        "GP correction is a residual model — not proof of a molecular mechanism."
+        "GP correction is a residual model — not proof of a molecular mechanism. "
+        "Tier-1 uploads need the CSV + metadata sidecar from `data/stage1_ingestion/templates/`."
     )
 
     mechanism = st.selectbox(
@@ -353,11 +354,18 @@ def page_learn() -> None:
 
     source = st.radio(
         "Observation source",
-        ["Synthetic demo curve (labeled fixture)", "Upload CSV (time, product)"],
+        [
+            "Synthetic demo curve (labeled fixture)",
+            "Upload Learn package (CSV + metadata JSON)",
+        ],
         horizontal=True,
     )
 
     experimental = None
+    experimental_time = None
+    data_class: str | None = None
+    package_warnings: list[str] = []
+
     if source.startswith("Synthetic"):
         st.warning(
             "Synthetic fixture for UI demo only — not Tier-1 experimental data. "
@@ -365,24 +373,42 @@ def page_learn() -> None:
         )
         amp = st.slider("Synthetic amplitude", 0.1, 1.5, 0.8)
         rate = st.slider("Synthetic rate", 0.01, 0.2, 0.04)
-        t = np.linspace(0.0, 100.0, n_points)
-        experimental = amp * (1.0 - np.exp(-rate * t))
+        experimental_time = np.linspace(0.0, 100.0, n_points)
+        experimental = amp * (1.0 - np.exp(-rate * experimental_time))
+        data_class = "synthetic_fixture"
         st.line_chart({"synthetic_product": experimental})
     else:
-        upload = st.file_uploader("CSV with columns: time, product", type=["csv"])
-        if upload is not None:
+        csv_upload = st.file_uploader("Product CSV (`time`, `product`)", type=["csv"])
+        meta_upload = st.file_uploader(
+            "Metadata sidecar (`.metadata.json` from templates/)",
+            type=["json"],
+        )
+        if csv_upload is not None and meta_upload is not None:
             try:
-                import pandas as pd
+                from src.data_ingestion import (
+                    LearnTimeseriesValidationError,
+                    load_learn_timeseries_package,
+                )
 
-                df = pd.read_csv(upload)
-                cols = {c.lower(): c for c in df.columns}
-                t_col = cols.get("time") or list(df.columns)[0]
-                p_col = cols.get("product") or list(df.columns)[1]
-                experimental = df[p_col].to_numpy(dtype=float)
-                n_points = len(experimental)
-                st.write(f"Loaded {n_points} points from `{t_col}`, `{p_col}`.")
+                pkg = load_learn_timeseries_package(csv_upload, meta_upload)
+                experimental = pkg.product
+                experimental_time = pkg.time
+                data_class = pkg.metadata.data_class
+                package_warnings = list(pkg.warnings)
+                mechanism = pkg.metadata.mechanism_type
+                st.write(
+                    f"Loaded `{pkg.metadata.record_id}` · {len(experimental)} points · "
+                    f"data_class=`{data_class}` · mechanism=`{mechanism.value}`"
+                )
+                for warning in package_warnings:
+                    st.warning(warning)
+                st.line_chart({"product": experimental})
+            except LearnTimeseriesValidationError as exc:
+                st.error(f"Package rejected: {exc}")
             except Exception as exc:
-                st.error(f"Could not parse CSV: {exc}")
+                st.error(f"Could not load package: {exc}")
+        elif csv_upload is not None or meta_upload is not None:
+            st.info("Upload both the CSV and its metadata JSON sidecar.")
 
     if st.button("Run Learn Mode", type="primary") and experimental is not None:
         payload_ids = ["OtsA", "OtsB"]
@@ -409,8 +435,11 @@ def page_learn() -> None:
             result = LearnMode().run(
                 spec,
                 experimental_product=np.asarray(experimental, dtype=float),
+                experimental_time=experimental_time,
                 strategy=strategy,  # type: ignore[arg-type]
                 top_k=3,
+                data_class=data_class,
+                package_warnings=package_warnings,
             )
 
         if result["status"] != "SUCCESS":
@@ -420,9 +449,12 @@ def page_learn() -> None:
         st.success(
             f"Learn Mode finished · evidence maturity reported as: {result['evidence_maturity']}"
         )
+        if result.get("data_class"):
+            st.caption(f"Input data_class: `{result['data_class']}`")
         st.caption(
             "Maturity reflects that observations were supplied to the software — "
-            "confirm in the lab notebook before calling data Tier-1 on the wiki."
+            "confirm in the lab notebook before calling data Tier-1 on the wiki. "
+            "RMSE review is a human gate before wiki use."
         )
 
         t = np.asarray(result["time_points"])

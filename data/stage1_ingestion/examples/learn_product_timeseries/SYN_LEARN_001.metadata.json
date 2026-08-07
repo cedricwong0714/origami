@@ -1,0 +1,29 @@
+{
+  "record_id": "SYN_LEARN_001",
+  "data_class": "synthetic_fixture",
+  "assay_type": "product_timeseries",
+  "created_utc": "2026-08-07T00:00:00Z",
+  "operator": null,
+  "mechanism_type": "intermediate_transfer",
+  "primary_metric": "product",
+  "unit": "relative",
+  "time_unit": "s",
+  "biological_replicate_id": "fixture_rep_01",
+  "metadata": {
+    "temperature_C": 25.0,
+    "buffer": "PBS fixture",
+    "host_or_format": "E_coli_fixture",
+    "instrument": "synthetic_generator",
+    "n_technical_replicates": 1
+  },
+  "controls": {
+    "blank_or_negative_recorded": true,
+    "notes": "Synthetic fixture only — blank recorded as all-zero series in notebook fiction."
+  },
+  "csv_columns": {
+    "time": "time",
+    "product": "product"
+  },
+  "csv_filename": "SYN_LEARN_001.csv",
+  "notes": "SYNTHETIC FIXTURE for schema/CI and Learn Mode demos — not a measured CLASP result."
+}

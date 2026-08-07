@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ORIGAMILearnProductTimeseriesMetadata",
+  "description": "Sidecar for Learn Mode CSV packages (Verification checklist D).",
+  "type": "object",
+  "required": [
+    "record_id",
+    "data_class",
+    "assay_type",
+    "created_utc",
+    "mechanism_type",
+    "primary_metric",
+    "unit",
+    "time_unit",
+    "biological_replicate_id",
+    "metadata",
+    "controls",
+    "csv_columns"
+  ],
+  "properties": {
+    "record_id": { "type": "string" },
+    "data_class": {
+      "type": "string",
+      "enum": ["synthetic_fixture", "tier1_experimental", "literature_extracted"]
+    },
+    "assay_type": {
+      "type": "string",
+      "const": "product_timeseries"
+    },
+    "created_utc": { "type": "string" },
+    "operator": { "type": ["string", "null"] },
+    "mechanism_type": {
+      "type": "string",
+      "enum": [
+        "intermediate_transfer",
+        "target_complementation",
+        "redox_transfer",
+        "covalent_capture"
+      ]
+    },
+    "primary_metric": {
+      "type": "string",
+      "description": "Must match the profile primary metric label (e.g. product, luminescence)."
+    },
+    "unit": { "type": "string" },
+    "time_unit": { "type": "string", "enum": ["s", "min", "h"] },
+    "biological_replicate_id": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": ["temperature_C", "buffer", "host_or_format", "instrument"],
+      "properties": {
+        "temperature_C": { "type": "number" },
+        "buffer": { "type": "string" },
+        "host_or_format": { "type": "string" },
+        "instrument": { "type": "string" },
+        "n_technical_replicates": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "required": ["blank_or_negative_recorded", "notes"],
+      "properties": {
+        "blank_or_negative_recorded": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "csv_columns": {
+      "type": "object",
+      "required": ["time", "product"],
+      "properties": {
+        "time": { "type": "string" },
+        "product": { "type": "string" }
+      }
+    },
+    "csv_filename": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

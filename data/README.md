@@ -4,7 +4,7 @@ Experimental records and metadata for CLASP → ORIGAMI.
 
 | Path | Contents |
 |------|----------|
-| `stage1_ingestion/` | Early characterization: MW/yield notes, Spy kinetics metadata, NanoBiT plate metadata |
+| `stage1_ingestion/` | Early characterization + Learn CSV/metadata templates (`templates/`, `schema_learn_timeseries.json`) |
 | `stage2_baselines/` | Intracellular / CTPR library baselines once SCALE M1+ exists |
 | `raw_metadata/` | Assay condition templates (T, buffer, instrument) |
 

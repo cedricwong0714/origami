@@ -1,0 +1,29 @@
+{
+  "record_id": "YYYYMMDD_OPERATOR_MECH_REP01",
+  "data_class": "tier1_experimental",
+  "assay_type": "product_timeseries",
+  "created_utc": "YYYY-MM-DDTHH:MM:SSZ",
+  "operator": "",
+  "mechanism_type": "intermediate_transfer",
+  "primary_metric": "product",
+  "unit": "relative",
+  "time_unit": "s",
+  "biological_replicate_id": "bio_rep_01",
+  "metadata": {
+    "temperature_C": 25.0,
+    "buffer": "",
+    "host_or_format": "E_coli",
+    "instrument": "",
+    "n_technical_replicates": 1
+  },
+  "controls": {
+    "blank_or_negative_recorded": false,
+    "notes": "List blank / no-Ca2+ / scrambled docking / dead CaM as applicable."
+  },
+  "csv_columns": {
+    "time": "time",
+    "product": "product"
+  },
+  "csv_filename": "learn_product_timeseries.csv",
+  "notes": "Fill product column; set data_class=tier1_experimental only for real lab measurements with operator + date."
+}

@@ -7,7 +7,7 @@ layer and returns acquisition-ranked follow-ups.
 
 from __future__ import annotations
 
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Sequence
 
 import numpy as np
 
@@ -19,15 +19,58 @@ from src.ode_model.solver import run_system_simulation
 from src.profiles import get_profile
 
 
+def _ode_product_on_grid(
+    *,
+    initial: dict[str, float],
+    mechanism_type: Any,
+    experimental_time: Optional[np.ndarray],
+    time_span: tuple[float, float],
+    n_obs: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Evaluate mechanistic product on the observation time grid.
+
+    When experimental times are supplied, integrate on a denser linspace
+    and interpolate onto those times so residuals are pointwise honest.
+    """
+    if experimental_time is not None:
+        t_obs = np.asarray(experimental_time, dtype=float)
+        if t_obs.ndim != 1 or len(t_obs) != n_obs:
+            raise ValueError("experimental_time must be 1-D and match experimental_product length")
+        if np.any(np.diff(t_obs) <= 0):
+            raise ValueError("experimental_time must be strictly increasing")
+        span = (float(t_obs[0]), float(t_obs[-1]))
+        dense_n = max(200, n_obs * 5)
+        t_dense, concs = run_system_simulation(
+            initial,
+            time_span=span,
+            mechanism_type=mechanism_type,
+            num_points=dense_n,
+        )
+        ode_product = np.interp(t_obs, t_dense, concs["P"])
+        return t_obs, ode_product
+
+    t, concs = run_system_simulation(
+        initial,
+        time_span=time_span,
+        mechanism_type=mechanism_type,
+        num_points=n_obs,
+    )
+    return t, concs["P"]
+
+
 class LearnMode:
     def run(
         self,
         spec: DesignSpec,
         experimental_product: np.ndarray,
         time_span: tuple[float, float] = (0.0, 100.0),
+        experimental_time: Optional[Sequence[float]] = None,
         initial_concentrations: Optional[dict[str, float]] = None,
         strategy: Literal["UCB", "EI"] = "UCB",
         top_k: int = 3,
+        data_class: Optional[str] = None,
+        package_warnings: Optional[list[str]] = None,
     ) -> dict[str, Any]:
         if experimental_product is None or len(experimental_product) < 2:
             return {
@@ -38,20 +81,25 @@ class LearnMode:
         profile = get_profile(spec.mechanism_type)
         initial = initial_concentrations or {"S": 1.0, "E": 0.1, "E2": 0.1, "ES": 0.0, "P": 0.0}
         n = len(experimental_product)
+        exp = np.asarray(experimental_product, dtype=float)
+        t_obs = None if experimental_time is None else np.asarray(experimental_time, dtype=float)
 
-        t, concs = run_system_simulation(
-            initial,
-            time_span=time_span,
-            mechanism_type=spec.mechanism_type,
-            num_points=n,
-        )
-        ode_product = concs["P"]
+        try:
+            t, ode_product = _ode_product_on_grid(
+                initial=initial,
+                mechanism_type=spec.mechanism_type,
+                experimental_time=t_obs,
+                time_span=time_span,
+                n_obs=n,
+            )
+        except ValueError as exc:
+            return {"status": "REJECTED", "errors": [str(exc)]}
 
         gp = GPCorrectionModel()
-        gp.fit(t, ode_product, experimental_product)
+        gp.fit(t, ode_product, exp)
         augmented = predict_augmented_kinetics(t, ode_product, gp)
 
-        residual = experimental_product - ode_product
+        residual = exp - ode_product
         rmse = float(np.sqrt(np.mean(residual ** 2)))
         max_abs_err = float(np.max(np.abs(residual)))
 
@@ -61,8 +109,16 @@ class LearnMode:
             candidate_ode_baseline=ode_product,
             top_k=top_k,
             strategy=strategy,
-            current_best=float(np.max(experimental_product)),
+            current_best=float(np.max(exp)),
         )
+
+        honesty = (
+            "Positive residual means observation exceeded mechanistic baseline; "
+            "GP correction captures the discrepancy with uncertainty. "
+            "Next-experiment suggestions are proposals, not orders."
+        )
+        if data_class == "synthetic_fixture":
+            honesty += " Input data_class=synthetic_fixture — not Tier-1 experimental."
 
         return {
             "status": "SUCCESS",
@@ -70,18 +126,17 @@ class LearnMode:
             "evidence_maturity": profile.assign_evidence_level(
                 spec, has_experimental_data=True
             ).value,
+            "data_class": data_class,
+            "package_warnings": list(package_warnings or []),
             "time_points": t,
             "ode_baseline_product": ode_product,
-            "experimental_product": experimental_product,
+            "experimental_product": exp,
             "augmented_kinetics": augmented,
             "comparison": {
                 "rmse": rmse,
                 "max_abs_error": max_abs_err,
                 "n_points": n,
-                "note": (
-                    "Positive residual means observation exceeded mechanistic baseline; "
-                    "GP correction captures the discrepancy with uncertainty."
-                ),
+                "note": honesty,
             },
             "next_experiment_recommendations": recommendations,
             "required_controls": profile.required_controls(spec).model_dump(),

@@ -102,6 +102,6 @@ Refusal rule: if confidence &lt; project threshold, Explore Mode must return ins
 | A | `src/verification/`, `src/ui/design_mode.py` |
 | B | `tests/physical_invariants/` |
 | C | `src/evidence_engine/`, `src/ui/explore_mode.py` |
-| D | `src/ui/learn_mode.py`, `src/gp_model/` |
+| D | `src/ui/learn_mode.py`, `src/data_ingestion/learn_timeseries.py`, `data/stage1_ingestion/templates/`, `src/gp_model/` |
 | E | `src/compiler/` |
 | F | `.gitlab-ci.yml`, `README.md` |
