@@ -20,6 +20,20 @@ Three operating modes:
 2. **Design** — geometry → mechanistic prediction → allowlisted construct checks → Proximity Design Passport  
 3. **Learn** — compare prediction with data; recommend the next informative experiment  
 
+### Stream 1 mathematical engines (CLASP Docs)
+
+| Layer | Module | Role |
+|-------|--------|------|
+| Geometry + uncertainty | `src/core/ctpr_geometry.py` | Screw-matrix CTPR coords, WLC flexibility, first-order σ |
+| Assembly ODE | `src/core/clasp_assembly.py` | CaM–M13 recruitment + Spy locking + luminescence |
+| Residual GP | `src/gp_model/residual_gp.py` | Matérn(ν=2.5) residual correction (small-data) |
+| Stacked ensemble | `src/gp_model/stacked_ensemble.py` | ODE + GP + optional XGBoost (≥15 pts, soft dep) |
+| Fisher / fit | `src/calibration/` | FIM, CRLB identifiability, bounded least-squares |
+| Active learning | `src/experiment_design/bayesian_selector.py` | EI / EIG next-experiment selection |
+| Prospective freeze | `src/predictions/freeze.py` | Timestamped + checksummed predictions vs observation |
+
+CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install origami[ml]`).
+
 Repository (judging artifact): [gitlab.ISEF.org/2026/software/hong-kong-team/origami](https://gitlab.ISEF.org/2026/software/hong-kong-team/origami)
 
 > **Using an AI assistant?** Read [.claude/RESPONSIBLE_AI_USE.md](.claude/RESPONSIBLE_AI_USE.md) and [AGENTS.md](AGENTS.md). You remain responsible for every claim and every commit.

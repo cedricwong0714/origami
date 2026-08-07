@@ -125,6 +125,89 @@ def _cmd_optimize(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_freeze(args: argparse.Namespace) -> int:
+    """Freeze a prospective CLASP dose-response prediction (Docs §1.6)."""
+    import json
+
+    from src.core.clasp_assembly import CLASPParameters, predict_luminescence
+    from src.predictions.freeze import freeze_prediction
+
+    params = CLASPParameters()
+    ca_grid = [float(x) for x in args.calcium_uM.split(",")]
+    ca_M = [c * 1e-6 for c in ca_grid]
+    values = predict_luminescence(
+        __import__("numpy").asarray(ca_M),
+        params=params,
+        E_T=args.e_t,
+        M_T=args.m_t,
+        t_end=args.t_end,
+    )
+    predictions = {}
+    for c_uM, y in zip(ca_grid, values):
+        predictions[f"ca_{c_uM:g}uM"] = {
+            "predicted_value": float(y),
+            "uncertainty_95_lower": float(y) * 0.7,
+            "uncertainty_95_upper": float(y) * 1.3,
+            "confidence_tier": "hypothesis_only",
+            "units": "RLU",
+        }
+
+    path = freeze_prediction(
+        args.prediction_id,
+        design_spec={
+            "E_T": args.e_t,
+            "M_T": args.m_t,
+            "calcium_uM": ca_grid,
+            "t_end_s": args.t_end,
+        },
+        predictions=predictions,
+        model_version="clasp_assembly_1.0.0",
+        dataset_version="literature_only_v1",
+        parameter_sources=[
+            "Ikura et al. (1992) Science — k_on/k_off",
+            "Zakeri et al. (2012) PNAS — k_lock",
+            "AGENTS.md §15.1 — Hill n / EC50 invariants",
+        ],
+        assumptions=[
+            "Fixed free calcium per condition",
+            "Hill n=4 ORIGAMI invariant (not Linse n_h=2.5)",
+            "Tier-3 until wet-lab calibrated",
+        ],
+        overwrite=args.overwrite,
+    )
+    print(f"[OK] Frozen prediction written: {path}")
+    if args.json:
+        print(json.dumps(json.loads(path.read_text(encoding="utf-8")), indent=2))
+    return 0
+
+
+def _cmd_compare(args: argparse.Namespace) -> int:
+    import json
+    from pathlib import Path
+
+    from src.predictions.freeze import compare_to_frozen
+
+    obs = json.loads(Path(args.observations).read_text(encoding="utf-8"))
+    path = compare_to_frozen(
+        Path(args.frozen),
+        observations=obs,
+        comparison_id=args.comparison_id,
+        overwrite=args.overwrite,
+    )
+    print(f"[OK] Comparison written: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    for key, row in payload["comparisons"].items():
+        if row.get("status") == "missing_in_frozen":
+            print(f"  {key}: missing in frozen")
+        else:
+            flag = "IN" if row["within_95ci"] else "OUT"
+            print(
+                f"  {key}: obs={row['observed']:.4g} pred={row['predicted']:.4g} "
+                f"err={row['error']:+.4g} [{flag} 95% CI]"
+            )
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ORIGAMI — mechanism-aware design engine for CLASP",
@@ -169,6 +252,37 @@ def main() -> None:
     opt.add_argument("--km", type=float, default=1e-4, help="Substrate K_m [M] (metabolic class)")
     opt.add_argument("--json", action="store_true", help="Emit full result as JSON")
     opt.set_defaults(func=_cmd_optimize)
+
+    freeze = sub.add_parser(
+        "freeze",
+        help="Freeze a prospective CLASP calcium dose-response prediction",
+    )
+    freeze.add_argument("--prediction-id", type=str, required=True)
+    freeze.add_argument(
+        "--calcium-uM",
+        type=str,
+        default="0.1,0.5,1,2,5,10",
+        help="Comma-separated free Ca²⁺ concentrations in µM",
+    )
+    freeze.add_argument("--e-t", type=float, default=1e-6)
+    freeze.add_argument("--m-t", type=float, default=1e-6)
+    freeze.add_argument("--t-end", type=float, default=3600.0)
+    freeze.add_argument("--overwrite", action="store_true")
+    freeze.add_argument("--json", action="store_true")
+    freeze.set_defaults(func=_cmd_freeze)
+
+    compare = sub.add_parser(
+        "compare",
+        help="Compare observations to a frozen prediction",
+    )
+    compare.add_argument("frozen", help="Path to frozen prediction JSON")
+    compare.add_argument(
+        "observations",
+        help="JSON file mapping prediction keys to observed values",
+    )
+    compare.add_argument("--comparison-id", type=str, default=None)
+    compare.add_argument("--overwrite", action="store_true")
+    compare.set_defaults(func=_cmd_compare)
 
     # Back-compat: `origami --design-id X` runs pipeline without subcommand
     parser.add_argument("--design-id", type=str, default="CLI_DESIGN_001")
