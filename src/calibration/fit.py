@@ -49,7 +49,20 @@ def fit_model_with_identifiability_check(
         np.full_like(theta0, -np.inf),
         np.full_like(theta0, np.inf),
     )
-    result = least_squares(residual, theta0, bounds=ls_bounds, method="trf")
+    # Tight tolerances: biological concentrations are ~1e-6, so residuals are
+    # ~1e-8 and default ftol=1e-8 would terminate before convergence. Scale the
+    # solve to the parameter magnitude and demand high precision.
+    theta_scale = np.maximum(np.abs(theta0), 1e-12)
+    result = least_squares(
+        residual,
+        theta0,
+        bounds=ls_bounds,
+        method="trf",
+        x_scale=theta_scale,
+        xtol=1e-15,
+        ftol=1e-15,
+        gtol=1e-15,
+    )
     theta_hat = result.x
     y_hat = model_func(theta_hat, conditions)
     rmse = float(np.sqrt(np.mean((y_hat - observations) ** 2)))
