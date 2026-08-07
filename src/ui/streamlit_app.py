@@ -49,39 +49,92 @@ def _inject_styles() -> None:
         """
         <style>
         :root {
-          --ink: #1a2332;
-          --muted: #5c6b7a;
-          --paper: #f7f4ef;
-          --accent: #0f6b5c;
-          --warn: #9a3412;
-          --line: #d5cfc4;
+          --canvas-bg: #F3EFE9;
+          --frame-bg: #EBE4D9;
+          --charcoal-txt: #242220;
+          --mascot-orange: #FF8000;
+          --orange-hover: #D66B00;
+          --blue-lively: #266FB1;
+          --card-shadow: 0 10px 30px rgba(36, 34, 32, 0.04);
         }
-        .stApp { background: linear-gradient(165deg, #f7f4ef 0%, #e8eef2 55%, #dfe8e4 100%); }
-        h1, h2, h3 { color: var(--ink) !important; letter-spacing: -0.02em; }
+        .stApp {
+          background:
+            radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255, 128, 0, 0.08), transparent 55%),
+            radial-gradient(ellipse 70% 45% at 90% 10%, rgba(38, 111, 177, 0.08), transparent 50%),
+            var(--canvas-bg);
+          color: var(--charcoal-txt);
+        }
+        h1, h2, h3 {
+          color: var(--charcoal-txt) !important;
+          letter-spacing: -0.02em;
+        }
+        p, label, span, .stMarkdown, .stCaption {
+          color: var(--charcoal-txt);
+        }
         .origami-banner {
-          border-left: 4px solid var(--accent);
-          background: rgba(255,255,255,0.72);
+          border-left: 4px solid var(--mascot-orange);
+          background: var(--frame-bg);
+          box-shadow: var(--card-shadow);
           padding: 0.85rem 1rem;
           margin-bottom: 1rem;
-          color: var(--ink);
+          color: var(--charcoal-txt);
         }
         .origami-refuse {
-          border: 1px solid #f0b4a0;
-          background: #fff7f3;
-          color: var(--warn);
+          border: 1px solid rgba(214, 107, 0, 0.45);
+          background: #FFF4E8;
+          color: var(--orange-hover);
           padding: 1rem;
-          border-radius: 2px;
+          border-radius: 4px;
+          box-shadow: var(--card-shadow);
         }
         .origami-ok {
-          border: 1px solid #9dcec3;
-          background: #f2faf7;
+          border: 1px solid rgba(38, 111, 177, 0.35);
+          background: #EEF5FB;
+          color: var(--charcoal-txt);
           padding: 1rem;
-          border-radius: 2px;
+          border-radius: 4px;
+          box-shadow: var(--card-shadow);
         }
         div[data-testid="stSidebar"] {
-          background: #1a2332;
+          background: var(--frame-bg);
+          border-right: 1px solid rgba(36, 34, 32, 0.08);
         }
-        div[data-testid="stSidebar"] * { color: #e8eef2 !important; }
+        div[data-testid="stSidebar"] * {
+          color: var(--charcoal-txt) !important;
+        }
+        div[data-testid="stSidebar"] .stRadio label {
+          color: var(--charcoal-txt) !important;
+        }
+        .stButton > button[kind="primary"],
+        .stButton > button[data-testid="baseButton-primary"] {
+          background-color: var(--mascot-orange) !important;
+          border-color: var(--mascot-orange) !important;
+          color: #fff !important;
+        }
+        .stButton > button[kind="primary"]:hover,
+        .stButton > button[data-testid="baseButton-primary"]:hover {
+          background-color: var(--orange-hover) !important;
+          border-color: var(--orange-hover) !important;
+        }
+        .stButton > button:focus,
+        .stTextInput input:focus,
+        .stSelectbox [data-baseweb="select"] > div:focus-within,
+        .stNumberInput input:focus {
+          border-color: var(--blue-lively) !important;
+          box-shadow: 0 0 0 1px var(--blue-lively) !important;
+        }
+        div[data-testid="stMetric"] {
+          background: var(--frame-bg);
+          box-shadow: var(--card-shadow);
+          padding: 0.75rem 1rem;
+          border-radius: 6px;
+        }
+        div[data-testid="stExpander"] {
+          background: var(--frame-bg);
+          box-shadow: var(--card-shadow);
+          border-radius: 6px;
+        }
+        a { color: var(--blue-lively) !important; }
         </style>
         """,
         unsafe_allow_html=True,
@@ -302,7 +355,7 @@ def page_design() -> None:
                             y=ys,
                             mode="lines+markers",
                             name="CTPR backbone (x–z)",
-                            line=dict(color="#0f6b5c"),
+                            line=dict(color="#266FB1"),
                         )
                     )
                     for site in geo.get("docking_sites") or []:
@@ -313,14 +366,15 @@ def page_design() -> None:
                                 y=[pos[2]],
                                 mode="markers",
                                 name=f"dock r{site['repeat_index']}",
-                                marker=dict(size=12, color="#9a3412"),
+                                marker=dict(size=12, color="#FF8000"),
                             )
                         )
                     fig.update_layout(
                         height=360,
                         margin=dict(l=20, r=20, t=30, b=20),
                         paper_bgcolor="rgba(0,0,0,0)",
-                        plot_bgcolor="rgba(255,255,255,0.65)",
+                        plot_bgcolor="rgba(235,228,217,0.65)",
+                        font=dict(color="#242220"),
                         xaxis_title="x (nm)",
                         yaxis_title="z (nm)",
                     )
@@ -468,23 +522,23 @@ def page_learn() -> None:
             import plotly.graph_objects as go
 
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=t, y=ode, name="ODE baseline", line=dict(color="#5c6b7a")))
+            fig.add_trace(go.Scatter(x=t, y=ode, name="ODE baseline", line=dict(color="#242220")))
             fig.add_trace(
                 go.Scatter(
                     x=t,
                     y=exp,
                     name="Observations",
                     mode="markers",
-                    marker=dict(color="#9a3412", size=7),
+                    marker=dict(color="#FF8000", size=7),
                 )
             )
-            fig.add_trace(go.Scatter(x=t, y=mean, name="Augmented mean", line=dict(color="#0f6b5c")))
+            fig.add_trace(go.Scatter(x=t, y=mean, name="Augmented mean", line=dict(color="#266FB1")))
             fig.add_trace(
                 go.Scatter(
                     x=np.concatenate([t, t[::-1]]),
                     y=np.concatenate([mean + std, (mean - std)[::-1]]),
                     fill="toself",
-                    fillcolor="rgba(15,107,92,0.15)",
+                    fillcolor="rgba(38,111,177,0.15)",
                     line=dict(color="rgba(0,0,0,0)"),
                     name="±1σ",
                     hoverinfo="skip",
@@ -494,7 +548,8 @@ def page_learn() -> None:
                 height=400,
                 margin=dict(l=20, r=20, t=30, b=20),
                 paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(255,255,255,0.65)",
+                plot_bgcolor="rgba(235,228,217,0.65)",
+                font=dict(color="#242220"),
                 xaxis_title="time",
                 yaxis_title="product",
             )
