@@ -1,15 +1,29 @@
+# ORIGAMI CI — run the dry-lab / software test suite on every pipeline.
+# Pages/wiki freeze artifacts remain a separate deliverable; this job guards code correctness.
+
 image: python:3.12
 
-pages:
-  stage: build
+stages:
+  - test
+
+variables:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+pytest:
+  stage: test
   script:
-    - pip install --no-cache-dir -r dependencies.txt
-    - FLASK_APP=app.py flask freeze
+    - python -m pip install --upgrade pip
+    - python -m pip install -e ".[dev]"
+    - python -m pytest -q --junitxml=report.xml
   artifacts:
+    when: always
+    reports:
+      junit: report.xml
     paths:
-      - public
+      - report.xml
+    expire_in: 1 week
   rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      when: never # No runners will run on branches other than main
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
+    - if: $CI_COMMIT_BRANCH

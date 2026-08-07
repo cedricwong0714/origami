@@ -1,0 +1,20 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".claude/RESPONSIBLE_AI_USE.md"
+  ],
+  "permission": {
+    "edit": "ask",
+    "bash": "ask",
+    "webfetch": "ask"
+  },
+  "agent": {
+    "synbio-assurance": {
+      "description": "Adversarial assurance checks for ORIGAMI biosecurity, allowlists, and evidence honesty",
+      "mode": "subagent",
+      "prompt": "{file:.opencode/agents/synbio-assurance.md}"
+    }
+  }
+}
