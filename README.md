@@ -66,8 +66,25 @@ Synthetic Learn curves are labeled fixtures — not Tier-1 lab data.
 Standalone HTML demo (same palette / corrected ORIGAMI CTPR priors):
 
 ```bash
-# open in a browser
+# open locally
 web/ctpr_scaffold_optimizer.html
+```
+
+**GitLab Pages** (after CI deploy on `main`): project **Deploy → Pages** in GitLab shows the public URL.
+Static demos: landing page + CTPR optimizer.
+
+### Validate a Learn Mode data package
+
+```bash
+origami validate-learn path/to.csv path/to.metadata.json
+```
+
+Uses templates in `data/stage1_ingestion/templates/`. Synthetic example:
+
+```bash
+origami validate-learn \
+  data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.csv \
+  data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.metadata.json
 ```
 
 ### CLI pipeline (verification → MoClo → ODE → optional GP)

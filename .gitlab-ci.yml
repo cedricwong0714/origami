@@ -1,10 +1,10 @@
-# ORIGAMI CI — run the dry-lab / software test suite on every pipeline.
-# Pages/wiki freeze artifacts remain a separate deliverable; this job guards code correctness.
+# ORIGAMI CI — pytest on every pipeline; GitLab Pages for static web demos.
 
 image: python:3.12
 
 stages:
   - test
+  - deploy
 
 variables:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
@@ -27,3 +27,16 @@ pytest:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH
+
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp web/index.html public/index.html
+    - cp web/ctpr_scaffold_optimizer.html public/ctpr_scaffold_optimizer.html
+    - cp web/README.md public/README.md
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

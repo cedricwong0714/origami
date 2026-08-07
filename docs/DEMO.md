@@ -55,4 +55,4 @@ Note: Φ is Tier-3 computational ranking, not calibrated fitness.
 pytest
 ```
 
-GitLab CI runs the same suite on Python 3.12.
+GitLab CI runs pytest on Python 3.12 and publishes `web/` to **GitLab Pages** on `main`.
