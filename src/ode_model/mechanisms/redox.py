@@ -1,19 +1,30 @@
-"""Redox electron-transfer ODE — canonical implementation (relative ranking)."""
+"""Redox electron-transfer ODE — canonical implementation (relative ranking).
+
+Parameters resolved with provenance discipline (AGENTS.md §4). The geometric
+decay constant ``beta_decay`` is a structural prior (not a rate) sourced here.
+"""
 
 from __future__ import annotations
 
 import numpy as np
 
+from src.core.asset_paths import resolve_param
 from src.ode_model.base_solver import solve_mechanism_ode
+
+_MECHANISM = "redox_transfer"
+
+# Marcus-theory distance-decay constant for electron transfer (per nm).
+# Structural prior, not a kinetic rate; Tier-3 computational baseline.
+_BETA_DECAY_PER_NM = 1.1
 
 
 def redox_derivatives(t: float, y: list[float], params: dict) -> list[float]:
     D_red, A_ox, D_ox, A_red = y
-    dist_nm = params.get("distance_nm", 2.0)
-    beta = params.get("beta_decay", 1.1)
+    dist_nm = float(params.get("distance_nm", 2.0))
+    beta = float(params.get("beta_decay", _BETA_DECAY_PER_NM))
     # Accept profile alias k_et as k_max for relative ranking priors
-    k_max = params.get("k_max", params.get("k_et", 50.0))
-    k_leak = params.get("k_leak", 0.0)
+    k_max = resolve_param(_MECHANISM, "k_et", params)
+    k_leak = resolve_param(_MECHANISM, "k_leak", params)
 
     k_ET = k_max * np.exp(-beta * (dist_nm - 0.5))
     d_transfer = k_ET * D_red * A_ox

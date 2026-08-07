@@ -13,7 +13,10 @@ from __future__ import annotations
 
 import numpy as np
 
+from src.core.asset_paths import resolve_param
 from src.ode_model.base_solver import solve_mechanism_ode
+
+_MECHANISM = "trans_activation"
 
 
 def trans_activation_derivatives(t: float, y: list[float], params: dict) -> list[float]:
@@ -28,14 +31,14 @@ def trans_activation_derivatives(t: float, y: list[float], params: dict) -> list
     """
     S, K, KS, Sp = y
 
-    # Tier-3 computational defaults (no claimed biological provenance)
-    k_cat_basal = params.get("k_cat_basal", 0.05)      # monomeric background
-    k_cat_trans = params.get("k_cat_trans", 1.0)       # proximity-induced
-    # C_eff (mM) from linker ensemble drives assembly into proximity complex
-    c_eff_mM = params.get("c_eff_mM", 1.0)
-    k_on_prox = params.get("k_on_prox", c_eff_mM)
-    k_dephos = params.get("k_dephos", 0.1)             # dephosphorylation
-    phosphatase = params.get("phosphatase_uM", 0.1)   # soluble phosphatase
+    # Tier-3 computational defaults from tracked kinetic JSON (no invented values)
+    k_cat_basal = resolve_param(_MECHANISM, "k_cat_basal", params)
+    k_cat_trans = resolve_param(_MECHANISM, "k_cat_trans", params)
+    # C_eff (mM) from linker ensemble drives assembly into proximity complex.
+    # k_on_prox may be pre-set by the profile from computed C_eff; else use defaults.
+    k_on_prox = float(params.get("k_on_prox", params.get("c_eff_mM", 1.0)))
+    k_dephos = resolve_param(_MECHANISM, "k_dephos", params)
+    phosphatase = resolve_param(_MECHANISM, "phosphatase_uM", params)
 
     # K is a catalyst: basal phosphorylation consumes S -> Sp, K unchanged.
     # Assembly sequesters K + S into the proximity complex KS.

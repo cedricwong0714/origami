@@ -1,20 +1,31 @@
-"""Intermediate-transfer (substrate channeling) ODE — canonical implementation."""
+"""Intermediate-transfer (substrate channeling) ODE — canonical implementation.
+
+Parameters are resolved with provenance discipline (AGENTS.md §4): explicit
+overrides first, then tracked kinetic defaults JSON. No silent inline literals.
+"""
 
 from __future__ import annotations
 
+from src.core.asset_paths import resolve_param
 from src.ode_model.base_solver import solve_mechanism_ode
+
+_MECHANISM = "intermediate_transfer"
 
 
 def intermediate_derivatives(t: float, y: list[float], params: dict) -> list[float]:
     """
     Substrate channeling derivatives (e.g. OtsA/OtsB).
     y = [Substrate, Enzyme1, Enzyme2, Intermediate_Bulk, Intermediate_Channeled, Product]
+
+    E1 and E2 are catalysts held constant (derivative 0); only the substrate,
+    intermediate, and product pools carry flux. This is intentional catalyst
+    bookkeeping, not a mass leak: the conserved inventory is S + I_bulk + I_chan + P.
     """
     S, E1, E2, I_bulk, I_chan, P = y
-    k_cat1 = params.get("k_cat1", 1.0)
-    k_cat2 = params.get("k_cat2", 0.8)
-    k_channel = params.get("k_channel", 5.0)
-    k_escape = params.get("k_escape", 0.1)
+    k_cat1 = resolve_param(_MECHANISM, "k_cat1", params)
+    k_cat2 = resolve_param(_MECHANISM, "k_cat2", params)
+    k_channel = resolve_param(_MECHANISM, "k_channel", params)
+    k_escape = resolve_param(_MECHANISM, "k_escape", params)
 
     dS_dt = -k_cat1 * S * E1
     dI_chan_dt = k_cat1 * S * E1 - k_channel * I_chan - k_escape * I_chan

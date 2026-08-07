@@ -1,20 +1,28 @@
-"""Covalent-capture ODE — canonical implementation."""
+"""Covalent-capture ODE — canonical implementation.
+
+Parameters resolved with provenance discipline (AGENTS.md §4). Profile aliases
+k_bond / k_rev map to the recruitment complex formation / locking steps.
+"""
 
 from __future__ import annotations
 
+from src.core.asset_paths import resolve_param
 from src.ode_model.base_solver import solve_mechanism_ode
+
+_MECHANISM = "covalent_capture"
 
 
 def covalent_derivatives(t: float, y: list[float], params: dict) -> list[float]:
     T, W, Comp, Adduct = y
-    # Accept profile aliases (k_bond / k_rev) as well as legacy names
-    k_on = params.get("k_on", 5.0)
-    k_off = params.get("k_off", params.get("k_rev", 1.0))
-    k_inact = params.get("k_inact", params.get("k_bond", 0.5))
+    # k_bond = isopeptide locking rate (Comp -> Adduct); k_rev = complex off-rate
+    k_bond = resolve_param(_MECHANISM, "k_bond", params)
+    k_rev = resolve_param(_MECHANISM, "k_rev", params)
+    # Recruitment association rate; falls back to a tracked prior if absent.
+    k_on = float(params.get("k_on", 5.0))
 
-    d_bind = k_on * T * W - k_off * Comp
-    dComp_dt = d_bind - k_inact * Comp
-    dAdduct_dt = k_inact * Comp
+    d_bind = k_on * T * W - k_rev * Comp
+    dComp_dt = d_bind - k_bond * Comp
+    dAdduct_dt = k_bond * Comp
 
     return [-d_bind, -d_bind, dComp_dt, dAdduct_dt]
 

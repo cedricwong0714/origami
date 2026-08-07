@@ -12,6 +12,9 @@ MODELS_DIR = REPO_ROOT / "models"
 DATA_DIR = REPO_ROOT / "data"
 GOLDEN_DIR = REPO_ROOT / "tests" / "golden_references"
 KINETIC_MODELS_DIR = MODELS_DIR / "kinetic_models"
+PREDICTIONS_DIR = DATA_DIR / "predictions"
+FROZEN_PREDICTIONS_DIR = PREDICTIONS_DIR / "frozen"
+COMPARISONS_DIR = PREDICTIONS_DIR / "comparisons"
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -34,3 +37,31 @@ def load_kinetic_defaults(mechanism_type: str) -> dict[str, Any]:
 def kinetic_params(mechanism_type: str) -> dict[str, float]:
     payload = load_kinetic_defaults(mechanism_type)
     return {k: float(v) for k, v in payload.get("params", {}).items()}
+
+
+def resolve_param(
+    mechanism_type: str,
+    name: str,
+    params: dict[str, float] | None,
+    override_only: bool = True,
+) -> float:
+    """
+    Resolve a kinetic parameter with provenance discipline (AGENTS.md §4).
+
+    Precedence: explicit ``params`` override > tracked kinetic defaults JSON.
+    Never falls back to a silent inline literal. If the parameter is absent
+    from both the override and the tracked defaults, raises KeyError so the
+    missing provenance is loud rather than silently inventing a value.
+    """
+    params = params or {}
+    if name in params:
+        return float(params[name])
+    defaults = kinetic_params(mechanism_type)
+    if name in defaults:
+        return float(defaults[name])
+    raise KeyError(
+        f"Parameter '{name}' for mechanism '{mechanism_type}' has no value in "
+        f"the override params or tracked kinetic defaults "
+        f"({mechanism_type}.defaults.json). Add it with units and provenance "
+        f"rather than relying on an inline default."
+    )

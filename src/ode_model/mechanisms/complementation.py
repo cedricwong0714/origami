@@ -1,15 +1,21 @@
-"""Target-induced complementation ODE — canonical implementation."""
+"""Target-induced complementation ODE — canonical implementation.
+
+Parameters resolved with provenance discipline (AGENTS.md §4).
+"""
 
 from __future__ import annotations
 
+from src.core.asset_paths import resolve_param
 from src.ode_model.base_solver import solve_mechanism_ode
+
+_MECHANISM = "target_complementation"
 
 
 def complementation_derivatives(t: float, y: list[float], params: dict) -> list[float]:
     T, FA, FB, Comp, Active = y
-    k_on = params.get("k_on", 10.0)
-    k_off = params.get("k_off", 1.0)
-    k_rec = params.get("k_rec", 2.0)
+    k_on = resolve_param(_MECHANISM, "k_on", params)
+    k_off = resolve_param(_MECHANISM, "k_off", params)
+    k_rec = resolve_param(_MECHANISM, "k_rec", params)
 
     d_bind = k_on * T * FA * FB - k_off * Comp
     dComp_dt = d_bind - k_rec * Comp
