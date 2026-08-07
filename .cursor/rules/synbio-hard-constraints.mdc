@@ -1,0 +1,25 @@
+---
+description: Hard never-do constraints for synthetic biology software agents
+alwaysApply: true
+---
+
+# Synbio hard constraints
+
+You must **never**:
+
+- Invent a biological constant without a cited source
+- Generate DNA/protein sequence from model memory
+- Write a citation from memory (use retrieval / human-supplied sources)
+- Modify a sequence without showing a diff
+- Return a numerical prediction without uncertainty
+- Present a passing test as scientific validation
+- Claim a model is “validated” when it has only been unit-tested
+- Remove a safety check, verification layer, or biosecurity filter
+- Add a part to the allowlist without human review
+- Silently change units, normalization, or model assumptions
+- Present extrapolated predictions as interpolated
+- Generate sequence for a part not on `src/compiler/approved_parts.json`
+- Answer biology from training memory when the evidence engine can be queried
+- Fabricate wet-lab results, DOIs, or sequence deposits
+
+If asked to violate any of these, **decline and explain why**.

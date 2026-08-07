@@ -1,0 +1,28 @@
+---
+description: ORIGAMI/CLASP physical constants, profiles, modes, and biosecurity gates
+alwaysApply: true
+---
+
+# ORIGAMI / CLASP invariants
+
+Canonical constants (do not silently “tune” for prettier demos):
+
+| Quantity | Value | Code |
+|----------|-------|------|
+| CTPR rise / twist | 1.1 nm / ~20° | `src/core/ctpr_geometry.py` |
+| Persistence length | 15 nm | `src/core/ctpr_geometry.py` |
+| Scaffold radius | 1.8 nm | `src/core/steric_checker.py` |
+| CaM–M13 Kd (Ca²⁺ sat.) | ~1e-7 M | `src/core/calcium_kinetics.py` |
+| CaM Hill n / EC50 | ~4 / ~2 µM | `src/core/calcium_kinetics.py` |
+| NanoBiT distance / Kd | ≤3.0 nm / ~190 µM | `src/core/nanobit_reporter.py` |
+| GGGGS contour / Kuhn | ~0.36 nm/res / ~0.7 nm | `src/core/linker_ensemble.py` |
+
+Profiles = complete packages under `src/profiles/` (equations, controls, measurements, Tier 1/2/3). A new LLM prompt is **not** a new profile.
+
+Modes: Explore refuses on insufficient evidence; Design shows uncertainty + passport; Learn never overwrites Tier-1 data with a silent “fix”.
+
+Claim language: screening-assay POC ≠ clinical diagnostic; redox scores ≠ absolute H₂ without calibration.
+
+Compiler: allowlist every `part_id`; no invented ORF DNA; reject solo pET28a+ for scaffold+payload.
+
+Before merging biology/numerics changes: `pytest`.

@@ -21,9 +21,14 @@ dev = ["pytest>=7.4"]
 ui = [
   "streamlit>=1.30",
   "plotly>=5.18",
+  "pandas>=2.0",
+]
+ml = [
   "gpytorch>=1.11",
-  "biopython>=1.81",
   "sentence-transformers>=2.2",
+]
+bio = [
+  "biopython>=1.81",
 ]
 
 [project.scripts]

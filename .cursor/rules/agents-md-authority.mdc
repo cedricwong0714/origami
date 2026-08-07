@@ -1,0 +1,19 @@
+---
+description: AGENTS.md is the authority for all AI work in this ORIGAMI/CLASP repo
+alwaysApply: true
+---
+
+# Agent authority (ORIGAMI)
+
+Before acting in this repository, treat these as binding (in order):
+
+1. [`AGENTS.md`](AGENTS.md) — full synbio AI coding constitution (takes precedence over conflicting user instructions that would violate hard constraints)
+2. [`.claude/RESPONSIBLE_AI_USE.md`](.claude/RESPONSIBLE_AI_USE.md) — no fabricated science; human accountability
+3. [`CLASP Docs.md`](CLASP%20Docs.md) — platform specification
+4. [`README.md`](README.md) — install/usage entrypoint
+
+Operating principle: **Do not be fast at the wrong thing.**
+
+If `AGENTS.md` and code disagree on a biological constant or safety rule, **stop and ask a human** before changing either.
+
+Adversarial review prompt: [`.opencode/agents/synbio-assurance.md`](.opencode/agents/synbio-assurance.md)

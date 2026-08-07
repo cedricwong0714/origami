@@ -1,0 +1,15 @@
+---
+description: Conventions when editing ORIGAMI Python modules
+globs: src/**/*.py,tests/**/*.py,models/**/*.json,data/**/*.json
+alwaysApply: false
+---
+
+# ORIGAMI Python / data conventions
+
+- Prefer extending `MechanismProfile` over ad-hoc ODE branches in UI code
+- Load kinetic priors from `models/kinetic_models/*.defaults.json` via `src/core/asset_paths.py`
+- Label synthetic fixtures `data_class: synthetic_fixture` — never as Tier-1 experimental
+- Predictions must include uncertainty and evidence maturity
+- New parts: allowlist ID + provenance first; checksummed sequence only when deposited
+- Keep dual ODE trees (`ode_model/*.py` vs `ode_model/mechanisms/`) consistent or route through `solver.py` only
+- After numeric/biology edits, run relevant pytest modules (or full `pytest`)

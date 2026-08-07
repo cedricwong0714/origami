@@ -99,10 +99,17 @@ It is a software UX contract for contributors and judges — not a wet-lab proto
 
 | Surface | Role |
 |---------|------|
+| `streamlit run app.py` | Primary Explore / Design / Learn UI |
+| `src/ui/streamlit_app.py` | Streamlit implementation |
 | `python -m src.ui.cli` | Headless full pipeline smoke path |
-| `src/ui/dashboard_backend.py` | Programmatic controller for future Streamlit / wiki demos |
+| `src/ui/dashboard_backend.py` | Programmatic controller used by CLI / integrations |
 
-Streamlit extras are optional (`pip install -e ".[ui]"`). Prefer a local offline demo path for judging.
+```bash
+pip install -e ".[ui]"
+streamlit run app.py
+```
+
+Prefer a local offline demo path for judging; Streamlit Community Cloud may hibernate.
 
 ---
 

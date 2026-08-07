@@ -1,8 +1,15 @@
+# Streamlit dashboard (also installable via: pip install -e ".[ui]")
 streamlit>=1.30.0
 plotly>=5.18.0
+pandas>=2.0.0
+
+# Core scientific stack (also in pyproject.toml)
 scipy>=1.11.0
 scikit-learn>=1.3.0
-gpytorch>=1.11.0
 pydantic>=2.5.0
-biopython>=1.81
-sentence-transformers>=2.2.0
+numpy>=1.26.0
+
+# Optional heavy extras (pip install -e ".[ml,bio]")
+# gpytorch>=1.11.0
+# biopython>=1.81
+# sentence-transformers>=2.2.0

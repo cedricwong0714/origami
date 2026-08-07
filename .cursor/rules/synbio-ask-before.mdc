@@ -1,0 +1,22 @@
+---
+description: Actions that require explicit user approval in this synbio repo
+alwaysApply: true
+---
+
+# Ask before doing
+
+Request explicit approval before:
+
+- Editing outside the assigned module
+- Changing public APIs, shared schemas, or data models
+- Adding dependencies
+- Changing biological constants / parameters
+- Modifying sequences, constructs, parts records, or `approved_parts.json`
+- Changing verification rules or biosecurity filters
+- Deleting files
+- Network / external API calls that affect biology corpora
+- Changing CI or environment configuration
+
+When asking, state: **what**, **why**, **risk if wrong**, **how you will verify**.
+
+You may autonomously: boilerplate in-module, tests for code you wrote, docs in plain language, lint fixes, suggest bugs, draft CI for pytest.

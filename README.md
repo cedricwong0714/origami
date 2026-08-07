@@ -47,6 +47,21 @@ Core dependencies are declared in [`pyproject.toml`](pyproject.toml). Optional U
 
 ## Quick start
 
+### Streamlit UI (Explore / Design / Learn)
+
+```bash
+pip install -e ".[ui]"
+streamlit run app.py
+```
+
+Opens a local dashboard with three modes:
+
+1. **Explore evidence** — retrieve parameters or refuse honestly  
+2. **Design a CLASP system** — geometry, prediction, passport, allowlist checks  
+3. **Learn from data** — ODE vs observations + next-experiment suggestions  
+
+Synthetic Learn curves are labeled fixtures — not Tier-1 lab data.
+
 ### CLI pipeline (verification → MoClo → ODE → optional GP)
 
 ```bash
