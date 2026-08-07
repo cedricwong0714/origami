@@ -167,6 +167,7 @@ tests/
 docs/
   ORIGAMI_UI_UX_Guide.md
   Verification_Checklists.md
+  DEMO.md                 5-minute judge walkthrough
 ```
 
 Full platform specification: [`CLASP Docs.md`](CLASP%20Docs.md)  

@@ -20,6 +20,11 @@ from src.core.schema import DesignSpec, MechanismType, MoCloPart, ScaffoldSpec
 from src.scaffold_optimizer import InteractionClass, optimize_ctpr_spacing
 from src.ui.design_mode import DesignMode
 from src.ui.explore_mode import ExploreMode
+from src.ui.export_utils import (
+    interaction_class_to_mechanism,
+    passport_json_bytes,
+    wiki_markdown_snippet,
+)
 from src.ui.learn_mode import LearnMode
 
 # Demo MoClo cassette (allowlisted short parts only — no invented ORFs)
@@ -205,25 +210,48 @@ def page_explore() -> None:
             st.json(result)
 
 
+def _design_prefill() -> dict[str, Any]:
+    return st.session_state.get("design_prefill") or {}
+
+
 def page_design() -> None:
     st.header("Design a CLASP system")
     st.caption("Geometry → mechanism prediction → allowlist / coexpression checks → Design Passport.")
+
+    prefill = _design_prefill()
+    if prefill.get("source") == "optimizer":
+        st.info(
+            f"Pre-filled from CTPR optimizer: **CTPR-{prefill.get('repeat_count')}** · "
+            f"docking **{prefill.get('dock_a')}** & **{prefill.get('dock_b')}** · "
+            f"Δi* = {prefill.get('optimal_delta_i')} · Φ = {prefill.get('best_score', '—')}"
+        )
+
+    default_repeats = int(prefill.get("repeat_count", 5))
+    default_dock_a = int(prefill.get("dock_a", 1))
+    default_dock_b = int(prefill.get("dock_b", min(3, default_repeats)))
+    default_mechanism = prefill.get("mechanism_type", MechanismType.INTERMEDIATE_TRANSFER)
+    if isinstance(default_mechanism, str):
+        default_mechanism = MechanismType(default_mechanism)
+    default_design_id = prefill.get("design_id", "UI_DESIGN_001")
 
     mechanism = st.selectbox(
         "Mechanism profile",
         options=list(MechanismType),
         format_func=lambda m: _MECHANISM_LABELS[m],
+        index=list(MechanismType).index(default_mechanism),
     )
     chassis = st.selectbox("Chassis", ["E_coli", "cell_free", "B_subtilis"])
-    design_id = st.text_input("Design ID", value="UI_DESIGN_001")
+    design_id = st.text_input("Design ID", value=default_design_id)
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        repeat_count = st.slider("CTPR repeats", 2, 20, 5)
+        repeat_count = st.slider("CTPR repeats", 2, 20, default_repeats)
     with c2:
-        dock_a = st.number_input("Docking site A (1-based)", 1, repeat_count, 1)
+        dock_a = st.number_input("Docking site A (1-based)", 1, repeat_count, default_dock_a)
     with c3:
-        dock_b = st.number_input("Docking site B (1-based)", 1, repeat_count, min(3, repeat_count))
+        dock_b = st.number_input(
+            "Docking site B (1-based)", 1, repeat_count, min(default_dock_b, repeat_count)
+        )
 
     payload_default = "OtsA, OtsB"
     if mechanism == MechanismType.TARGET_COMPLEMENTATION:
@@ -297,6 +325,7 @@ def page_design() -> None:
                 ca2_free_M=ca2_uM * 1e-6,
                 linker_sequence=linker,
             )
+        result["design_id"] = design_id
 
         if result["status"] == "SUCCESS":
             st.success("Design accepted (software checks). Not a wet-lab validation.")
@@ -310,6 +339,21 @@ def page_design() -> None:
 
         passport = result.get("passport") or {}
         st.subheader("Proximity Design Passport")
+        dl1, dl2 = st.columns(2)
+        with dl1:
+            st.download_button(
+                "Download passport JSON",
+                data=passport_json_bytes(result),
+                file_name=f"{design_id}_passport.json",
+                mime="application/json",
+            )
+        with dl2:
+            st.download_button(
+                "Download wiki markdown snippet",
+                data=wiki_markdown_snippet(result, spec=spec).encode("utf-8"),
+                file_name=f"{design_id}_wiki_snippet.md",
+                mime="text/markdown",
+            )
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Profile", passport.get("mechanism_profile", "—"))
         m2.metric("Evidence maturity", str(passport.get("evidence_maturity", "—"))[:28])
@@ -656,6 +700,21 @@ def page_optimize() -> None:
         with st.expander("Geometry constants"):
             st.json(result.geometry_constants)
 
+        best = next(c for c in result.candidates if c.delta_i == result.optimal_delta_i)
+        if st.button("Send to Design Mode", type="primary"):
+            st.session_state["design_prefill"] = {
+                "source": "optimizer",
+                "repeat_count": result.recommended_scaffold_repeats,
+                "dock_a": best.docking_pair[0],
+                "dock_b": best.docking_pair[1],
+                "optimal_delta_i": result.optimal_delta_i,
+                "best_score": round(result.best_score, 3),
+                "mechanism_type": interaction_class_to_mechanism(result.interaction_class).value,
+                "design_id": f"OPT_CTPR{result.recommended_scaffold_repeats}",
+            }
+            st.session_state["app_mode"] = "Design a CLASP system"
+            st.rerun()
+
 
 def run() -> None:
     st.set_page_config(
@@ -664,6 +723,9 @@ def run() -> None:
         initial_sidebar_state="expanded",
     )
     _inject_styles()
+
+    if "app_mode" not in st.session_state:
+        st.session_state.app_mode = "Explore evidence"
 
     with st.sidebar:
         st.markdown("## ORIGAMI")
@@ -676,13 +738,14 @@ def run() -> None:
                 "Optimize CTPR spacing",
                 "Learn from data",
             ],
-            index=0,
+            key="app_mode",
         )
         st.markdown("---")
         st.caption(
             "Mechanism-aware · uncertainty shown · allowlist enforced · "
             "refusal when evidence is insufficient"
         )
+        st.caption("[5-min demo script](docs/DEMO.md)")
 
     _banner()
     st.title("ORIGAMI")
