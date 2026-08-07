@@ -32,7 +32,8 @@ class DockingSiteOrientation(str, Enum):
 
 
 class DockingSiteGeometry(BaseModel):
-    repeat_index: int = Field(..., ge=0)
+    # 1-based CTPR repeat index (matches ScaffoldSpec.docking_positions)
+    repeat_index: int = Field(..., ge=1)
     position_nm: Tuple[float, float, float]
     orientation_vector: Tuple[float, float, float]
     orientation_type: DockingSiteOrientation = DockingSiteOrientation.RADIAL_OUTWARD
@@ -56,10 +57,10 @@ class ScaffoldGeometry(BaseModel):
         repeat_count = info.data.get("repeat_count")
         if repeat_count is not None:
             for site in v:
-                if site.repeat_index >= repeat_count:
+                if site.repeat_index < 1 or site.repeat_index > repeat_count:
                     raise ValueError(
-                        f"Docking site at repeat {site.repeat_index} exceeds "
-                        f"scaffold length ({repeat_count} repeats)"
+                        f"Docking site at repeat {site.repeat_index} is outside "
+                        f"1..{repeat_count} (1-based CTPR indexing)"
                     )
         return v
 
@@ -87,6 +88,13 @@ def _rotation_matrix_z(angle_deg: float) -> np.ndarray:
 
 
 def generate_scaffold_geometry(spec: ScaffoldSpec) -> ScaffoldGeometry:
+    """
+    Build CTPR geometry from a ScaffoldSpec.
+
+    ``ScaffoldSpec.docking_positions`` are **1-based** repeat indices in
+    ``[1, repeat_count]`` (same convention as verification). Internally these
+    are converted to 0-based backbone array indices.
+    """
     n_repeats = spec.repeat_count
     total_length = n_repeats * CTPR_RISE_NM
     is_rigid = total_length <= PERSISTENCE_LENGTH_NM
@@ -103,16 +111,18 @@ def generate_scaffold_geometry(spec: ScaffoldSpec) -> ScaffoldGeometry:
         current_pos = current_pos + current_rot @ translation
 
     docking_sites: List[DockingSiteGeometry] = []
-    for dock_repeat in sorted(set(spec.docking_positions)):
-        if dock_repeat >= n_repeats:
+    for dock_1based in sorted(set(spec.docking_positions)):
+        if dock_1based < 1 or dock_1based > n_repeats:
+            # Out-of-range sites are omitted here; verification reports the error.
             continue
-        base_pos = np.array(backbone[dock_repeat])
-        angle = dock_repeat * CTPR_TWIST_DEG
+        idx0 = dock_1based - 1
+        base_pos = np.array(backbone[idx0])
+        angle = idx0 * CTPR_TWIST_DEG
         radial_dir = np.array([np.cos(np.radians(angle)), np.sin(np.radians(angle)), 0.0])
         site_pos = base_pos + radial_dir * (CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM)
 
         docking_sites.append(DockingSiteGeometry(
-            repeat_index=dock_repeat,
+            repeat_index=dock_1based,
             position_nm=tuple(site_pos.tolist()),
             orientation_vector=tuple(radial_dir.tolist()),
             orientation_type=DockingSiteOrientation.RADIAL_OUTWARD

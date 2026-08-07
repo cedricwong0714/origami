@@ -22,7 +22,8 @@ class ControlPlan(BaseModel):
 class ScaffoldSpec(BaseModel):
     scaffold_id: str
     repeat_count: int = Field(..., ge=1, le=20)
-    docking_positions: List[int]
+    # 1-based CTPR repeat indices in [1, repeat_count]
+    docking_positions: List[int] = Field(..., min_length=1)
     persistence_length_nm: float = 15.0
 
 class MoCloPart(BaseModel):

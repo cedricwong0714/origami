@@ -1557,6 +1557,7 @@ If code and docs disagree on a physical constant, **stop and ask a human** befor
 |----------|------------------------|-----------|
 | CTPR rise per repeat | **1.1 nm** | `src/core/ctpr_geometry.py` |
 | CTPR twist per repeat | **~20°** | `src/core/ctpr_geometry.py` |
+| Docking position indexing | **1-based** repeats in `[1, N]` | `ScaffoldSpec` / `ctpr_geometry.py` |
 | Persistence length | **15 nm** (rigid-rod approx. for short scaffolds) | `src/core/ctpr_geometry.py` |
 | Scaffold cylinder radius | **1.8 nm** | `src/core/steric_checker.py` |
 | CaM–M13 Kd (Ca²⁺-saturated) | **~1×10⁻⁷ M** | `src/core/calcium_kinetics.py` |

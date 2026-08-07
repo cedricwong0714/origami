@@ -11,5 +11,5 @@ alwaysApply: false
 - Label synthetic fixtures `data_class: synthetic_fixture` — never as Tier-1 experimental
 - Predictions must include uncertainty and evidence maturity
 - New parts: allowlist ID + provenance first; checksummed sequence only when deposited
-- Keep dual ODE trees (`ode_model/*.py` vs `ode_model/mechanisms/`) consistent or route through `solver.py` only
+- Canonical ODEs live in `ode_model/mechanisms/`; top-level `ode_model/*.py` are shims — edit mechanisms only
 - After numeric/biology edits, run relevant pytest modules (or full `pytest`)
