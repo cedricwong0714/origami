@@ -9,6 +9,7 @@ from pathlib import Path
 
 from src.core.schema import DesignSpec, MoCloPart, ScaffoldSpec
 from src.data_ingestion import LearnTimeseriesValidationError, load_learn_timeseries_package
+from src.scaffold_optimizer import InteractionClass, optimize_ctpr_spacing
 from src.ui.dashboard_backend import PipelineController
 
 
@@ -94,6 +95,36 @@ def _cmd_validate_learn(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_optimize(args: argparse.Namespace) -> int:
+    try:
+        interaction = InteractionClass(args.interaction)
+        result = optimize_ctpr_spacing(
+            args.radius_a,
+            args.radius_b,
+            interaction,
+            km_M=args.km,
+        )
+    except (ValueError, KeyError) as exc:
+        print(f"[REJECTED] {exc}", file=sys.stderr)
+        return 1
+
+    if args.json:
+        import json
+
+        print(json.dumps(result.model_dump(), indent=2, default=str))
+        return 0
+
+    print("[OK] CTPR spacing optimization (Tier-3 computational ranking)")
+    print(f"  interaction   : {result.interaction_class.value}")
+    print(f"  optimal Δi*   : {result.optimal_delta_i} repeats")
+    print(f"  scaffold      : CTPR-{result.recommended_scaffold_repeats}")
+    print(f"  best score Φ  : {result.best_score:.3f}")
+    best = next(c for c in result.candidates if c.delta_i == result.optimal_delta_i)
+    print(f"  docking pair  : repeats {best.docking_pair[0]} & {best.docking_pair[1]}")
+    print(f"  note          : {result.honesty_note}")
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="ORIGAMI — mechanism-aware design engine for CLASP",
@@ -122,6 +153,22 @@ def main() -> None:
         help="Do not require blank/negative controls for tier1_experimental",
     )
     learn.set_defaults(func=_cmd_validate_learn)
+
+    opt = sub.add_parser(
+        "optimize",
+        help="Rank CTPR docking spacings (Tier-3 computational ranking)",
+    )
+    opt.add_argument("--radius-a", type=float, default=45.0, help="Payload A radius [Å]")
+    opt.add_argument("--radius-b", type=float, default=25.0, help="Payload B radius [Å]")
+    opt.add_argument(
+        "--interaction",
+        type=str,
+        default=InteractionClass.METABOLIC.value,
+        choices=[c.value for c in InteractionClass],
+    )
+    opt.add_argument("--km", type=float, default=1e-4, help="Substrate K_m [M] (metabolic class)")
+    opt.add_argument("--json", action="store_true", help="Emit full result as JSON")
+    opt.set_defaults(func=_cmd_optimize)
 
     # Back-compat: `origami --design-id X` runs pipeline without subcommand
     parser.add_argument("--design-id", type=str, default="CLI_DESIGN_001")

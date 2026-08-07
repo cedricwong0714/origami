@@ -478,37 +478,67 @@ def page_learn() -> None:
         data_class = "synthetic_fixture"
         st.line_chart({"synthetic_product": experimental})
     else:
+        from src.data_ingestion import (
+            LearnTimeseriesValidationError,
+            load_learn_timeseries_package,
+        )
+        from src.data_ingestion.learn_timeseries import resolve_example_package
+
         csv_upload = st.file_uploader("Product CSV (`time`, `product`)", type=["csv"])
         meta_upload = st.file_uploader(
             "Metadata sidecar (`.metadata.json` from templates/)",
             type=["json"],
         )
+        if st.button("Load tracked synthetic example", help="SYN_LEARN_001 fixture from repo"):
+            try:
+                csv_path, meta_path = resolve_example_package()
+                pkg = load_learn_timeseries_package(csv_path, meta_path)
+                st.session_state["learn_pkg"] = {
+                    "product": np.asarray(pkg.product, dtype=float),
+                    "time": np.asarray(pkg.time, dtype=float),
+                    "data_class": pkg.metadata.data_class,
+                    "warnings": list(pkg.warnings),
+                    "mechanism": pkg.metadata.mechanism_type,
+                    "record_id": pkg.metadata.record_id,
+                }
+            except Exception as exc:
+                st.error(f"Could not load example: {exc}")
+
+        loaded = st.session_state.get("learn_pkg")
         if csv_upload is not None and meta_upload is not None:
             try:
-                from src.data_ingestion import (
-                    LearnTimeseriesValidationError,
-                    load_learn_timeseries_package,
-                )
-
                 pkg = load_learn_timeseries_package(csv_upload, meta_upload)
-                experimental = pkg.product
-                experimental_time = pkg.time
-                data_class = pkg.metadata.data_class
-                package_warnings = list(pkg.warnings)
-                mechanism = pkg.metadata.mechanism_type
-                st.write(
-                    f"Loaded `{pkg.metadata.record_id}` · {len(experimental)} points · "
-                    f"data_class=`{data_class}` · mechanism=`{mechanism.value}`"
-                )
-                for warning in package_warnings:
-                    st.warning(warning)
-                st.line_chart({"product": experimental})
+                st.session_state["learn_pkg"] = {
+                    "product": np.asarray(pkg.product, dtype=float),
+                    "time": np.asarray(pkg.time, dtype=float),
+                    "data_class": pkg.metadata.data_class,
+                    "warnings": list(pkg.warnings),
+                    "mechanism": pkg.metadata.mechanism_type,
+                    "record_id": pkg.metadata.record_id,
+                }
+                loaded = st.session_state["learn_pkg"]
             except LearnTimeseriesValidationError as exc:
                 st.error(f"Package rejected: {exc}")
             except Exception as exc:
                 st.error(f"Could not load package: {exc}")
         elif csv_upload is not None or meta_upload is not None:
             st.info("Upload both the CSV and its metadata JSON sidecar.")
+        elif loaded is None:
+            st.info("Upload CSV + metadata, or load the tracked synthetic example.")
+
+        if loaded:
+            experimental = loaded["product"]
+            experimental_time = loaded["time"]
+            data_class = loaded["data_class"]
+            package_warnings = loaded["warnings"]
+            mechanism = loaded["mechanism"]
+            st.write(
+                f"Loaded `{loaded['record_id']}` · {len(experimental)} points · "
+                f"data_class=`{data_class}` · mechanism=`{mechanism.value}`"
+            )
+            for warning in package_warnings:
+                st.warning(warning)
+            st.line_chart({"product": experimental})
 
     if st.button("Run Learn Mode", type="primary") and experimental is not None:
         payload_ids = ["OtsA", "OtsB"]

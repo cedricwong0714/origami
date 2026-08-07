@@ -38,3 +38,45 @@ def test_cli_validate_learn_missing_file():
         )()
     )
     assert code == 1
+
+
+def test_cli_optimize_success(capsys):
+    from src.ui.cli import _cmd_optimize
+
+    code = _cmd_optimize(
+        type(
+            "Args",
+            (),
+            {
+                "radius_a": 45.0,
+                "radius_b": 25.0,
+                "interaction": "Metabolic",
+                "km": 1e-4,
+                "json": False,
+            },
+        )()
+    )
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "Δi" in out or "optimal" in out.lower()
+    assert "Tier-3" in out
+
+
+def test_cli_optimize_json(capsys):
+    from src.ui.cli import _cmd_optimize
+
+    code = _cmd_optimize(
+        type(
+            "Args",
+            (),
+            {
+                "radius_a": 30.0,
+                "radius_b": 30.0,
+                "interaction": "Binding",
+                "km": 1e-4,
+                "json": True,
+            },
+        )()
+    )
+    assert code == 0
+    assert "optimal_delta_i" in capsys.readouterr().out

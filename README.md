@@ -85,6 +85,13 @@ Uses templates in `data/stage1_ingestion/templates/`. Synthetic example:
 origami validate-learn \
   data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.csv \
   data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.metadata.json
+
+### Rank CTPR docking spacings (CLI)
+
+```bash
+origami optimize --radius-a 45 --radius-b 25 --interaction Metabolic
+origami optimize --radius-a 30 --radius-b 30 --interaction Binding --json
+```
 ```
 
 ### CLI pipeline (verification → MoClo → ODE → optional GP)

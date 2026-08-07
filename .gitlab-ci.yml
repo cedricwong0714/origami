@@ -16,6 +16,10 @@ pytest:
     - python -m pip install --upgrade pip
     - python -m pip install -e ".[dev]"
     - python -m pytest -q --junitxml=report.xml
+    - origami validate-learn
+      data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.csv
+      data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.metadata.json
+    - origami optimize --radius-a 45 --radius-b 25 --interaction Metabolic
   artifacts:
     when: always
     reports:

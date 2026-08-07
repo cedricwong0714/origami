@@ -41,6 +41,7 @@ Note: Φ is Tier-3 computational ranking, not calibrated fitness.
 2. Use **Synthetic demo curve** (labeled fixture)
 3. Show ODE vs observation + GP band + next-experiment table
 4. Mention Tier-1 path: CSV + metadata from `data/stage1_ingestion/templates/`
+5. Or click **Load tracked synthetic example** (SYN_LEARN_001) then **Run Learn Mode**
 
 ## What to say out loud
 
