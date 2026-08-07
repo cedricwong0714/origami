@@ -15,7 +15,9 @@ import numpy as np
 import streamlit as st
 
 from src.compiler.expression_vector import ExpressionPlan
+from src.core.asset_paths import REPO_ROOT
 from src.core.schema import DesignSpec, MechanismType, MoCloPart, ScaffoldSpec
+from src.scaffold_optimizer import InteractionClass, optimize_ctpr_spacing
 from src.ui.design_mode import DesignMode
 from src.ui.explore_mode import ExploreMode
 from src.ui.learn_mode import LearnMode
@@ -569,6 +571,92 @@ def page_learn() -> None:
         st.json(result["required_controls"])
 
 
+def page_optimize() -> None:
+    st.header("Optimize CTPR spacing")
+    st.caption(
+        "Rank docking-repeat spacings (Δi) with ORIGAMI screw geometry "
+        "(1.1 nm rise, 20° twist). Scores are Tier-3 computational rankings."
+    )
+
+    col_in, col_out = st.columns([1, 2], gap="large")
+    with col_in:
+        st.subheader("Target parameters")
+        radius_a = st.number_input("Payload A radius R_A [Å]", value=45.0, min_value=1.0, step=0.5)
+        radius_b = st.number_input("Payload B radius R_B [Å]", value=25.0, min_value=1.0, step=0.5)
+        p_class = st.selectbox(
+            "Interaction class",
+            options=list(InteractionClass),
+            format_func=lambda c: {
+                InteractionClass.METABOLIC: "Metabolic cascade (reaction–diffusion heuristic)",
+                InteractionClass.BINDING: "Binding pair / NanoBiT",
+                InteractionClass.KINASE: "Kinase / phosphatase reach heuristic",
+                InteractionClass.ELECTRON: "Electron transfer distance decay",
+            }[c],
+        )
+        km = st.number_input(
+            "Substrate K_m [M] (metabolic class)",
+            value=1e-4,
+            min_value=1e-12,
+            format="%.6g",
+        )
+        run_opt = st.button("Calculate optimum", type="primary")
+
+    static_html = REPO_ROOT / "web" / "ctpr_scaffold_optimizer.html"
+    with st.expander("Standalone HTML demo"):
+        st.write(
+            f"Browser-only copy lives at `{static_html.relative_to(REPO_ROOT)}`. "
+            "This Streamlit page uses the Python optimizer (`src/scaffold_optimizer`)."
+        )
+        if static_html.is_file() and st.checkbox("Embed HTML demo (client-side JS)"):
+            import streamlit.components.v1 as components
+
+            components.html(static_html.read_text(encoding="utf-8"), height=920, scrolling=True)
+
+    if not run_opt:
+        st.info("Set payload radii and interaction class, then calculate optimum.")
+        return
+
+    try:
+        result = optimize_ctpr_spacing(radius_a, radius_b, p_class, km_M=float(km))
+    except Exception as exc:
+        st.error(f"Optimizer rejected inputs: {exc}")
+        return
+
+    with col_out:
+        st.subheader("Optimization results")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Optimal spacing (Δi*)", f"{result.optimal_delta_i} repeats")
+        m2.metric("Recommended scaffold", f"CTPR-{result.recommended_scaffold_repeats}")
+        m3.metric("System score (Φ)", f"{result.best_score:.3f}")
+        st.caption(result.honesty_note)
+
+        rows = []
+        for c in result.candidates:
+            c_local = (
+                f"{c.c_local_M * 1000:.2f} mM"
+                if c.c_local_M is not None
+                else "N/A"
+            )
+            rows.append(
+                {
+                    "Δi": c.delta_i,
+                    "Docking pairs": f"(Repeat {c.docking_pair[0]}, Repeat {c.docking_pair[1]})",
+                    "d_center (Å)": round(c.d_center_A, 2),
+                    "d_active (Å)": round(c.d_active_A, 2),
+                    "P_steric": f"{c.p_steric * 100:.1f}%",
+                    "C_local": c_local,
+                    "Score (Φ)": round(c.score, 3),
+                    "State": c.state,
+                }
+            )
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+
+        st.subheader("3D superhelix docking architecture")
+        st.code(result.ascii_map, language=None)
+        with st.expander("Geometry constants"):
+            st.json(result.geometry_constants)
+
+
 def run() -> None:
     st.set_page_config(
         page_title="ORIGAMI · CLASP Design Engine",
@@ -582,7 +670,12 @@ def run() -> None:
         st.caption("Hong Kong team · ISEF 2026")
         mode = st.radio(
             "Mode",
-            ["Explore evidence", "Design a CLASP system", "Learn from data"],
+            [
+                "Explore evidence",
+                "Design a CLASP system",
+                "Optimize CTPR spacing",
+                "Learn from data",
+            ],
             index=0,
         )
         st.markdown("---")
@@ -599,6 +692,8 @@ def run() -> None:
         page_explore()
     elif mode.startswith("Design"):
         page_design()
+    elif mode.startswith("Optimize"):
+        page_optimize()
     else:
         page_learn()
 

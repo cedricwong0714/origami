@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORIGAMI :: CTPR Scaffold Optimizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ORIGAMI / CLASP colour system */
+        :root {
+            --primary: #FF8000;
+            --secondary: #266FB1;
+            --typography: #242220;
+            --canvas: #F3EFE9;
+            --structure: #EBE4D9;
+            --white: #FFFFFF;
+            --orange-hover: #D66B00;
+            --card-shadow: 0 10px 30px rgba(36, 34, 32, 0.04);
+            --border-radius: 8px;
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--canvas);
+            color: var(--typography);
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.5;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--structure);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--typography);
+            letter-spacing: -0.5px;
+        }
+
+        .honesty {
+            background: var(--structure);
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid var(--primary);
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: var(--typography);
+        }
+
+        header p {
+            font-size: 14px;
+            color: #666059;
+            margin-top: 4px;
+        }
+
+        /* Layout Grid */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 860px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel Structure */
+        .card {
+            background-color: var(--structure);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .card-inner {
+            background-color: var(--white);
+            border-radius: calc(var(--border-radius) - 2px);
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--typography);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--typography);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+            padding: 10px 12px;
+            color: var(--typography);
+            background-color: var(--canvas);
+            border: 1.5px solid transparent;
+            border-radius: 6px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        input[type="number"]:focus, select:focus {
+            background-color: var(--white);
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(38, 111, 177, 0.12);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary);
+            color: var(--white);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 8px;
+            box-shadow: 0 2px 8px rgba(255, 128, 0, 0.25);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--orange-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-stat {
+            background-color: var(--white);
+            border-radius: 6px;
+            padding: 14px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .summary-stat.primary-stat {
+            border-left-color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #777067;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--typography);
+            margin-top: 4px;
+        }
+
+        /* Clean Table */
+        .table-container {
+            overflow-x: auto;
+            background-color: var(--white);
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--canvas);
+            color: var(--typography);
+            font-weight: 600;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--structure);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--canvas);
+            color: var(--typography);
+        }
+
+        tr.optimal-row {
+            background-color: rgba(255, 128, 0, 0.08);
+            font-weight: 600;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .tag-optimal {
+            background-color: rgba(255, 128, 0, 0.15);
+            color: #d66c00;
+        }
+
+        .tag-clash {
+            background-color: rgba(217, 48, 37, 0.12);
+            color: #d93025;
+        }
+
+        .tag-normal {
+            background-color: var(--canvas);
+            color: #666059;
+        }
+
+        /* Helix Visualization Box */
+        .helix-visualizer {
+            background-color: var(--typography);
+            color: var(--canvas);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .helix-visualizer span.highlight-a {
+            color: #ff9d3b;
+            font-weight: bold;
+        }
+
+        .helix-visualizer span.highlight-b {
+            color: #5bb3ff;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #888077;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>ORIGAMI · CTPR Scaffold Optimizer</h1>
+        <p>Hong Kong team · ISEF 2026 — docking spacing triage on ORIGAMI CTPR geometry</p>
+    </header>
+
+    <div class="honesty">
+        <strong>Computational ranking only.</strong>
+        Geometry uses ORIGAMI invariants (1.1&nbsp;nm rise, 20° twist).
+        Φ scores are Tier-3 heuristics — not wet-lab calibrated fitness.
+        Prefer the Streamlit <em>Optimize CTPR spacing</em> mode for the Python-backed path.
+    </div>
+
+    <div class="grid-layout">
+        <div class="card">
+            <div class="card-title">Target Parameters</div>
+            <div class="card-inner">
+                <form id="claspForm">
+                    <div class="form-group">
+                        <label for="radiusA">Payload A Radius (R_A) [Å]</label>
+                        <input type="number" id="radiusA" value="45.0" step="0.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="radiusB">Payload B Radius (R_B) [Å]</label>
+                        <input type="number" id="radiusB" value="25.0" step="0.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pClass">Interaction Class</label>
+                        <select id="pClass">
+                            <option value="Metabolic">Metabolic Cascade (Reaction-Diffusion)</option>
+                            <option value="Binding">Binding Pair / NanoBiT</option>
+                            <option value="Kinase">Kinase / Phosphatase</option>
+                            <option value="Electron">Electron Transfer Chain</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kmVal">Substrate K_m [M]</label>
+                        <input type="number" id="kmVal" value="0.0001" step="0.00001" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Calculate Optimum</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="outputSection">
+            <div class="card">
+                <div class="card-title">Optimization Results</div>
+                
+                <div class="summary-grid" style="margin-top: 16px;">
+                    <div class="summary-stat primary-stat">
+                        <div class="stat-label">Optimal Spacing (Δi*)</div>
+                        <div class="stat-value" id="valDeltaI">3 repeats</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="stat-label">Recommended Scaffold</div>
+                        <div class="stat-value" id="valScaffold">CTPR-6</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="stat-label">System Score (Φ)</div>
+                        <div class="stat-value" id="valScore">0.825</div>
+                    </div>
+                </div>
+
+                <div class="card-inner" style="padding: 0; overflow: hidden;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Δi</th>
+                                    <th>Docking Pairs</th>
+                                    <th>d_center (Å)</th>
+                                    <th>d_active (Å)</th>
+                                    <th>P_steric</th>
+                                    <th>C_local</th>
+                                    <th>Score (Φ)</th>
+                                    <th>State</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-inner" style="margin-top: 16px;">
+                    <div class="card-title" style="font-size: 13px;">3D Superhelix Docking Architecture</div>
+                    <div class="helix-visualizer" id="asciiMap">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ORIGAMI / CLASP · Hong Kong team · ISEF 2026 · CTPR screw geometry (ORIGAMI invariants)
+    </footer>
+</div>
+
+<script>
+// Auto-run calculation on load
+window.addEventListener('DOMContentLoaded', () => {
+    runOptimization();
+});
+
+document.getElementById('claspForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    runOptimization();
+});
+
+// 4x4 Homogeneous Screw Matrix
+function getScrewMatrix(i, theta, dz) {
+    let angle = i * theta;
+    return [
+        [Math.cos(angle), -Math.sin(angle), 0.0, 0.0],
+        [Math.sin(angle),  Math.cos(angle), 0.0, 0.0],
+        [0.0,             0.0,            1.0, i * dz],
+        [0.0,             0.0,            0.0, 1.0]
+    ];
+}
+
+// 4D Matrix-Vector Multiplication
+function matVecMult(mat, vec) {
+    let res = [0, 0, 0, 0];
+    for (let r = 0; r < 4; r++) {
+        res[r] = mat[r][0]*vec[0] + mat[r][1]*vec[1] + mat[r][2]*vec[2] + mat[r][3]*vec[3];
+    }
+    return res;
+}
+
+// 3D Euclidean Vector Norm
+function vecDist3D(v1, v2) {
+    let dx = v1[0] - v2[0];
+    let dy = v1[1] - v2[1];
+    let dz = v1[2] - v2[2];
+    return Math.sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+function runOptimization() {
+    const rA = parseFloat(document.getElementById('radiusA').value);
+    const rB = parseFloat(document.getElementById('radiusB').value);
+    const pClass = document.getElementById('pClass').value;
+    const Km = parseFloat(document.getElementById('kmVal').value);
+
+    // ORIGAMI CTPR invariants (src/core/ctpr_geometry.py) — Å units in this page
+    const theta = 20.0 * (Math.PI / 180.0); // 20° twist per repeat
+    const dz = 11.0;                        // 1.1 nm = 11.0 Å axial rise
+    const R_scaffold = 18.0;                // 1.8 nm scaffold radius
+    const loopOffset = 3.5;                 // 0.35 nm docking-loop offset
+    const R_total = R_scaffold + loopOffset;
+    const rClash = rA + rB;                 // Combined collision radius
+    const wClash = 5.0;                      // Soft boundary buffer
+    const rPocket = 8.0;                    // Pocket radius
+    const linkerLen = 28.5;                 // Flexible linker reach heuristic (Å)
+
+    const iA = 2; // Anchor Payload A at Repeat 2
+    let results = [];
+    let bestIdx = -1;
+    let maxScore = -1.0;
+
+    for (let deltaI = 1; deltaI <= 6; deltaI++) {
+        let iB = iA + deltaI;
+
+        let TA = getScrewMatrix(iA, theta, dz);
+        let TB = getScrewMatrix(iB, theta, dz);
+
+        // Center of mass 3D coordinates
+        let pComA = matVecMult(TA, [R_total, 0.0, 0.0, 1.0]);
+        let pComB = matVecMult(TB, [R_total, 0.0, 0.0, 1.0]);
+        let dCenter = vecDist3D(pComA, pComB);
+
+        // Active-site estimate: COM separation minus payload radii (surface gap)
+        let dActive = Math.max(0.0, dCenter - rA - rB);
+
+        // Steric hindrance probability (Cosine switching)
+        let pSteric = 0.0;
+        if (dCenter <= (rClash - wClash)) {
+            pSteric = 1.0;
+        } else if (dCenter >= (rClash + wClash)) {
+            pSteric = 0.0;
+        } else {
+            pSteric = 0.5 * (1.0 + Math.cos(Math.PI * (dCenter - (rClash - wClash)) / (2.0 * wClash)));
+        }
+
+        // Class-specific scoring logic
+        let score = 0.0;
+        let cLocal = 0.0;
+
+        if (pClass === "Metabolic") {
+            let dMeters = dActive * 1e-10;
+            let vSphere = (4.0 / 3.0) * Math.PI * Math.pow(dMeters, 3);
+            cLocal = 1.0 / (6.02214076e23 * vSphere * 1000.0); // Molar concentration
+            let pCapture = (cLocal / (Km + cLocal)) * (1.0 - (rPocket / (2.0 * dActive)));
+            score = pCapture * (1.0 - pSteric);
+
+        } else if (pClass === "Binding") {
+            cLocal = 0.0; // Non-catalytic
+            if (dCenter <= (rClash + linkerLen)) {
+                let distDiff = Math.abs(dCenter - rClash);
+                score = Math.exp(-Math.pow(distDiff, 2) / (2.0 * Math.pow(linkerLen / 2.0, 2))) * (1.0 - pSteric);
+            } else {
+                score = 0.0;
+            }
+
+        } else if (pClass === "Kinase") {
+            cLocal = 0.0;
+            let sigmaReach = 15.0;
+            let excess = Math.max(0.0, dActive - linkerLen);
+            score = Math.exp(-Math.pow(excess, 2) / (2.0 * Math.pow(sigmaReach, 2))) * (1.0 - pSteric);
+
+        } else if (pClass === "Electron") {
+            cLocal = 0.0;
+            let beta = 1.4;
+            let gap = Math.max(0.0, dCenter - rClash);
+            score = Math.exp(-beta * gap) * (1.0 - pSteric);
+        }
+
+        results.push({
+            deltaI: deltaI,
+            dCenter: dCenter,
+            dActive: dActive,
+            pSteric: pSteric,
+            cLocal: cLocal,
+            score: Math.max(0.0, score)
+        });
+
+        if (score > maxScore) {
+            maxScore = score;
+            bestIdx = deltaI;
+        }
+    }
+
+    const N_minimal = iA + bestIdx;         // Minimal repeats
+    const N_recommended = N_minimal + 1;   // Adds C-terminal cap
+
+    // Update Top Stat Cards
+    document.getElementById('valDeltaI').innerText = `${bestIdx} repeats`;
+    document.getElementById('valScaffold').innerText = `CTPR-${N_recommended}`;
+    document.getElementById('valScore').innerText = maxScore.toFixed(3);
+
+    // Update Table
+    let tableHtml = "";
+    results.forEach(r => {
+        let isBest = (r.deltaI === bestIdx);
+        let rowClass = isBest ? 'class="optimal-row"' : '';
+        let tagHtml = "";
+
+        if (r.pSteric > 0.5) {
+            tagHtml = '<span class="tag tag-clash">Clash Risk</span>';
+        } else if (isBest) {
+            tagHtml = '<span class="tag tag-optimal">Optimal</span>';
+        } else {
+            tagHtml = '<span class="tag tag-normal">Sub-optimal</span>';
+        }
+
+        let cLocalStr = (pClass === "Metabolic") ? (r.cLocal * 1000).toFixed(2) + " mM" : "N/A";
+
+        tableHtml += `<tr ${rowClass}>
+            <td>${r.deltaI}</td>
+            <td>(Repeat ${iA}, Repeat ${iA + r.deltaI})</td>
+            <td>${r.dCenter.toFixed(2)}</td>
+            <td>${r.dActive.toFixed(2)}</td>
+            <td>${(r.pSteric * 100).toFixed(1)}%</td>
+            <td>${cLocalStr}</td>
+            <td>${r.score.toFixed(3)}</td>
+            <td>${tagHtml}</td>
+        </tr>`;
+    });
+    document.getElementById('tableBody').innerHTML = tableHtml;
+
+    // Render Clean Structural Map
+    let iB_opt = iA + bestIdx;
+    let asciiMap = `CTPR SCAFFOLD SUPERHELIX CONFIGURATION:\n`;
+    asciiMap += `--------------------------------------------------------\n`;
+    asciiMap += `[N-CAP] `;
+
+    for (let r = 1; r <= N_recommended; r++) {
+        if (r === iA) {
+            asciiMap += `<span class="highlight-a">[R2: PAYLOAD_A]</span> = `;
+        } else if (r === iB_opt) {
+            asciiMap += `<span class="highlight-b">[R${r}: PAYLOAD_B]</span> = `;
+        } else if (r === N_recommended) {
+            asciiMap += `[R${r}: C-CAP]`;
+        } else {
+            asciiMap += `[R${r}] = `;
+        }
+    }
+    asciiMap += ` -> [LgBiT]\n`;
+    asciiMap += `--------------------------------------------------------\n`;
+    asciiMap += `Active-site estimate (d_active) : ${results[bestIdx-1].dActive.toFixed(2)} Å\n`;
+    asciiMap += `Superhelical Rotation Angle     : ${bestIdx * 20}° (${(bestIdx * 20) % 360}° offset)\n`;
+    asciiMap += `Steric clearance estimate       : ${(100 - results[bestIdx-1].pSteric * 100).toFixed(1)}%\n`;
+    asciiMap += `Geometry priors                 : rise=1.1 nm/repeat, twist=20°/repeat`;
+
+    document.getElementById('asciiMap').innerHTML = asciiMap;
+}
+</script>
+
+</body>
+</html>

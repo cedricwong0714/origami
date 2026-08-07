@@ -54,13 +54,21 @@ pip install -e ".[ui]"
 streamlit run app.py
 ```
 
-Opens a local dashboard with three modes:
+Opens a local dashboard with four modes:
 
 1. **Explore evidence** — retrieve parameters or refuse honestly  
 2. **Design a CLASP system** — geometry, prediction, passport, allowlist checks  
-3. **Learn from data** — ODE vs observations + next-experiment suggestions  
+3. **Optimize CTPR spacing** — rank docking Δi (Tier-3 computational ranking)  
+4. **Learn from data** — ODE vs observations + next-experiment suggestions  
 
 Synthetic Learn curves are labeled fixtures — not Tier-1 lab data.
+
+Standalone HTML demo (same palette / corrected ORIGAMI CTPR priors):
+
+```bash
+# open in a browser
+web/ctpr_scaffold_optimizer.html
+```
 
 ### CLI pipeline (verification → MoClo → ODE → optional GP)
 
@@ -140,8 +148,10 @@ src/
   compiler/        Approved-parts allowlist + coexpression rules
   moclo_compiler/  Level-1 assembly + GenBank draft
   verification/    Multi-layer design checks
-  ui/              Explore / Design / Learn + CLI
+  ui/              Explore / Design / Optimize / Learn + CLI
+  scaffold_optimizer/  CTPR Δi spacing ranking
   data_ingestion/  Learn timeseries package loaders
+web/               Standalone HTML demos (CTPR optimizer)
 models/
   kinetic_models/        Tracked JSON rate priors (loaded by profiles)
   structure_predictions/ AF/ESM summaries (PDBs gitignored → Zenodo)
