@@ -1,3 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "origami"
+version = "0.1.0"
+description = "ORIGAMI — mechanism-aware design engine for CLASP"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "pydantic>=2.5",
+  "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+ui = [
+  "streamlit>=1.30",
+  "plotly>=5.18",
+  "gpytorch>=1.11",
+  "biopython>=1.81",
+  "sentence-transformers>=2.2",
+]
+
+[project.scripts]
+origami = "src.ui.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]

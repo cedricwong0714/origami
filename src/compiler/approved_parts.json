@@ -1,0 +1,158 @@
+{
+  "version": "1.0.0",
+  "description": "ORIGAMI approved-parts allowlist. Large ORFs are allowlisted by curated ID + provenance until team DNA deposits are checksummed. Short regulatory/peptide parts include sequences for compiler checks.",
+  "forbidden_solo_vectors": ["pET28a+", "pET28a", "pET-28a(+)"],
+  "parts": [
+    {
+      "part_id": "Promoter_J23100",
+      "category": "promoter",
+      "sequence": "TTGACAGCTAGCTCAGTCCTAGGTATAATACTAGT",
+      "checksum_sha256": "3282599616b538e69a32a6129058d22188d9f08b488a057dc14e4de9823b4eff",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["promoter"],
+      "notes": "Anderson constitutive promoter J23100"
+    },
+    {
+      "part_id": "RBS_B0034",
+      "category": "rbs",
+      "sequence": "AAAGAGGAGAAA",
+      "checksum_sha256": "c13f21d5d2147d1098e0915248ade426568ac037a2299f58faedbcb1fd156b55",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["rbs"],
+      "notes": "BBa_B0034 RBS"
+    },
+    {
+      "part_id": "Term_B0015",
+      "category": "terminator",
+      "sequence": "CCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGT",
+      "checksum_sha256": "0ccac23544cef539da9e6027246ec1d3a45d46637a2de96862d327e14ea51401",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["terminator"],
+      "notes": "BBa_B0015 double terminator (truncated representative)"
+    },
+    {
+      "part_id": "Linker_GGGGS3",
+      "category": "linker",
+      "sequence": "GGTGGTGGTGGTTCTGGTGGTGGTGGTTCTGGTGGTGGTGGTTCT",
+      "checksum_sha256": "2356254938cecbe008cefed6c446c17d31f5c1b59373910b68a4254874e9509e",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["linker"],
+      "notes": "(GGGGS)3 flexible linker coding sequence"
+    },
+    {
+      "part_id": "SpyTag",
+      "category": "covalent",
+      "sequence": "GCTCACATCGTGATGGTGGACGCCTACAAGCCGACG",
+      "checksum_sha256": "6e2fd23ce9b01f606d940a5bf0a6e390603e7e11b5edfa39284b19c7ec9cc7c3",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["covalent_tag"],
+      "notes": "SpyTag peptide coding sequence (short)"
+    },
+    {
+      "part_id": "SmBiT",
+      "category": "reporter",
+      "sequence": "GTGAGCGGCTGGCGGCTG",
+      "checksum_sha256": "a3eb56d9dd9abef6feb9f007062f816249abc6f0ba78dd1fb0ca2c3d65bf6c9a",
+      "sequence_status": "verified_short_part",
+      "allowed_roles": ["reporter_fragment"],
+      "notes": "NanoBiT SmBiT peptide"
+    },
+    {
+      "part_id": "M13_peptide",
+      "category": "sensor",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["docking_acceptor"],
+      "provenance": "CaM-binding M13 peptide; deposit team DNA before synthesis",
+      "notes": "Allowlisted by ID until sequenced deposit is checksummed"
+    },
+    {
+      "part_id": "CaM",
+      "category": "sensor",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["sensor_partner"],
+      "provenance": "Calmodulin recruitment partner",
+      "notes": "Allowlisted by ID until sequenced deposit is checksummed"
+    },
+    {
+      "part_id": "SpyCatcher",
+      "category": "covalent",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["covalent_catcher"],
+      "provenance": "SpyCatcher domain",
+      "notes": "Allowlisted by ID until sequenced deposit is checksummed"
+    },
+    {
+      "part_id": "LgBiT",
+      "category": "reporter",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["reporter_fragment"],
+      "provenance": "NanoBiT large fragment",
+      "notes": "Allowlisted by ID until sequenced deposit is checksummed"
+    },
+    {
+      "part_id": "CTPR_consensus_unit",
+      "category": "scaffold",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["scaffold"],
+      "provenance": "Consensus TPR repeat building block",
+      "notes": "Allowlisted by ID until sequenced deposit is checksummed"
+    },
+    {
+      "part_id": "OtsA",
+      "category": "payload",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["upstream_enzyme"],
+      "provenance": "Trehalose-6-phosphate synthase",
+      "notes": "Reference application payload; sequence must be deposited before synthesis ordering"
+    },
+    {
+      "part_id": "OtsB",
+      "category": "payload",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["downstream_enzyme"],
+      "provenance": "Trehalose-6-phosphate phosphatase",
+      "notes": "Reference application payload; sequence must be deposited before synthesis ordering"
+    },
+    {
+      "part_id": "vector_pETDuet",
+      "category": "vector",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["coexpression_vector"],
+      "notes": "Dual-cassette coexpression backbone (allowed)"
+    },
+    {
+      "part_id": "vector_dual_plasmid_set",
+      "category": "vector",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["coexpression_vector"],
+      "notes": "Two-plasmid scaffold + payload coexpression strategy (allowed)"
+    },
+    {
+      "part_id": "pET28a+",
+      "category": "vector",
+      "sequence": "",
+      "checksum_sha256": "",
+      "sequence_status": "reference_only",
+      "allowed_roles": ["single_orf_vector"],
+      "notes": "FORBIDDEN as sole expression strategy for scaffold+payload CLASP systems"
+    }
+  ]
+}
