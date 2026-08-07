@@ -43,8 +43,10 @@ data/**/*.parquet
 data/**/*.h5
 data/**/*.zip
 !data/**/examples/**
+!data/**/templates/**
 !data/**/*template*.json
 !data/**/schema.json
+!data/**/schema_*.json
 !data/**/README.md
 
 # Keep tracked model JSON / docs
