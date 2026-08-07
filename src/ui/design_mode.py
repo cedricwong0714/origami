@@ -19,6 +19,7 @@ from src.core.ctpr_geometry import generate_scaffold_geometry
 from src.core.linker_ensemble import compute_effective_concentration, parse_linker
 from src.core.schema import DesignSpec, MoCloPart
 from src.core.steric_checker import run_steric_check
+from src.compliance.prediction_result import profile_prediction_to_result
 from src.profiles import get_profile
 from src.verification.engine import evaluate_design
 
@@ -78,6 +79,9 @@ class DesignMode:
             spec,
             parts,
             initial_concentrations=initial_concentrations,
+            expression_plan=expression_plan,
+            prediction=prediction,
+            profile_version=profile.version,
         )
 
         blocking = list(input_errors)
@@ -152,6 +156,11 @@ class DesignMode:
             "linker_c_eff_mM": ctx["reach"].c_eff_mM,
             "steric_feasible": ctx["steric"].is_feasible,
             "predicted_output": prediction.model_dump() if prediction else None,
+            "prediction_result": (
+                profile_prediction_to_result(prediction).model_dump() if prediction else None
+            ),
+            "verification_layers": [layer.model_dump() for layer in verification.layers],
+            "blocks_export": verification.blocks_export,
             "evidence_maturity": (
                 prediction.evidence_maturity.value
                 if prediction

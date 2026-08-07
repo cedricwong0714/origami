@@ -20,6 +20,8 @@ class PayloadRole(str, Enum):
     REDOX_ACCEPTOR = "redox_acceptor"
     COVALENT_TAG = "covalent_tag"
     COVALENT_CATCHER = "covalent_catcher"
+    KINASE_DONOR = "kinase_donor"
+    KINASE_ACCEPTOR = "kinase_acceptor"
 
 
 DEFAULT_ROLE_ORDER: dict[str, list[PayloadRole]] = {
@@ -38,6 +40,10 @@ DEFAULT_ROLE_ORDER: dict[str, list[PayloadRole]] = {
     "covalent_capture": [
         PayloadRole.COVALENT_TAG,
         PayloadRole.COVALENT_CATCHER,
+    ],
+    "trans_activation": [
+        PayloadRole.KINASE_DONOR,
+        PayloadRole.KINASE_ACCEPTOR,
     ],
 }
 

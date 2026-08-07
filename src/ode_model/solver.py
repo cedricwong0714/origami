@@ -6,6 +6,7 @@ from src.ode_model.mechanisms.intermediate import simulate_intermediate_transfer
 from src.ode_model.mechanisms.complementation import simulate_complementation
 from src.ode_model.mechanisms.redox import simulate_redox_transfer
 from src.ode_model.mechanisms.covalent import simulate_covalent_capture
+from src.ode_model.mechanisms.trans_activation import simulate_trans_activation
 
 def run_system_simulation(
     initial_concentrations: Dict[str, float],
@@ -27,5 +28,7 @@ def run_system_simulation(
         return simulate_redox_transfer(initial_concentrations, params, time_span, num_points)
     elif mechanism_type == MechanismType.COVALENT_CAPTURE:
         return simulate_covalent_capture(initial_concentrations, params, time_span, num_points)
+    elif mechanism_type == MechanismType.TRANS_ACTIVATION:
+        return simulate_trans_activation(initial_concentrations, params, time_span, num_points)
     else:
         raise ValueError(f"Unsupported mechanism type: {mechanism_type}")

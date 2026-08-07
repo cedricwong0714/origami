@@ -19,8 +19,18 @@ def test_full_pipeline_execution():
     )
 
     parts = [
-        MoCloPart(part_id="Part_1", overhang_5prime="GGAG", overhang_3prime="AATG", sequence="ATCG"),
-        MoCloPart(part_id="Part_2", overhang_5prime="AATG", overhang_3prime="CGCT", sequence="GCTA")
+        MoCloPart(
+            part_id="Promoter_J23100",
+            overhang_5prime="GGAG",
+            overhang_3prime="AATG",
+            sequence="TTGACAGCTAGCTCAGTCCTAGGTATAATACTAGT",
+        ),
+        MoCloPart(
+            part_id="RBS_B0034",
+            overhang_5prime="AATG",
+            overhang_3prime="CGCT",
+            sequence="AAAGAGGAGAAA",
+        ),
     ]
 
     initial_concs = {"S": 2.0, "E": 0.2, "ES": 0.0, "P": 0.0}

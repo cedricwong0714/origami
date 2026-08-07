@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Any
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -19,6 +19,7 @@ class MechanismType(str, Enum):
     TARGET_COMPLEMENTATION = "target_complementation" # Split-reporter / biosensor
     REDOX_TRANSFER = "redox_transfer"                 # Electron transfer partners
     COVALENT_CAPTURE = "covalent_capture"             # Reversible -> Covalent
+    TRANS_ACTIVATION = "trans_activation"             # Proximity-induced trans-phosphorylation
 
 
 class EvidenceMaturity(str, Enum):
@@ -100,6 +101,8 @@ class VerificationReport(BaseModel):
     evidence_maturity: EvidenceMaturity
     control_plan: ControlPlan
     errors: List[str] = []
+    layers: List[Any] = Field(default_factory=list)
+    blocks_export: bool = False
 
 
 # Re-export payload types for convenient imports from schema

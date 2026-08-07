@@ -48,6 +48,7 @@ _MECHANISM_LABELS = {
     MechanismType.TARGET_COMPLEMENTATION: "Target complementation (screening assay POC)",
     MechanismType.REDOX_TRANSFER: "Redox transfer (relative ranking only)",
     MechanismType.COVALENT_CAPTURE: "Covalent capture (SpyTag / SpyCatcher)",
+    MechanismType.TRANS_ACTIVATION: "Trans-activation (proximity-induced phosphorylation)",
 }
 
 
@@ -262,6 +263,9 @@ def page_design() -> None:
         operating_default = "locking"
     elif mechanism == MechanismType.REDOX_TRANSFER:
         payload_default = "redox_donor, redox_acceptor"
+        operating_default = "reversible"
+    elif mechanism == MechanismType.TRANS_ACTIVATION:
+        payload_default = "kinase_donor, kinase_acceptor"
         operating_default = "reversible"
     else:
         operating_default = "reversible"

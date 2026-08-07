@@ -1,0 +1,21 @@
+{
+  "mechanism_type": "trans_activation",
+  "profile_id": "trans_activation",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 3: Computational Baseline",
+  "params": {
+    "k_cat_basal": 0.05,
+    "k_cat_trans": 1.0,
+    "k_on_prox": 1.0,
+    "k_dephos": 0.1,
+    "phosphatase_uM": 0.1
+  },
+  "units": {
+    "k_cat_basal": "relative",
+    "k_cat_trans": "relative",
+    "k_on_prox": "relative (driven by C_eff)",
+    "k_dephos": "relative",
+    "phosphatase_uM": "uM"
+  },
+  "notes": "Tier-3 computational placeholders for proximity-induced trans-phosphorylation. No wet-lab calibration claimed. Replace with literature-sourced values before any wiki prediction."
+}

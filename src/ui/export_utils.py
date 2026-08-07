@@ -14,7 +14,7 @@ def interaction_class_to_mechanism(interaction: InteractionClass) -> MechanismTy
     mapping = {
         InteractionClass.METABOLIC: MechanismType.INTERMEDIATE_TRANSFER,
         InteractionClass.BINDING: MechanismType.TARGET_COMPLEMENTATION,
-        InteractionClass.KINASE: MechanismType.INTERMEDIATE_TRANSFER,
+        InteractionClass.KINASE: MechanismType.TRANS_ACTIVATION,
         InteractionClass.ELECTRON: MechanismType.REDOX_TRANSFER,
     }
     return mapping[interaction]
