@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from src.core.asset_paths import kinetic_params
-from src.core.schema import ControlPlan, DesignSpec, EvidenceMaturity, MechanismType
+from src.core.schema import (
+    ControlPlan,
+    DesignSpec,
+    EvidenceMaturity,
+    MechanismType,
+    PayloadRole,
+)
 from src.ode_model.solver import run_system_simulation
 from src.profiles.base import MechanismProfile, ProfilePrediction
 
@@ -30,8 +36,13 @@ class RedoxTransferProfile(MechanismProfile):
                 f"Profile {self.profile_id} requires mechanism_type="
                 f"{MechanismType.REDOX_TRANSFER.value}"
             )
-        if len(design.payload_ids) < 2:
+        if len(design.payloads) < 2:
             errors.append("Redox transfer requires donor and acceptor payloads.")
+        roles = {p.role for p in design.payloads}
+        if design.payloads and PayloadRole.REDOX_DONOR not in roles:
+            errors.append("Missing payload role redox_donor.")
+        if design.payloads and PayloadRole.REDOX_ACCEPTOR not in roles:
+            errors.append("Missing payload role redox_acceptor.")
         if len(design.scaffold.docking_positions) < 2:
             errors.append("Scaffold must place donor and acceptor at defined sites.")
         return errors
@@ -43,10 +54,8 @@ class RedoxTransferProfile(MechanismProfile):
         return {
             "equations": "Marcus-inspired relative electron-transfer ranking (not absolute H2 titre)",
             "geometry_objective": "minimize edge-to-edge distance between redox centers",
-            "payload_roles": {
-                design.payload_ids[0]: "redox_donor",
-                design.payload_ids[1]: "redox_acceptor",
-            },
+            "payload_roles": design.role_map(),
+            "payloads": [p.model_dump() for p in design.payloads],
             "params": self._params(),
         }
 

@@ -4,6 +4,8 @@ from src.core.schema import (
     EvidenceMaturity,
     MechanismType,
     MoCloPart,
+    PayloadRole,
+    PayloadSpec,
     ScaffoldSpec,
     VerificationReport,
 )
@@ -15,6 +17,8 @@ __all__ = [
     "EvidenceMaturity",
     "MechanismType",
     "MoCloPart",
+    "PayloadRole",
+    "PayloadSpec",
     "ScaffoldSpec",
     "VerificationReport",
     "DATA_DIR",

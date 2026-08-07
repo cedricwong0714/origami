@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from src.core.asset_paths import kinetic_params
-from src.core.schema import ControlPlan, DesignSpec, EvidenceMaturity, MechanismType
+from src.core.schema import (
+    ControlPlan,
+    DesignSpec,
+    EvidenceMaturity,
+    MechanismType,
+    PayloadRole,
+)
 from src.ode_model.solver import run_system_simulation
 from src.profiles.base import MechanismProfile, ProfilePrediction
 
@@ -34,8 +40,13 @@ class TargetComplementationProfile(MechanismProfile):
             errors.append("Target complementation MVP supports cell_free or E_coli chassis only.")
         if design.operating_mode not in {"reversible", "target_triggered"}:
             errors.append("Operating mode should be reversible or target_triggered for this profile.")
-        if len(design.payload_ids) < 1:
+        if len(design.payloads) < 1:
             errors.append("At least one recognition/reporter payload is required.")
+        roles = {p.role for p in design.payloads}
+        if design.payloads and not roles.intersection(
+            {PayloadRole.RECOGNITION_COMPONENT, PayloadRole.REPORTER_FRAGMENT}
+        ):
+            errors.append("Expected recognition_component and/or reporter_fragment payload roles.")
         return errors
 
     def required_parameters(self, design: DesignSpec) -> list[str]:
@@ -45,10 +56,8 @@ class TargetComplementationProfile(MechanismProfile):
         return {
             "equations": "Target-bridged fragment association → reconstituted reporter",
             "geometry_objective": "keep LgBiT–SmBiT distance ≤ 3.0 nm when target is bound",
-            "payload_roles": {
-                pid: ("recognition_component" if i == 0 else "reporter_fragment")
-                for i, pid in enumerate(design.payload_ids)
-            },
+            "payload_roles": design.role_map(),
+            "payloads": [p.model_dump() for p in design.payloads],
             "params": self._params(),
             "claim_boundary": "screening-assay proof of concept — not a clinical diagnostic",
         }

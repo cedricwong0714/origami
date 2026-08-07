@@ -258,6 +258,10 @@ def page_design() -> None:
         m2.metric("Evidence maturity", str(passport.get("evidence_maturity", "—"))[:28])
         m3.metric("Biosecurity", passport.get("biosecurity_review_state", "—"))
         m4.metric("Steric OK", str(passport.get("steric_feasible")))
+        if passport.get("payload_roles"):
+            st.caption("Payload roles: " + ", ".join(
+                f"{k}→{v}" for k, v in passport["payload_roles"].items()
+            ))
 
         pred = result.get("prediction")
         if pred:

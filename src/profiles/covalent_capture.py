@@ -5,7 +5,13 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from src.core.asset_paths import kinetic_params
-from src.core.schema import ControlPlan, DesignSpec, EvidenceMaturity, MechanismType
+from src.core.schema import (
+    ControlPlan,
+    DesignSpec,
+    EvidenceMaturity,
+    MechanismType,
+    PayloadRole,
+)
 from src.ode_model.solver import run_system_simulation
 from src.profiles.base import MechanismProfile, ProfilePrediction
 
@@ -32,21 +38,21 @@ class CovalentCaptureProfile(MechanismProfile):
             )
         if design.operating_mode not in {"locking", "reversible"}:
             errors.append("Covalent capture expects operating_mode='locking' (or reversible pre-lock).")
-        if len(design.payload_ids) < 1:
+        if len(design.payloads) < 1:
             errors.append("At least one SpyTag-bearing payload is required.")
+        if design.payloads and PayloadRole.COVALENT_TAG not in {p.role for p in design.payloads}:
+            errors.append("Missing payload role covalent_tag.")
         return errors
 
     def required_parameters(self, design: DesignSpec) -> list[str]:
         return ["k_bond", "k_rev", "spy_reaction_distance_nm"]
 
     def build_model(self, design: DesignSpec) -> dict[str, Any]:
-        roles = {design.payload_ids[0]: "covalent_tag"}
-        if len(design.payload_ids) > 1:
-            roles[design.payload_ids[1]] = "covalent_catcher"
         return {
             "equations": "Reversible recruitment → irreversible isopeptide bond",
             "geometry_objective": "force SpyTag–SpyCatcher within reactive proximity after recruitment",
-            "payload_roles": roles,
+            "payload_roles": design.role_map(),
+            "payloads": [p.model_dump() for p in design.payloads],
             "params": self._params(),
         }
 

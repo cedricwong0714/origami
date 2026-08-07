@@ -57,11 +57,17 @@ class DesignMode:
             distance = geometry.total_length_nm
         reach = compute_effective_concentration(linker, anchor_distance_nm=distance)
 
-        # Anchor spheres (not full enzyme envelopes) for docking-site clash MVP
+        # Anchor spheres for docking-site clash MVP (use PayloadSpec radii, capped for anchors)
         payload_positions = []
         for i, site in enumerate(geometry.docking_sites):
-            label = spec.payload_ids[i] if i < len(spec.payload_ids) else f"payload_{i}"
-            payload_positions.append((label, site.position_nm, 0.5))
+            if i < len(spec.payloads):
+                payload = spec.payloads[i]
+                label = f"{payload.payload_id}:{payload.role.value}"
+                radius = min(0.8, float(payload.approximate_radius_nm) * 0.25)
+            else:
+                label = f"payload_{i}"
+                radius = 0.5
+            payload_positions.append((label, site.position_nm, radius))
         steric = run_steric_check(geometry, payload_positions)
 
         prediction = None
@@ -126,7 +132,12 @@ class DesignMode:
             "mechanism_profile": profile.profile_id,
             "profile_version": profile.version,
             "intended_use": spec.operating_mode,
+            "sensor_id": spec.sensor_id,
+            "reporter_id": spec.reporter_id,
+            "localization": spec.localization,
             "payload_ids": list(spec.payload_ids),
+            "payloads": [p.model_dump() for p in spec.payloads],
+            "payload_roles": spec.role_map(),
             "scaffold_architecture": {
                 "scaffold_id": spec.scaffold.scaffold_id,
                 "repeat_count": spec.scaffold.repeat_count,

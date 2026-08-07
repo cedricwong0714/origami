@@ -1570,7 +1570,14 @@ If code and docs disagree on a physical constant, **stop and ask a human** befor
 
 Do **not** silently change these constants to make a demo plot look better.
 
-### 15.2 Mechanism Profile Standard
+### 15.2 DesignSpec payloads
+
+Prefer `DesignSpec.payloads: list[PayloadSpec]` with explicit `PayloadRole` values  
+(`upstream_enzyme`, `downstream_enzyme`, `recognition_component`, `reporter_fragment`,  
+`redox_donor`, `redox_acceptor`, `covalent_tag`, `covalent_catcher`).  
+Legacy `payload_ids` remain accepted and are synced to default roles per mechanism.
+
+### 15.3 Mechanism Profile Standard
 
 New proximity functions are added only as complete packages under `src/profiles/`:
 
@@ -1589,21 +1596,21 @@ Registered MVP profiles:
 3. `redox_transfer` → relative electron-transfer ranking (no absolute H₂ claims without calibration)  
 4. `covalent_capture` → SpyTag / SpyCatcher locking  
 
-### 15.3 Modes and honesty rules
+### 15.4 Modes and honesty rules
 
 - **Explore** must refuse with *Insufficient evidence for a reliable recommendation* when confidence is too low.  
 - **Design** must surface uncertainty and evidence maturity on the Proximity Design Passport.  
 - **Learn** must compare prediction vs observation; it must not overwrite Tier-1 data with a silent hallucinated “correction.”  
 - Never fabricate wet-lab results, citations, DOIs, or sequence deposits.
 
-### 15.4 Biosecurity / compiler gates
+### 15.5 Biosecurity / compiler gates
 
 - Every compiled `part_id` must appear in `src/compiler/approved_parts.json`.  
 - Large ORFs may be allowlisted by ID + provenance until checksummed DNA is deposited — **do not invent gene sequences**.  
 - Reject solo **pET28a+** as the sole scaffold+payload expression strategy (`src/compiler/expression_vector.py`).  
 - Do not add synthesis ordering, autonomous lab control, or open-ended payload generation without an explicit human decision and biosecurity review.
 
-### 15.5 Testing expectations for this repo
+### 15.6 Testing expectations for this repo
 
 Before merging ORIGAMI changes that touch biology or numerics:
 
