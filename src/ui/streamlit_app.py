@@ -237,6 +237,21 @@ def page_design() -> None:
         default_mechanism = MechanismType(default_mechanism)
     default_design_id = prefill.get("design_id", "UI_DESIGN_001")
 
+    # Persist docking choices across reruns (changing repeats must not wipe them).
+    if prefill.get("source") == "optimizer" and not st.session_state.get(
+        "_design_prefill_docks_applied"
+    ):
+        st.session_state["design_dock_a"] = default_dock_a
+        st.session_state["design_dock_b"] = default_dock_b
+        st.session_state["design_repeat_count"] = default_repeats
+        st.session_state["_design_prefill_docks_applied"] = True
+    if "design_dock_a" not in st.session_state:
+        st.session_state["design_dock_a"] = default_dock_a
+    if "design_dock_b" not in st.session_state:
+        st.session_state["design_dock_b"] = default_dock_b
+    if "design_repeat_count" not in st.session_state:
+        st.session_state["design_repeat_count"] = default_repeats
+
     mechanism = st.selectbox(
         "Mechanism profile",
         options=list(MechanismType),
@@ -248,12 +263,37 @@ def page_design() -> None:
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        repeat_count = st.slider("CTPR repeats", 2, 20, default_repeats)
+        repeat_count = st.slider(
+            "CTPR repeats",
+            2,
+            20,
+            key="design_repeat_count",
+        )
+    # Only clamp docks that fall outside the new repeat range — never reset to defaults.
+    if st.session_state["design_dock_a"] > repeat_count:
+        st.session_state["design_dock_a"] = int(repeat_count)
+    if st.session_state["design_dock_b"] > repeat_count:
+        st.session_state["design_dock_b"] = int(repeat_count)
+    if st.session_state["design_dock_a"] < 1:
+        st.session_state["design_dock_a"] = 1
+    if st.session_state["design_dock_b"] < 1:
+        st.session_state["design_dock_b"] = 1
+
     with c2:
-        dock_a = st.number_input("Docking site A (1-based)", 1, repeat_count, default_dock_a)
+        dock_a = st.number_input(
+            "Docking site A (1-based)",
+            min_value=1,
+            max_value=int(repeat_count),
+            step=1,
+            key="design_dock_a",
+        )
     with c3:
         dock_b = st.number_input(
-            "Docking site B (1-based)", 1, repeat_count, min(default_dock_b, repeat_count)
+            "Docking site B (1-based)",
+            min_value=1,
+            max_value=int(repeat_count),
+            step=1,
+            key="design_dock_b",
         )
 
     payload_default = "OtsA, OtsB"
@@ -437,7 +477,7 @@ def page_design() -> None:
                         x=xs,
                         y=ys,
                         mode="lines+markers",
-                        name="CTPR backbone (x–z)",
+                        name="CTPR superhelix (x–z)",
                         line=dict(color="#266FB1"),
                     )
                 )
@@ -458,8 +498,8 @@ def page_design() -> None:
                     paper_bgcolor="rgba(0,0,0,0)",
                     plot_bgcolor="rgba(235,228,217,0.65)",
                     font=dict(color="#242220"),
-                    xaxis_title="x (nm)",
-                    yaxis_title="z (nm)",
+                    xaxis_title="x (nm) — cylindrical screw",
+                    yaxis_title="z (nm) — axial rise",
                 )
                 st.plotly_chart(fig, use_container_width=True)
         except Exception as exc:
@@ -469,29 +509,64 @@ def page_design() -> None:
     if adr:
         st.subheader("CLASP assembly Ca²⁺ dose-response (Stream 1 ODE)")
         st.caption(adr.get("note", ""))
+        ec50_M = adr.get("ec50_M")
+        if ec50_M is not None:
+            lo = adr.get("ec50_uncertainty_lower_M")
+            hi = adr.get("ec50_uncertainty_upper_M")
+            cam_ec50 = adr.get("cam_parameter_ec50_M")
+            e1, e2, e3 = st.columns(3)
+            e1.metric("Apparent EC50", f"{ec50_M * 1e6:.3g} µM")
+            if lo is not None and hi is not None:
+                e2.metric("EC50 grid bracket", f"{lo * 1e6:.3g}–{hi * 1e6:.3g} µM")
+            if cam_ec50 is not None:
+                e3.metric("CaM parameter EC50", f"{cam_ec50 * 1e6:.3g} µM")
+            if adr.get("ec50_note"):
+                st.caption(adr["ec50_note"])
         try:
             import plotly.graph_objects as go
 
             ca_uM_axis = [c * 1e6 for c in adr["calcium_M"]]
+            x_min = float(adr.get("calcium_uM_min", min(ca_uM_axis)))
+            x_max = float(adr.get("calcium_uM_max", max(ca_uM_axis)))
             fig2 = go.Figure()
             fig2.add_trace(
                 go.Scatter(
                     x=ca_uM_axis,
                     y=adr["luminescence_RLU"],
-                    mode="lines+markers",
+                    mode="lines",
                     name="predicted RLU",
-                    line=dict(color="#FF8000"),
+                    line=dict(color="#FF8000", width=2.5),
                 )
             )
             op_uM = float(adr["operating_ca2_M"]) * 1e6
-            fig2.add_vline(
-                x=op_uM,
-                line_dash="dash",
-                line_color="#266FB1",
-                annotation_text=f"operating {op_uM:.2g} µM",
-            )
+            if x_min <= op_uM <= x_max:
+                fig2.add_vline(
+                    x=op_uM,
+                    line_dash="dash",
+                    line_color="#266FB1",
+                    annotation_text=f"operating {op_uM:.2g} µM",
+                )
+            if ec50_M is not None:
+                ec50_uM = float(ec50_M) * 1e6
+                if x_min <= ec50_uM <= x_max:
+                    fig2.add_vline(
+                        x=ec50_uM,
+                        line_dash="dot",
+                        line_color="#1B7F4E",
+                        annotation_text=f"EC50 {ec50_uM:.3g} µM",
+                    )
+                half_rlu = adr.get("ec50_half_maximal_RLU")
+                if half_rlu is not None:
+                    fig2.add_hline(
+                        y=float(half_rlu),
+                        line_dash="dot",
+                        line_color="#1B7F4E",
+                        annotation_text="half-max RLU",
+                    )
             fig2.update_layout(
                 height=340,
+                width=640,
+                autosize=False,
                 margin=dict(l=20, r=20, t=30, b=20),
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(235,228,217,0.65)",
@@ -499,8 +574,9 @@ def page_design() -> None:
                 xaxis_title="free Ca²⁺ (µM)",
                 yaxis_title="predicted luminescence (RLU)",
                 xaxis_type="log",
+                xaxis_range=[np.log10(x_min), np.log10(x_max)],
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, use_container_width=False)
         except Exception as exc:
             st.info(f"Dose-response plot unavailable: {exc}")
 
@@ -888,7 +964,7 @@ def page_optimize() -> None:
     st.header("Optimize CTPR spacing")
     st.caption(
         "Rank docking-repeat spacings (Δi) with ORIGAMI screw geometry "
-        "(1.1 nm rise, 45° twist). Scores are Tier-3 computational rankings."
+        "(1.1 nm rise, 45° twist, cylindrical screw). Scores are Tier-3 computational rankings."
     )
 
     col_in, col_out = st.columns([1, 2], gap="large")
@@ -981,6 +1057,8 @@ def page_optimize() -> None:
                 "mechanism_type": interaction_class_to_mechanism(result.interaction_class).value,
                 "design_id": f"OPT_CTPR{result.recommended_scaffold_repeats}",
             }
+            # Allow Design Mode to apply these docks once (without later repeat edits wiping them).
+            st.session_state.pop("_design_prefill_docks_applied", None)
             st.session_state["app_mode"] = "Design a CLASP system"
             st.rerun()
 

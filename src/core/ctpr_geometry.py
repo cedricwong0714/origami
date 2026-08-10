@@ -1,17 +1,22 @@
 """
 ORIGAMI Core: CTPR Scaffold Geometry Engine
-Generates 3D coordinates and docking site positions for CTPR scaffolds.
-Implements rigid-body screw-matrix transformations based on validated structural parameters.
+
+Cylindrical screw (superhelix) kinematics for consensus TPR arrays:
+each repeat advances by axial rise and rotates by twist about the
+scaffold axis. Repeat centers and docking sites sit off-axis on a
+cylinder — not on a straight polypeptide rod.
 
 Key Invariants (CLASP Docs / AGENTS.md §15.1):
-- Rise per repeat: 1.1 nm (axial translation)
-- Twist per repeat: 45 degrees (superhelical rotation; 8 repeats ≈ 1 turn)
-- Persistence length: 15 nm (rigid rod approximation for N<14)
-- Inter-site spacing example: 5 repeats ≈ 5.5 nm contour (axial)
+- Rise per repeat: 1.1 nm (axial translation along superhelix axis)
+- Twist per repeat: 45 degrees (8 repeats ≈ 1 turn; Kajander 2007)
+- Persistence length: 15 nm (rigid-rod approx. for short scaffolds)
+- Scaffold cylinder radius: 1.8 nm
 
-Uncertainty (CLASP Docs §1.1): first-order propagation of rise/twist std
-devs through the screw transform, plus worm-like-chain flexibility when
-total contour length exceeds the persistence length.
+Center-of-mass / docking chord (Δi repeats apart, radius R):
+  d = sqrt( 2 R² (1 − cos(Δi · θ)) + (Δi · rise)² )
+
+Uncertainty: first-order rise/twist std-devs through the screw, plus
+WLC flexibility when contour length exceeds the persistence length.
 """
 
 from __future__ import annotations
@@ -32,7 +37,8 @@ from .schema import ScaffoldSpec
 # Source: CLASP Docs (nanometer precision claim); Dueber et al. 2009; SCABs 2024
 # System: Consensus TPR (CTPR) scaffold
 # Method: Structural / design documentation for CLASP geometry
-# Notes: Axial contour only; do not confuse with superhelical pitch
+# Notes: Axial advance of the superhelix axis; dry-lab PDF used 0.95 nm —
+#   do not silent-switch without human review + CHANGELOG
 CTPR_RISE_NM = 1.1
 
 # Parameter: CTPR superhelical twist per repeat
@@ -40,18 +46,24 @@ CTPR_RISE_NM = 1.1
 # Units: degrees
 # Source: Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800–811,
 #   DOI: 10.1107/S0907444907024353, PMID: 17582171
-#   (CTPR8 crystal structures: eight tandem repeats complete one superhelical turn
-#   → 360°/8 = 45° per repeat). Same framing: Bismut et al. (2025) Protein Science
-#   34:e70150, DOI: 10.1002/pro.70150 (explicitly cites Kajander 2007 for
-#   eight-repeat turn; 2-repeat motif offset ≈90° on CTPR4).
+#   (CTPR8: eight tandem repeats complete one superhelical turn → 360°/8 = 45°).
+#   Bismut et al. (2025) Protein Science 34:e70150, DOI: 10.1002/pro.70150
 # System: Designed consensus TPR arrays (CTPR8 / CTPR20), crystal lattice
 # Method: X-ray crystallography of CTPR superhelices (PDB 2AVP / 2FO7 / 2HYZ)
-# Notes: This is the *superhelical* twist between successive repeats, not the
-#   ~24° intra-repeat A/B helix tilt sometimes quoted in reviews.
+# Notes: Superhelical twist between successive repeats, not ~24° A/B tilt
 CTPR_TWIST_DEG = 45.0
 
+# Parameter: CTPR scaffold cylinder radius (repeat-center radial distance)
+# Value: 1.8
+# Units: nm
+# Source: CLASP Docs §2.4 / steric_checker scaffold cylinder
 CTPR_RADIUS_NM = 1.8
 PERSISTENCE_LENGTH_NM = 15.0
+
+# Parameter: Docking-loop radial offset beyond scaffold cylinder
+# Value: 0.35
+# Units: nm
+# Source: CLASP geometry prior (loop graft extension beyond cylinder)
 DOCKING_LOOP_OFFSET_NM = 0.35
 
 # Default structural std-devs (half-width of published CTPR variation ranges)
@@ -89,7 +101,11 @@ class ScaffoldGeometry(BaseModel):
     total_length_nm: float = Field(..., gt=0)
     is_rigid: bool
     docking_sites: List[DockingSiteGeometry] = Field(default_factory=list)
+    # Helical path of repeat centers (radius = CTPR_RADIUS_NM)
     backbone_coordinates_nm: List[Tuple[float, float, float]] = Field(default_factory=list)
+    # Straight superhelix axis (x=y=0) for cylinder steric checks
+    axis_coordinates_nm: List[Tuple[float, float, float]] = Field(default_factory=list)
+    docking_radius_nm: float = CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM
     wlc_end_to_end_rms_nm: Optional[float] = None
     rigid_rod_warning: Optional[str] = None
     rise_std_nm: float = DEFAULT_RISE_STD_NM
@@ -128,27 +144,60 @@ class ScaffoldGeometry(BaseModel):
         flex = 0.0
         if not self.is_rigid and self.wlc_end_to_end_rms_nm is not None:
             rigid_length = self.total_length_nm
-            # Extra variance of WLC relative to rigid rod as flexibility term
             flex = abs(self.wlc_end_to_end_rms_nm - rigid_length) / max(
-                1, abs(self.docking_sites[site_a].repeat_index
-                       - self.docking_sites[site_b].repeat_index)
+                1,
+                abs(
+                    self.docking_sites[site_a].repeat_index
+                    - self.docking_sites[site_b].repeat_index
+                ),
             )
         return float(np.sqrt(structural**2 + flex**2))
 
     def get_active_site_estimate_nm(
-        self, site_a: int, site_b: int,
+        self,
+        site_a: int,
+        site_b: int,
         payload_radius_a_nm: float = 2.0,
-        payload_radius_b_nm: float = 2.0
+        payload_radius_b_nm: float = 2.0,
     ) -> float:
-        """Estimate distance between active sites of docked payloads."""
+        """Estimate gap between payload surfaces (COM chord minus radii)."""
         anchor_distance = self.get_inter_site_distance_nm(site_a, site_b)
         return max(0.0, anchor_distance - payload_radius_a_nm - payload_radius_b_nm)
 
 
-def _rotation_matrix_z(angle_deg: float) -> np.ndarray:
-    rad = np.radians(angle_deg)
-    c, s = np.cos(rad), np.sin(rad)
-    return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+def helical_chord_distance_nm(
+    delta_i: int,
+    radius_nm: float,
+    rise_nm: float = CTPR_RISE_NM,
+    twist_deg: float = CTPR_TWIST_DEG,
+) -> float:
+    """
+    Euclidean distance between two points on a cylindrical screw,
+    Δi repeats apart at radial distance ``radius_nm``.
+    """
+    if delta_i < 0:
+        raise ValueError("delta_i must be non-negative")
+    if delta_i == 0:
+        return 0.0
+    theta = np.radians(delta_i * twist_deg)
+    return float(
+        np.sqrt(2.0 * radius_nm**2 * (1.0 - np.cos(theta)) + (delta_i * rise_nm) ** 2)
+    )
+
+
+def screw_point_nm(
+    repeat_index_0based: int,
+    radius_nm: float,
+    rise_nm: float = CTPR_RISE_NM,
+    twist_deg: float = CTPR_TWIST_DEG,
+) -> Tuple[float, float, float]:
+    """Cartesian coordinates of a screw point at a given 0-based repeat index."""
+    angle = np.radians(repeat_index_0based * twist_deg)
+    return (
+        float(radius_nm * np.cos(angle)),
+        float(radius_nm * np.sin(angle)),
+        float(repeat_index_0based * rise_nm),
+    )
 
 
 def wlc_mean_square_end_to_end(contour_nm: float, persistence_nm: float) -> float:
@@ -162,15 +211,15 @@ def wlc_mean_square_end_to_end(contour_nm: float, persistence_nm: float) -> floa
     if ratio < 1e-8:
         return contour_nm**2
     return float(
-        2.0 * persistence_nm * contour_nm
+        2.0
+        * persistence_nm
+        * contour_nm
         * (1.0 - (1.0 / ratio) * (1.0 - np.exp(-ratio)))
     )
 
 
 def _site_position_uncertainty(
     repeat_index_0based: int,
-    rise_nm: float,
-    twist_deg: float,
     rise_std_nm: float,
     twist_std_deg: float,
     radius_nm: float,
@@ -178,14 +227,13 @@ def _site_position_uncertainty(
     """
     First-order (linear) uncertainty of docking-site position.
 
-    Axial: σ_z ≈ sqrt(n) · σ_rise (independent rise errors).
-    Radial/angular: σ_θ ≈ sqrt(n) · σ_twist → tangential σ ≈ r · σ_θ(rad).
+    Axial: σ_z ≈ sqrt(n) · σ_rise.
+    Tangential: σ ≈ r · σ_θ with σ_θ ≈ sqrt(n) · σ_twist (rad).
     """
     n = max(1, repeat_index_0based)
     sigma_z = np.sqrt(n) * rise_std_nm
     sigma_theta_rad = np.radians(np.sqrt(n) * twist_std_deg)
     sigma_tangential = radius_nm * sigma_theta_rad
-    # Split tangential uncertainty equally into x/y in the mean sense
     sigma_xy = sigma_tangential / np.sqrt(2.0)
     return (float(sigma_xy), float(sigma_xy), float(sigma_z))
 
@@ -194,17 +242,24 @@ def generate_scaffold_geometry(
     spec: ScaffoldSpec,
     rise_std_nm: float = DEFAULT_RISE_STD_NM,
     twist_std_deg: float = DEFAULT_TWIST_STD_DEG,
+    com_radial_extra_nm: float = 0.0,
 ) -> ScaffoldGeometry:
     """
-    Build CTPR geometry from a ScaffoldSpec.
+    Build CTPR geometry from a ScaffoldSpec using cylindrical-screw kinematics.
 
     ``ScaffoldSpec.docking_positions`` are **1-based** repeat indices in
-    ``[1, repeat_count]`` (same convention as verification). Internally these
-    are converted to 0-based backbone array indices.
+    ``[1, repeat_count]``.
 
-    Propagates structural uncertainty and applies a WLC flexibility correction
-    when total length exceeds the persistence length.
+    Parameters
+    ----------
+    com_radial_extra_nm :
+        Optional extra radial offset beyond scaffold+loop for payload COM
+        (e.g. sensor-domain extension). Default 0 keeps docking at
+        CTPR_RADIUS + DOCKING_LOOP_OFFSET. Must be ≥ 0.
     """
+    if com_radial_extra_nm < 0:
+        raise ValueError("com_radial_extra_nm must be ≥ 0")
+
     n_repeats = spec.repeat_count
     total_length = n_repeats * CTPR_RISE_NM
     is_rigid = total_length <= PERSISTENCE_LENGTH_NM
@@ -214,44 +269,44 @@ def generate_scaffold_geometry(
     if not is_rigid:
         rigid_warning = (
             f"Scaffold contour {total_length:.2f} nm exceeds persistence length "
-            f"{PERSISTENCE_LENGTH_NM} nm. Rigid-rod coordinates are an approximation; "
+            f"{PERSISTENCE_LENGTH_NM} nm. Rigid screw coordinates are an approximation; "
             f"WLC end-to-end RMS ≈ {wlc_rms:.2f} nm. Distance uncertainties include "
             f"flexibility contribution."
         )
         warnings.warn(rigid_warning, UserWarning, stacklevel=2)
 
+    # Axis (centerline) + helical backbone (repeat centers on cylinder)
+    axis: List[Tuple[float, float, float]] = []
     backbone: List[Tuple[float, float, float]] = []
-    current_pos = np.array([0.0, 0.0, 0.0])
-    current_rot = np.eye(3)
-    twist_matrix = _rotation_matrix_z(CTPR_TWIST_DEG)
-    translation = np.array([0.0, 0.0, CTPR_RISE_NM])
-
     for i in range(n_repeats):
-        backbone.append(tuple(current_pos.tolist()))
-        current_rot = current_rot @ twist_matrix
-        current_pos = current_pos + current_rot @ translation
+        axis.append((0.0, 0.0, float(i * CTPR_RISE_NM)))
+        backbone.append(screw_point_nm(i, CTPR_RADIUS_NM))
 
+    docking_radius = CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM + com_radial_extra_nm
     docking_sites: List[DockingSiteGeometry] = []
-    radial_offset = CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM
     for dock_1based in sorted(set(spec.docking_positions)):
         if dock_1based < 1 or dock_1based > n_repeats:
             continue
         idx0 = dock_1based - 1
-        base_pos = np.array(backbone[idx0])
         angle = idx0 * CTPR_TWIST_DEG
-        radial_dir = np.array([np.cos(np.radians(angle)), np.sin(np.radians(angle)), 0.0])
-        site_pos = base_pos + radial_dir * radial_offset
-        unc = _site_position_uncertainty(
-            idx0, CTPR_RISE_NM, CTPR_TWIST_DEG, rise_std_nm, twist_std_deg, radial_offset
+        radial_dir = (
+            float(np.cos(np.radians(angle))),
+            float(np.sin(np.radians(angle))),
+            0.0,
         )
-
-        docking_sites.append(DockingSiteGeometry(
-            repeat_index=dock_1based,
-            position_nm=tuple(site_pos.tolist()),
-            orientation_vector=tuple(radial_dir.tolist()),
-            orientation_type=DockingSiteOrientation.RADIAL_OUTWARD,
-            position_uncertainty_nm=unc,
-        ))
+        site_pos = screw_point_nm(idx0, docking_radius)
+        unc = _site_position_uncertainty(
+            idx0, rise_std_nm, twist_std_deg, docking_radius
+        )
+        docking_sites.append(
+            DockingSiteGeometry(
+                repeat_index=dock_1based,
+                position_nm=site_pos,
+                orientation_vector=radial_dir,
+                orientation_type=DockingSiteOrientation.RADIAL_OUTWARD,
+                position_uncertainty_nm=unc,
+            )
+        )
 
     return ScaffoldGeometry(
         scaffold_id=spec.scaffold_id,
@@ -260,6 +315,8 @@ def generate_scaffold_geometry(
         is_rigid=is_rigid,
         docking_sites=docking_sites,
         backbone_coordinates_nm=backbone,
+        axis_coordinates_nm=axis,
+        docking_radius_nm=docking_radius,
         wlc_end_to_end_rms_nm=wlc_rms,
         rigid_rod_warning=rigid_warning,
         rise_std_nm=rise_std_nm,

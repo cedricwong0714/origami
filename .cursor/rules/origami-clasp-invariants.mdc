@@ -9,7 +9,7 @@ Canonical constants (do not silently “tune” for prettier demos):
 
 | Quantity | Value | Code |
 |----------|-------|------|
-| CTPR rise / twist | 1.1 nm / 45° | `src/core/ctpr_geometry.py` |
+| CTPR rise / twist | 1.1 nm / 45° (cylindrical screw) | `src/core/ctpr_geometry.py` |
 | Persistence length | 15 nm | `src/core/ctpr_geometry.py` |
 | Scaffold radius | 1.8 nm | `src/core/steric_checker.py` |
 | CaM–M13 Kd (Ca²⁺ sat.) | ~1e-7 M | `src/core/calcium_kinetics.py` |

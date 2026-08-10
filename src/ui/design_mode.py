@@ -16,8 +16,12 @@ from src.compiler.expression_vector import (
     validate_expression_plan,
     verify_parts_against_allowlist,
 )
-from src.core.calcium_kinetics import recruitment_occupancy
-from src.core.clasp_assembly import CLASPParameters, predict_luminescence
+from src.core.calcium_kinetics import CAM_CA_EC50_M, recruitment_occupancy
+from src.core.clasp_assembly import (
+    CLASPParameters,
+    estimate_ec50_from_curve,
+    predict_luminescence,
+)
 from src.core.ctpr_geometry import generate_scaffold_geometry
 from src.core.linker_ensemble import compute_effective_concentration, parse_linker
 from src.core.schema import DesignSpec, MoCloPart
@@ -81,17 +85,31 @@ class DesignMode:
             prediction = profile.predict(spec)
 
         # Stream 1 assembly dose-response (Docs-6 Layer 1) — shared physical engine
-        ca_grid_M = np.logspace(-8, -4, 9)
+        # Free Ca²⁺ window: 0.1–100 µM (1e-7–1e-4 M). Above ~100 µM is outside
+        # the relevant CLASP / cytoplasmic free-Ca²⁺ design range for this plot.
+        ca_grid_M = np.logspace(-7, -4, 81)
         r_series = predict_luminescence(
             ca_grid_M, params=CLASPParameters(), E_T=1e-6, M_T=1e-6, t_end=1800.0
         )
+        ec50 = estimate_ec50_from_curve(ca_grid_M, r_series)
         assembly_dose_response = {
             "calcium_M": [float(x) for x in ca_grid_M],
             "luminescence_RLU": [float(x) for x in r_series],
+            "calcium_uM_min": 0.1,
+            "calcium_uM_max": 100.0,
             "operating_ca2_M": float(ca2_free_M),
+            "ec50_M": ec50["ec50_M"],
+            "ec50_uncertainty_lower_M": ec50["uncertainty_lower_M"],
+            "ec50_uncertainty_upper_M": ec50["uncertainty_upper_M"],
+            "ec50_half_maximal_RLU": ec50["half_maximal_response"],
+            "cam_parameter_ec50_M": float(CAM_CA_EC50_M),
+            "ec50_note": ec50["note"],
             "note": (
                 "Mechanistic CLASP assembly ODE prediction (literature-parameterized). "
-                "Not a wet-lab measurement. Hill n=4 ORIGAMI invariant."
+                "Not a wet-lab measurement. Hill n=4 ORIGAMI invariant. "
+                "Curve shown for free Ca²⁺ 0.1–100 µM. "
+                "Apparent EC50 is half-maximal RLU on this curve (may differ from "
+                f"CaM parameter EC50={CAM_CA_EC50_M * 1e6:g} µM)."
             ),
         }
 

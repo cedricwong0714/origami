@@ -64,6 +64,24 @@ def test_luminescence_dose_response_increases_with_calcium():
     assert np.all(np.diff(R) >= -1e-6)
 
 
+def test_apparent_ec50_from_assembly_dose_response():
+    """
+    Scientific basis: half-maximal Ca²⁺ on the assembly luminescence curve should
+    fall near the CaM parameter EC50 (~2 µM) for default literature params.
+    Failure mode: EC50 estimator bug or silent parameter drift.
+    """
+    from src.core.calcium_kinetics import CAM_CA_EC50_M
+    from src.core.clasp_assembly import estimate_ec50_from_curve
+
+    ca = np.logspace(-8, -4, 41)
+    R = predict_luminescence(ca, t_end=1800.0)
+    out = estimate_ec50_from_curve(ca, R)
+    assert out["ec50_M"] is not None
+    assert out["uncertainty_lower_M"] <= out["ec50_M"] <= out["uncertainty_upper_M"]
+    # Apparent EC50 within ~10× of CaM EC50 (assembly kinetics can shift it).
+    assert 0.1 * CAM_CA_EC50_M <= out["ec50_M"] <= 10.0 * CAM_CA_EC50_M
+
+
 def test_intermediate_transfer_mass_conservation():
     """
     Scientific basis: S + I_bulk + I_chan + P is conserved (catalysts fixed).

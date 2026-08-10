@@ -50,6 +50,11 @@ def test_design_mode_includes_assembly_dose_response_and_distance_sigma():
     assert "assembly_dose_response" in result
     adr = result["assembly_dose_response"]
     assert len(adr["calcium_M"]) == len(adr["luminescence_RLU"]) >= 5
+    assert max(adr["calcium_M"]) <= 1e-4 + 1e-15  # ≤ 100 µM
+    assert min(adr["calcium_M"]) >= 1e-7 - 1e-15  # ≥ 0.1 µM
+    assert adr.get("ec50_M") is not None
+    assert adr["ec50_uncertainty_lower_M"] <= adr["ec50_M"] <= adr["ec50_uncertainty_upper_M"]
+    assert adr.get("cam_parameter_ec50_M") == 2e-6
     assert result.get("inter_site_distance_nm") is not None
     assert result.get("inter_site_distance_uncertainty_nm") is not None
     assert result["inter_site_distance_uncertainty_nm"] >= 0

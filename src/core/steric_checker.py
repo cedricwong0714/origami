@@ -66,17 +66,20 @@ def check_scaffold_clash(
     payload_label: str,
     geometry: ScaffoldGeometry
 ) -> List[StericViolation]:
-    """Check if payload collides with scaffold backbone cylinder."""
+    """Check if payload collides with scaffold backbone cylinder (axis centerline)."""
     violations = []
     pos = np.array(payload_pos_nm)
+    # Prefer straight-axis beads; fall back to legacy backbone if axis absent
+    axis_beads = geometry.axis_coordinates_nm or [
+        (0.0, 0.0, float(bp[2])) for bp in geometry.backbone_coordinates_nm
+    ]
 
-    for i, bp in enumerate(geometry.backbone_coordinates_nm):
+    for i, bp in enumerate(axis_beads):
         bp_arr = np.array(bp)
-        # Distance to scaffold axis (approximated as z-axis for small curvature)
+        # Distance to scaffold axis (z-axis beads)
         radial_dist = float(np.linalg.norm(pos[:2] - bp_arr[:2]))
         axial_dist = abs(pos[2] - bp_arr[2])
 
-        # Cylinder collision: radial distance < scaffold_radius + payload_radius
         min_radial = SCAFFOLD_CYLINDER_RADIUS_NM + payload_radius_nm
         if radial_dist < min_radial and axial_dist < 1.5:  # within one repeat height
             overlap = min_radial - radial_dist

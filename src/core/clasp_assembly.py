@@ -184,6 +184,92 @@ def predict_luminescence(
     return np.asarray(predictions, dtype=float)
 
 
+def estimate_ec50_from_curve(
+    calcium_M: np.ndarray,
+    response: np.ndarray,
+) -> dict[str, float | None | str]:
+    """
+    Apparent EC50 = free Ca²⁺ where response crosses half-maximal.
+
+    Half-max is defined as R_min + 0.5 * (R_max − R_min). Interpolation is
+    linear in log10([Ca²⁺]) between the bracketing grid points.
+
+    Bounds are the bracketing calcium concentrations (grid resolution), not a
+    statistical 95% CI from wet-lab replicates. Label accordingly in UI.
+    """
+    ca = np.asarray(calcium_M, dtype=float).ravel()
+    y = np.asarray(response, dtype=float).ravel()
+    if ca.size < 2 or y.size != ca.size:
+        return {
+            "ec50_M": None,
+            "uncertainty_lower_M": None,
+            "uncertainty_upper_M": None,
+            "half_maximal_response": None,
+            "note": "Need ≥2 matched calcium/response points to estimate EC50.",
+        }
+
+    order = np.argsort(ca)
+    ca = ca[order]
+    y = y[order]
+    y_min = float(np.min(y))
+    y_max = float(np.max(y))
+    span = y_max - y_min
+    if span <= 0.0 or not np.isfinite(span):
+        return {
+            "ec50_M": None,
+            "uncertainty_lower_M": None,
+            "uncertainty_upper_M": None,
+            "half_maximal_response": y_min,
+            "note": "Response is flat; EC50 is undefined for this curve.",
+        }
+
+    half = y_min + 0.5 * span
+    # First crossing of half-max when scanning low → high Ca²⁺.
+    above = y >= half
+    if not np.any(above) or bool(above[0]):
+        # Never crosses, or already at/above half at the lowest dose.
+        if bool(above[0]) and y[0] >= half:
+            return {
+                "ec50_M": float(ca[0]),
+                "uncertainty_lower_M": None,
+                "uncertainty_upper_M": float(ca[1]) if ca.size > 1 else None,
+                "half_maximal_response": half,
+                "note": (
+                    "Half-max already reached at the lowest sampled Ca²⁺; "
+                    "EC50 ≤ lowest grid point (extrapolation)."
+                ),
+            }
+        return {
+            "ec50_M": None,
+            "uncertainty_lower_M": None,
+            "uncertainty_upper_M": None,
+            "half_maximal_response": half,
+            "note": "Half-max not reached within the sampled Ca²⁺ range.",
+        }
+
+    i = int(np.argmax(above))  # first True
+    ca_lo, ca_hi = float(ca[i - 1]), float(ca[i])
+    y_lo, y_hi = float(y[i - 1]), float(y[i])
+    if y_hi <= y_lo:
+        ec50 = ca_hi
+    else:
+        frac = (half - y_lo) / (y_hi - y_lo)
+        # Interpolate in log10([Ca]) — dose-response is typically log-spaced.
+        log_ec50 = np.log10(ca_lo) + frac * (np.log10(ca_hi) - np.log10(ca_lo))
+        ec50 = float(10.0**log_ec50)
+
+    return {
+        "ec50_M": ec50,
+        "uncertainty_lower_M": ca_lo,
+        "uncertainty_upper_M": ca_hi,
+        "half_maximal_response": half,
+        "note": (
+            "Apparent EC50 from mechanistic dose-response (log-linear interpolation). "
+            "Bounds are bracketing grid points, not wet-lab 95% CI."
+        ),
+    }
+
+
 def assembly_mass_inventory(B: np.ndarray, L: np.ndarray) -> np.ndarray:
     """Total assembled inventory B+L (non-decreasing under pure locking)."""
     return np.asarray(B) + np.asarray(L)

@@ -1,10 +1,10 @@
 """
 CTPR scaffold spacing optimizer.
 
-Ranks docking-repeat spacings (Δi) with screw-geometry distances from
-``src.core.ctpr_geometry`` (rise 1.1 nm, twist 45°). Scoring heuristics are
-**Tier-3 computational rankings** for design triage — not wet-lab validated
-Φ scores.
+Ranks docking-repeat spacings (Δi) with cylindrical-screw distances from
+``src.core.ctpr_geometry`` (rise 1.1 nm, twist 45°, docking on helix radius).
+Scoring heuristics are **Tier-3 computational rankings** for design triage —
+not wet-lab validated Φ scores.
 """
 
 from __future__ import annotations
@@ -16,9 +16,12 @@ import numpy as np
 from pydantic import BaseModel, Field
 
 from src.core.ctpr_geometry import (
+    CTPR_RADIUS_NM,
     CTPR_RISE_NM,
     CTPR_TWIST_DEG,
+    DOCKING_LOOP_OFFSET_NM,
     generate_scaffold_geometry,
+    helical_chord_distance_nm,
 )
 from src.core.schema import ScaffoldSpec
 
@@ -148,12 +151,16 @@ def optimize_ctpr_spacing(
     anchor_repeat: int = 2,
     delta_i_min: int = 1,
     delta_i_max: int = 6,
+    com_radial_extra_nm: float = 0.0,
 ) -> OptimizationResult:
     """
     Rank Δi spacings for two payloads on a CTPR scaffold.
 
-    Payload radii are in Ångströms (UI convention). Geometry uses nm internally
-    via ``generate_scaffold_geometry``.
+    Payload radii are in Ångströms (UI convention). Geometry uses cylindrical
+    screw distances from ``generate_scaffold_geometry`` (rise 1.1 nm, twist 45°).
+
+    ``com_radial_extra_nm`` optionally extends docking COM beyond scaffold+loop
+    (e.g. sensor domain). Default 0.
     """
     if radius_a_A <= 0 or radius_b_A <= 0:
         raise ValueError("Payload radii must be positive")
@@ -161,11 +168,14 @@ def optimize_ctpr_spacing(
         raise ValueError("K_m must be positive")
     if anchor_repeat < 1:
         raise ValueError("anchor_repeat must be ≥ 1")
+    if com_radial_extra_nm < 0:
+        raise ValueError("com_radial_extra_nm must be ≥ 0")
 
     interaction = InteractionClass(interaction_class)
     r_a_nm = radius_a_A * A_TO_NM
     r_b_nm = radius_b_A * A_TO_NM
     r_clash_A = radius_a_A + radius_b_A
+    docking_radius_nm = CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM + com_radial_extra_nm
 
     candidates: list[SpacingCandidate] = []
     best_delta = delta_i_min
@@ -179,14 +189,22 @@ def optimize_ctpr_spacing(
                 scaffold_id=f"CTPR{n_repeats}_opt",
                 repeat_count=n_repeats,
                 docking_positions=[anchor_repeat, i_b],
-            )
+            ),
+            com_radial_extra_nm=com_radial_extra_nm,
         )
-        # DockingSiteGeometry list is sorted by repeat_index
         site_a = next(s for s in geo.docking_sites if s.repeat_index == anchor_repeat)
         site_b = next(s for s in geo.docking_sites if s.repeat_index == i_b)
         d_center_nm = float(
             np.linalg.norm(np.array(site_a.position_nm) - np.array(site_b.position_nm))
         )
+        # Cross-check against closed-form cylindrical screw chord
+        d_formula = helical_chord_distance_nm(delta_i, docking_radius_nm)
+        if abs(d_center_nm - d_formula) > 1e-9:
+            raise RuntimeError(
+                f"Screw distance mismatch at Δi={delta_i}: "
+                f"geometry={d_center_nm:.6f} nm vs formula={d_formula:.6f} nm"
+            )
+
         d_active_nm = geo.get_active_site_estimate_nm(0, 1, r_a_nm, r_b_nm)
         d_center_A = d_center_nm * NM_TO_A
         d_active_A = d_active_nm * NM_TO_A
@@ -246,6 +264,11 @@ def optimize_ctpr_spacing(
         geometry_constants={
             "CTPR_RISE_NM": CTPR_RISE_NM,
             "CTPR_TWIST_DEG": CTPR_TWIST_DEG,
+            "CTPR_RADIUS_NM": CTPR_RADIUS_NM,
+            "DOCKING_LOOP_OFFSET_NM": DOCKING_LOOP_OFFSET_NM,
+            "docking_radius_nm": docking_radius_nm,
+            "com_radial_extra_nm": com_radial_extra_nm,
+            "kinematics": "cylindrical_screw",
             "rise_A_per_repeat": CTPR_RISE_NM * NM_TO_A,
             "source": "src.core.ctpr_geometry (ORIGAMI invariants)",
         },
@@ -259,7 +282,9 @@ def optimize_ctpr_spacing(
         ),
         honesty_note=(
             "Φ scores are computational ranking heuristics (Tier 3), not experimentally "
-            "calibrated fitness. Distances use ORIGAMI CTPR priors (1.1 nm rise, 45° twist). "
+            "calibrated fitness. Distances use cylindrical-screw CTPR priors "
+            f"(rise {CTPR_RISE_NM} nm, twist {CTPR_TWIST_DEG}°, "
+            f"docking radius {docking_radius_nm:.3f} nm). "
             "d_active is a payload-surface estimate, not a crystallographic active-site vector."
         ),
     )
