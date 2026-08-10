@@ -510,7 +510,31 @@ def page_design() -> None:
         st.subheader("CLASP assembly Ca²⁺ dose-response (Stream 1 ODE)")
         st.caption(adr.get("note", ""))
         ec50_M = adr.get("ec50_M")
-        if ec50_M is not None:
+        hill = adr.get("hill_fit") or {}
+        if hill.get("success"):
+            h1, h2, h3, h4 = st.columns(4)
+            ec50_fit = float(hill["ec50_M"])
+            ec_lo, ec_hi = hill["ec50_M_ci95"]
+            h1.metric(
+                "Hill EC50",
+                f"{ec50_fit * 1e6:.3g} µM",
+                help="SCALE Stage A phenomenological fit (covariance CI, not wet-lab CI).",
+            )
+            h2.metric(
+                "EC50 95% (fit)",
+                f"{ec_lo * 1e6:.3g}–{ec_hi * 1e6:.3g} µM",
+            )
+            n_fit = float(hill["hill_n"])
+            n_lo, n_hi = hill["hill_n_ci95"]
+            h3.metric("Hill n", f"{n_fit:.2f}", help=f"fit CI {n_lo:.2f}–{n_hi:.2f}")
+            dr = float(hill["dynamic_range"])
+            h4.metric("Dynamic range", f"{dr:.2g}×")
+            st.caption(
+                "Hill EC50 / n / DR summarize the ODE curve. "
+                f"CaM priors: EC50={float(adr.get('cam_parameter_ec50_M', 2e-6)) * 1e6:g} µM, "
+                f"n={adr.get('cam_parameter_hill_n', 4)}."
+            )
+        elif ec50_M is not None:
             lo = adr.get("ec50_uncertainty_lower_M")
             hi = adr.get("ec50_uncertainty_upper_M")
             cam_ec50 = adr.get("cam_parameter_ec50_M")
@@ -534,10 +558,30 @@ def page_design() -> None:
                     x=ca_uM_axis,
                     y=adr["luminescence_RLU"],
                     mode="lines",
-                    name="predicted RLU",
+                    name="ODE predicted RLU",
                     line=dict(color="#FF8000", width=2.5),
                 )
             )
+            if hill.get("success"):
+                from src.calibration.dose_response_metrics import hill_response
+
+                ca_M = np.asarray(adr["calcium_M"], dtype=float)
+                y_hill = hill_response(
+                    ca_M,
+                    float(hill["r0"]),
+                    float(hill["r_amp"]),
+                    float(hill["ec50_M"]),
+                    float(hill["hill_n"]),
+                )
+                fig2.add_trace(
+                    go.Scatter(
+                        x=ca_uM_axis,
+                        y=y_hill.tolist(),
+                        mode="lines",
+                        name="Hill fit",
+                        line=dict(color="#1B7F4E", width=2, dash="dash"),
+                    )
+                )
             op_uM = float(adr["operating_ca2_M"]) * 1e6
             if x_min <= op_uM <= x_max:
                 fig2.add_vline(
@@ -546,22 +590,15 @@ def page_design() -> None:
                     line_color="#266FB1",
                     annotation_text=f"operating {op_uM:.2g} µM",
                 )
-            if ec50_M is not None:
-                ec50_uM = float(ec50_M) * 1e6
+            mark_ec50 = float(hill["ec50_M"]) if hill.get("success") else ec50_M
+            if mark_ec50 is not None:
+                ec50_uM = float(mark_ec50) * 1e6
                 if x_min <= ec50_uM <= x_max:
                     fig2.add_vline(
                         x=ec50_uM,
                         line_dash="dot",
                         line_color="#1B7F4E",
                         annotation_text=f"EC50 {ec50_uM:.3g} µM",
-                    )
-                half_rlu = adr.get("ec50_half_maximal_RLU")
-                if half_rlu is not None:
-                    fig2.add_hline(
-                        y=float(half_rlu),
-                        line_dash="dot",
-                        line_color="#1B7F4E",
-                        annotation_text="half-max RLU",
                     )
             fig2.update_layout(
                 height=340,
@@ -579,6 +616,57 @@ def page_design() -> None:
             st.plotly_chart(fig2, use_container_width=False)
         except Exception as exc:
             st.info(f"Dose-response plot unavailable: {exc}")
+
+        with st.expander("AES converter (SCALE Stage A — needs your calibration)"):
+            st.caption(
+                "AES = absolute assembled NanoLuc. Requires measured NanoLuc slope "
+                "and cell/OD factors — ORIGAMI will not invent them."
+            )
+            a1, a2, a3 = st.columns(3)
+            with a1:
+                rlu_sat = st.number_input(
+                    "RLU (e.g. saturating Ca²⁺)",
+                    value=float(max(adr["luminescence_RLU"])),
+                    format="%.4g",
+                )
+                rlu_blank = st.number_input("Blank RLU", value=0.0, format="%.4g")
+            with a2:
+                rlu_per_fmol = st.number_input(
+                    "RLU per fmol NanoLuc (curve slope)",
+                    value=0.0,
+                    help="Leave 0 if not measured yet.",
+                    format="%.6g",
+                )
+                od600 = st.number_input("OD600", value=0.0, format="%.4g")
+            with a3:
+                cells_per_od = st.number_input(
+                    "cells per OD·mL",
+                    value=0.0,
+                    help="From OD→cells calibration.",
+                    format="%.6g",
+                )
+                vol_ml = st.number_input("Sample volume (mL)", value=1.0, format="%.4g")
+            if st.button("Compute AES from calibration"):
+                from src.calibration.dose_response_metrics import compute_aes
+
+                aes = compute_aes(
+                    float(rlu_sat),
+                    float(rlu_blank),
+                    rlu_per_fmol=float(rlu_per_fmol) if rlu_per_fmol > 0 else None,
+                    od600=float(od600) if od600 > 0 else None,
+                    cells_per_od_ml=float(cells_per_od) if cells_per_od > 0 else None,
+                    sample_volume_ml=float(vol_ml),
+                    calibration_sources=["user-supplied Design Mode calibration"],
+                )
+                if aes.aes_molecules_per_cell is not None:
+                    st.metric("AES", f"{aes.aes_molecules_per_cell:.4g} molecules/cell")
+                elif aes.fmol_nanoluc is not None:
+                    st.metric("Net NanoLuc", f"{aes.fmol_nanoluc:.4g} fmol")
+                    for w in aes.warnings:
+                        st.warning(w)
+                else:
+                    for w in aes.warnings:
+                        st.warning(w)
 
     st.subheader("Freeze prospective prediction (Docs §1.6)")
     st.caption(
