@@ -146,6 +146,54 @@ class LearnMode:
         if data_class == "synthetic_fixture":
             honesty += " Input data_class=synthetic_fixture — not Tier-1 experimental."
 
+        # Phenomenological A,k fit + FIM identifiability (Docs §1.5 / AGENTS §6.4).
+        # Not a claim that A,k are mechanistic CLASP constants.
+        identifiability: dict[str, Any] | None = None
+        try:
+            from src.calibration.fit import fit_model_with_identifiability_check
+
+            def _exp_model(theta: np.ndarray, conditions: np.ndarray) -> np.ndarray:
+                amp, rate = float(theta[0]), float(theta[1])
+                tt = conditions[:, 0]
+                return amp * (1.0 - np.exp(-rate * tt))
+
+            cond = t.reshape(-1, 1)
+            amp0 = float(max(np.max(exp), 1e-6))
+            rate0 = 0.05
+            fit = fit_model_with_identifiability_check(
+                _exp_model,
+                ["amplitude", "rate"],
+                np.asarray([amp0, rate0], dtype=float),
+                cond,
+                exp,
+                bounds=(
+                    np.asarray([1e-9, 1e-6], dtype=float),
+                    np.asarray([amp0 * 5.0, 5.0], dtype=float),
+                ),
+                noise_variance=max(rmse**2, 1e-12),
+            )
+            identifiability = {
+                "model": "phenomenological_exponential_A_1_minus_exp_kt",
+                "fitted_values": fit.fitted_values,
+                "uncertainties": fit.uncertainties,
+                "non_identifiable_parameters": fit.non_identifiable_parameters,
+                "all_identifiable": len(fit.non_identifiable_parameters) == 0,
+                "rmse": fit.rmse,
+                "success": fit.success,
+                "note": (
+                    "Phenomenological A,k fit for Fisher/CRLB reporting only — "
+                    "not mechanistic CLASP kinetic constants. Non-identifiable "
+                    "parameters must not be presented as fitted values."
+                ),
+            }
+        except Exception as exc:
+            identifiability = {
+                "model": "phenomenological_exponential_A_1_minus_exp_kt",
+                "success": False,
+                "error": str(exc),
+                "note": "Identifiability report unavailable for this dataset.",
+            }
+
         return {
             "status": "SUCCESS",
             "profile_id": profile.profile_id,
@@ -164,6 +212,7 @@ class LearnMode:
                 "n_points": n,
                 "note": honesty,
             },
+            "identifiability": identifiability,
             "next_experiment_recommendations": recommendations,
             "required_controls": profile.required_controls(spec).model_dump(),
         }

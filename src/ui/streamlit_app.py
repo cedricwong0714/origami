@@ -9,6 +9,7 @@ Run from repo root:
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -555,6 +556,45 @@ def page_design() -> None:
         except Exception as exc:
             st.error(f"Freeze failed: {exc}")
 
+    st.subheader("Compare observations to a frozen prediction")
+    st.caption(
+        "Docs §1.6: load a frozen file, enter observed values for matching keys "
+        "(e.g. primary or ca_10uM), write a comparison record. Does not overwrite Tier-1 data."
+    )
+    from src.core.asset_paths import FROZEN_PREDICTIONS_DIR
+
+    frozen_files = sorted(FROZEN_PREDICTIONS_DIR.glob("*.json"))
+    frozen_names = [p.name for p in frozen_files if p.name != "README.md"]
+    if not frozen_names:
+        st.info("No frozen predictions yet — freeze one above first.")
+    else:
+        pick = st.selectbox("Frozen prediction file", frozen_names)
+        obs_json = st.text_area(
+            "Observations JSON (key → observed float)",
+            value='{"primary": 0.5}',
+            height=100,
+        )
+        cmp_id = st.text_input(
+            "Comparison ID",
+            value=f"{Path(pick).stem}_cmp1",
+        )
+        if st.button("Write comparison"):
+            try:
+                from src.predictions.freeze import compare_to_frozen
+
+                observations = json.loads(obs_json)
+                if not isinstance(observations, dict) or not observations:
+                    raise ValueError("Observations must be a non-empty JSON object")
+                out = compare_to_frozen(
+                    FROZEN_PREDICTIONS_DIR / pick,
+                    {str(k): float(v) for k, v in observations.items()},
+                    comparison_id=cmp_id.strip() or f"{Path(pick).stem}_cmp",
+                )
+                st.success(f"Comparison written to `{out}`")
+                st.json(json.loads(out.read_text(encoding="utf-8"))["comparisons"])
+            except Exception as exc:
+                st.error(f"Compare failed: {exc}")
+
     with st.expander("Full passport JSON"):
         st.code(json.dumps(passport, indent=2, default=str))
     with st.expander("Required controls & measurements"):
@@ -588,6 +628,7 @@ def page_learn() -> None:
         [
             "Synthetic demo curve (labeled fixture)",
             "Upload Learn package (CSV + metadata JSON)",
+            "Synthetic Ca²⁺ luminescence (stacked ensemble)",
         ],
         horizontal=True,
     )
@@ -596,8 +637,9 @@ def page_learn() -> None:
     experimental_time = None
     data_class: str | None = None
     package_warnings: list[str] = []
+    stacked_result: dict[str, Any] | None = None
 
-    if source.startswith("Synthetic"):
+    if source.startswith("Synthetic demo"):
         st.warning(
             "Synthetic fixture for UI demo only — not Tier-1 experimental data. "
             "Do not put these numbers on the wiki as measurements."
@@ -608,6 +650,44 @@ def page_learn() -> None:
         experimental = amp * (1.0 - np.exp(-rate * experimental_time))
         data_class = "synthetic_fixture"
         st.line_chart({"synthetic_product": experimental})
+    elif source.startswith("Synthetic Ca"):
+        st.warning(
+            "Synthetic Ca²⁺ luminescence for stacked-ensemble demo only — not Tier-1 data."
+        )
+        from src.core.clasp_assembly import CLASPParameters, predict_luminescence
+        from src.gp_model.stacked_ensemble import StackedEnsemblePredictor
+
+        ca_uM = np.logspace(-1, 1.5, 8)  # 0.1–~30 µM
+        ca_M = ca_uM * 1e-6
+        params = CLASPParameters()
+        y_mech = predict_luminescence(ca_M, params)
+        # Synthetic residual bias + noise (demo)
+        rng = np.random.default_rng(0)
+        y_obs = y_mech * 1.08 + rng.normal(0.0, 0.02 * np.max(y_mech), size=len(y_mech))
+        X = np.column_stack([ca_M, np.full_like(ca_M, 1e-6), np.full_like(ca_M, 1e-6)])
+        ens = StackedEnsemblePredictor(params=params)
+        fit_info = ens.fit_observations(X, y_obs, y_mechanistic=y_mech, try_xgb=True)
+        preds = [ens.predict(float(c)).model_dump() for c in ca_M]
+        stacked_result = {
+            "fit_info": fit_info,
+            "calcium_uM": ca_uM.tolist(),
+            "observed_RLU": y_obs.tolist(),
+            "mechanistic_RLU": y_mech.tolist(),
+            "stacked_predictions": preds,
+            "note": (
+                "Layer 1 = CLASP assembly ODE; Layer 2 = ResidualGP; "
+                "Layer 3 = XGBoost only if ≥15 points and xgboost installed."
+            ),
+        }
+        data_class = "synthetic_fixture"
+        st.line_chart(
+            {
+                "mechanistic": y_mech,
+                "observed": y_obs,
+                "stacked": [p["predicted_value"] for p in preds],
+            }
+        )
+        st.json(fit_info)
     else:
         from src.data_ingestion import (
             LearnTimeseriesValidationError,
@@ -670,6 +750,12 @@ def page_learn() -> None:
             for warning in package_warnings:
                 st.warning(warning)
             st.line_chart({"product": experimental})
+
+    if stacked_result is not None:
+        st.subheader("Stacked ensemble (Docs-6 Layers 1–3)")
+        st.caption(stacked_result["note"])
+        st.dataframe(stacked_result["stacked_predictions"], use_container_width=True)
+        return
 
     if st.button("Run Learn Mode", type="primary") and experimental is not None:
         payload_ids = ["OtsA", "OtsB"]
@@ -769,6 +855,28 @@ def page_learn() -> None:
         c1.metric("RMSE", f"{cmp_['rmse']:.4g}")
         c2.metric("Max |error|", f"{cmp_['max_abs_error']:.4g}")
         st.info(cmp_["note"])
+
+        ident = result.get("identifiability")
+        if ident:
+            st.subheader("Identifiability (Fisher / CRLB)")
+            st.caption(ident.get("note", ""))
+            if ident.get("success"):
+                if ident.get("non_identifiable_parameters"):
+                    st.warning(
+                        "Non-identifiable parameters (do not present as fitted values): "
+                        + ", ".join(ident["non_identifiable_parameters"])
+                    )
+                else:
+                    st.success("All phenomenological parameters identifiable at this design.")
+                st.json(
+                    {
+                        "fitted_values": ident.get("fitted_values"),
+                        "uncertainties": ident.get("uncertainties"),
+                        "rmse": ident.get("rmse"),
+                    }
+                )
+            else:
+                st.info(ident.get("error") or "Identifiability unavailable.")
 
         st.subheader("Next experiment recommendations")
         st.dataframe(result["next_experiment_recommendations"], use_container_width=True)

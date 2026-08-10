@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 
 from src.compiler.expression_vector import ExpressionPlan
@@ -81,3 +83,56 @@ def test_learn_mode_information_gain_strategy():
     assert len(recs) == 3
     assert recs[0]["objective"] == "information_gain"
     assert "acquisition_score" in recs[0]
+    ident = result["identifiability"]
+    assert ident is not None
+    assert "phenomenological" in ident.get("model", "")
+    assert "note" in ident
+    if ident.get("success"):
+        assert "fitted_values" in ident
+        assert "uncertainties" in ident
+        assert isinstance(ident["non_identifiable_parameters"], list)
+
+
+def test_compare_to_frozen_roundtrip(tmp_path):
+    from src.predictions.freeze import compare_to_frozen, freeze_prediction
+
+    frozen = freeze_prediction(
+        "ui_stream1_cmp_demo",
+        design_spec={"design_id": "UI_CMP"},
+        predictions={
+            "primary": {
+                "predicted_value": 1.0,
+                "uncertainty_95_lower": 0.7,
+                "uncertainty_95_upper": 1.3,
+                "confidence_tier": "hypothesis_only",
+            }
+        },
+        model_version="test",
+        output_dir=tmp_path / "frozen",
+    )
+    out = compare_to_frozen(
+        frozen,
+        {"primary": 1.05},
+        comparison_id="ui_stream1_cmp_demo_obs",
+        output_dir=tmp_path / "comparisons",
+    )
+    assert out.is_file()
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["comparisons"]["primary"]["within_95ci"] is True
+
+
+def test_stacked_ensemble_fits_synthetic_ca_curve():
+    from src.core.clasp_assembly import CLASPParameters, predict_luminescence
+    from src.gp_model.stacked_ensemble import StackedEnsemblePredictor
+
+    ca_M = np.logspace(-7, -5, 6)
+    params = CLASPParameters()
+    y_mech = predict_luminescence(ca_M, params)
+    y_obs = y_mech * 1.05
+    X = np.column_stack([ca_M, np.full_like(ca_M, 1e-6), np.full_like(ca_M, 1e-6)])
+    ens = StackedEnsemblePredictor(params=params)
+    info = ens.fit_observations(X, y_obs, y_mechanistic=y_mech, try_xgb=False)
+    assert info["gp_fitted"] is True
+    pred = ens.predict(float(ca_M[2]))
+    assert pred.mechanistic_prediction > 0
+    assert pred.uncertainty_95_lower <= pred.predicted_value <= pred.uncertainty_95_upper

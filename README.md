@@ -35,6 +35,8 @@ Three operating modes:
 
 CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install origami[ml]`).
 
+Streamlit Learn also surfaces Fisher/CRLB identifiability on a phenomenological fit and a synthetic Ca²⁺ stacked-ensemble demo; Design supports freeze → compare against frozen predictions.
+
 Repository (judging artifact): [gitlab.ISEF.org/2026/software/hong-kong-team/origami](https://gitlab.ISEF.org/2026/software/hong-kong-team/origami)
 
 > **Using an AI assistant?** Read [.claude/RESPONSIBLE_AI_USE.md](.claude/RESPONSIBLE_AI_USE.md) and [AGENTS.md](AGENTS.md). You remain responsible for every claim and every commit.
