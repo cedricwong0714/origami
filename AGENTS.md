@@ -1596,6 +1596,11 @@ Registered MVP profiles:
 3. `redox_transfer` → relative electron-transfer ranking (no absolute H₂ claims without calibration)  
 4. `covalent_capture` → SpyTag / SpyCatcher locking  
 
+Stream 2 extensions (Tier-3 computational baselines until calibrated):
+
+5. `trans_activation` → proximity-induced kinase / substrate phosphorylation  
+6. `protease_cleavage` → proximity-dependent protease–substrate cleavage (circuit switch; not therapeutic)  
+
 ### 15.4 Modes and honesty rules
 
 - **Explore** must refuse with *Insufficient evidence for a reliable recommendation* when confidence is too low.  

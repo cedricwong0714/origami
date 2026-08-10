@@ -22,6 +22,8 @@ class PayloadRole(str, Enum):
     COVALENT_CATCHER = "covalent_catcher"
     KINASE_DONOR = "kinase_donor"
     KINASE_ACCEPTOR = "kinase_acceptor"
+    PROTEASE_EFFECTOR = "protease_effector"
+    CLEAVAGE_TARGET = "cleavage_target"
 
 
 DEFAULT_ROLE_ORDER: dict[str, list[PayloadRole]] = {
@@ -44,6 +46,10 @@ DEFAULT_ROLE_ORDER: dict[str, list[PayloadRole]] = {
     "trans_activation": [
         PayloadRole.KINASE_DONOR,
         PayloadRole.KINASE_ACCEPTOR,
+    ],
+    "protease_cleavage": [
+        PayloadRole.PROTEASE_EFFECTOR,
+        PayloadRole.CLEAVAGE_TARGET,
     ],
 }
 

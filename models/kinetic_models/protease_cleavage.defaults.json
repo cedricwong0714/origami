@@ -1,0 +1,19 @@
+{
+  "mechanism_type": "protease_cleavage",
+  "profile_id": "protease_cleavage",
+  "version": "1.0.0",
+  "evidence_maturity_default": "Tier 3: Computational Baseline",
+  "params": {
+    "k_cat_basal": 0.05,
+    "k_cat_prox": 1.0,
+    "k_on_prox": 1.0,
+    "k_nonspecific": 0.0
+  },
+  "units": {
+    "k_cat_basal": "relative",
+    "k_cat_prox": "relative",
+    "k_on_prox": "relative (driven by C_eff)",
+    "k_nonspecific": "relative"
+  },
+  "notes": "Tier-3 computational placeholders for proximity-dependent protease–substrate cleavage (CLASP Docs §8). No wet-lab calibration claimed. k_nonspecific defaults to 0; raise only with sourced off-target rates. Replace with literature-sourced values before any wiki prediction."
+}

@@ -20,6 +20,7 @@ class MechanismType(str, Enum):
     REDOX_TRANSFER = "redox_transfer"                 # Electron transfer partners
     COVALENT_CAPTURE = "covalent_capture"             # Reversible -> Covalent
     TRANS_ACTIVATION = "trans_activation"             # Proximity-induced trans-phosphorylation
+    PROTEASE_CLEAVAGE = "protease_cleavage"           # Proximity-dependent protease–substrate cleavage
 
 
 class EvidenceMaturity(str, Enum):

@@ -6,6 +6,7 @@ from src.profiles.covalent_capture import CovalentCaptureProfile
 from src.profiles.redox_transfer import RedoxTransferProfile
 from src.profiles.target_complementation import TargetComplementationProfile
 from src.profiles.trans_activation import TransActivationProfile
+from src.profiles.protease_cleavage import ProteaseCleavageProfile
 from src.profiles.trehalose_synthesis import TrehaloseSynthesisProfile
 
 PROFILE_REGISTRY: dict[MechanismType, MechanismProfile] = {
@@ -14,6 +15,7 @@ PROFILE_REGISTRY: dict[MechanismType, MechanismProfile] = {
     MechanismType.REDOX_TRANSFER: RedoxTransferProfile(),
     MechanismType.COVALENT_CAPTURE: CovalentCaptureProfile(),
     MechanismType.TRANS_ACTIVATION: TransActivationProfile(),
+    MechanismType.PROTEASE_CLEAVAGE: ProteaseCleavageProfile(),
 }
 
 
@@ -32,6 +34,7 @@ __all__ = [
     "RedoxTransferProfile",
     "CovalentCaptureProfile",
     "TransActivationProfile",
+    "ProteaseCleavageProfile",
     "PROFILE_REGISTRY",
     "get_profile",
 ]

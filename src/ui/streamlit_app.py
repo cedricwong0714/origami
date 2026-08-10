@@ -49,6 +49,7 @@ _MECHANISM_LABELS = {
     MechanismType.REDOX_TRANSFER: "Redox transfer (relative ranking only)",
     MechanismType.COVALENT_CAPTURE: "Covalent capture (SpyTag / SpyCatcher)",
     MechanismType.TRANS_ACTIVATION: "Trans-activation (proximity-induced phosphorylation)",
+    MechanismType.PROTEASE_CLEAVAGE: "Protease cleavage (proximity-gated; Tier-3)",
 }
 
 
@@ -266,6 +267,9 @@ def page_design() -> None:
         operating_default = "reversible"
     elif mechanism == MechanismType.TRANS_ACTIVATION:
         payload_default = "kinase_donor, kinase_acceptor"
+        operating_default = "reversible"
+    elif mechanism == MechanismType.PROTEASE_CLEAVAGE:
+        payload_default = "protease_effector, cleavage_target"
         operating_default = "reversible"
     else:
         operating_default = "reversible"

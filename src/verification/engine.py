@@ -51,6 +51,16 @@ MANDATORY_CONTROL_PLANS = {
         ),
         expected_negative_signal="Phosphorylation drops to basal monomeric level.",
     ),
+    MechanismType.PROTEASE_CLEAVAGE: ControlPlan(
+        mandatory_control_type="Catalytic-Dead Protease / Uncleavable Target",
+        description=(
+            "Dock a catalytic-dead protease and/or uncleavable target at the "
+            "same sites to isolate proximity-driven cleavage from basal background."
+        ),
+        expected_negative_signal=(
+            "Cleavage drops to basal monomeric (or zero for uncleavable target) levels."
+        ),
+    ),
 }
 
 

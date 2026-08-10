@@ -4,7 +4,7 @@
 
 Mechanism-aware design engine for **CLASP** (*Conditional Localized Assembly of Synthetic Proteins*).
 
-ORIGAMI does not score every payload with one universal “proximity” heuristic. It uses a **shared physical engine** (scaffold geometry, linker reach, steric accessibility, Ca²⁺–CaM–M13 recruitment) connected to **separate functional models** for five mechanism profiles:
+ORIGAMI does not score every payload with one universal “proximity” heuristic. It uses a **shared physical engine** (scaffold geometry, linker reach, steric accessibility, Ca²⁺–CaM–M13 recruitment) connected to **separate functional models** for six mechanism profiles:
 
 | Profile | Mechanism | Reference use |
 |---------|-----------|---------------|
@@ -13,6 +13,7 @@ ORIGAMI does not score every payload with one universal “proximity” heuristi
 | `redox_transfer` | Redox electron transfer | Organized donor–acceptor pairs |
 | `covalent_capture` | Covalent lock | SpyTag / SpyCatcher proximity capture |
 | `trans_activation` | Trans-autophosphorylation | Proximity-induced kinase signaling (Tier-3 computational baseline) |
+| `protease_cleavage` | Protease–substrate cleavage | Proximity-gated cleavage / circuit switch (Tier-3 computational baseline) |
 
 Three operating modes:
 
