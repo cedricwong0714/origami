@@ -1,6 +1,16 @@
 # ORIGAMI CI — pytest on every pipeline; GitLab Pages for static web demos.
+# Note: ISEF group runners typically pick up protected/default-branch pipelines first.
+# Merge to main to refresh GitLab Pages (pages job runs only on default branch).
 
 image: python:3.12
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
 
 stages:
   - test
@@ -12,11 +22,13 @@ variables:
 
 pytest:
   stage: test
+  interruptible: true
   script:
     - python -m pip install --upgrade pip
     - python -m pip install -e ".[dev]"
     - python -m pytest -q --junitxml=report.xml
-    - origami validate-learn
+    - >
+      origami validate-learn
       data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.csv
       data/stage1_ingestion/examples/learn_product_timeseries/SYN_LEARN_001.metadata.json
     - origami optimize --radius-a 45 --radius-b 25 --interaction Metabolic
@@ -34,11 +46,9 @@ pytest:
 
 pages:
   stage: deploy
+  interruptible: true
   script:
-    - mkdir -p public
-    - cp web/index.html public/index.html
-    - cp web/ctpr_scaffold_optimizer.html public/ctpr_scaffold_optimizer.html
-    - cp web/README.md public/README.md
+    - sh scripts/build_pages.sh public
   artifacts:
     paths:
       - public
