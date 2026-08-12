@@ -668,6 +668,105 @@ def page_design() -> None:
                     for w in aes.warnings:
                         st.warning(w)
 
+    tdr = result.get("trehalose_dose_response")
+    if tdr:
+        st.subheader("Trehalose Ca²⁺ dose-response (scaffolded vs free)")
+        st.caption(tdr.get("note", ""))
+        st.caption(f"Assumption: {tdr.get('assumption', '')}")
+        hill_t = tdr.get("hill_fit_scaffold") or {}
+        folds = tdr.get("fold_change") or []
+        max_fold = max(folds) if folds else float("nan")
+        m1, m2, m3 = st.columns(3)
+        if hill_t.get("success"):
+            m1.metric("Trehalose Hill EC50", f"{float(hill_t['ec50_M']) * 1e6:.3g} µM")
+            m2.metric("Trehalose Hill n", f"{float(hill_t['hill_n']):.2f}")
+        m3.metric("Max fold (scaffold/free)", f"{max_fold:.2g}×")
+        try:
+            import plotly.graph_objects as go
+
+            ca_uM = [c * 1e6 for c in tdr["calcium_M"]]
+            x_min = float(tdr.get("calcium_uM_min", min(ca_uM)))
+            x_max = float(tdr.get("calcium_uM_max", max(ca_uM)))
+            fig_t = go.Figure()
+            fig_t.add_trace(
+                go.Scatter(
+                    x=ca_uM,
+                    y=tdr["trehalose_scaffold"],
+                    mode="lines",
+                    name="scaffolded",
+                    line=dict(color="#FF8000", width=2.5),
+                )
+            )
+            fig_t.add_trace(
+                go.Scatter(
+                    x=ca_uM,
+                    y=tdr["trehalose_free"],
+                    mode="lines",
+                    name="free enzymes",
+                    line=dict(color="#266FB1", width=2, dash="dash"),
+                )
+            )
+            if hill_t.get("success"):
+                from src.calibration.dose_response_metrics import hill_response
+
+                y_fit = hill_response(
+                    np.asarray(tdr["calcium_M"], dtype=float),
+                    float(hill_t["r0"]),
+                    float(hill_t["r_amp"]),
+                    float(hill_t["ec50_M"]),
+                    float(hill_t["hill_n"]),
+                )
+                fig_t.add_trace(
+                    go.Scatter(
+                        x=ca_uM,
+                        y=y_fit.tolist(),
+                        mode="lines",
+                        name="Hill fit (scaffold)",
+                        line=dict(color="#1B7F4E", width=1.5, dash="dot"),
+                    )
+                )
+            fig_t.update_layout(
+                height=340,
+                width=640,
+                autosize=False,
+                margin=dict(l=20, r=20, t=30, b=20),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(235,228,217,0.65)",
+                font=dict(color="#242220"),
+                xaxis_title="free Ca²⁺ (µM)",
+                yaxis_title="trehalose yield (fraction)",
+                xaxis_type="log",
+                xaxis_range=[np.log10(x_min), np.log10(x_max)],
+            )
+            st.plotly_chart(fig_t, use_container_width=False)
+
+            fig_f = go.Figure()
+            fig_f.add_trace(
+                go.Scatter(
+                    x=ca_uM,
+                    y=tdr["fold_change"],
+                    mode="lines",
+                    name="fold-change",
+                    line=dict(color="#8B4513", width=2.5),
+                )
+            )
+            fig_f.update_layout(
+                height=280,
+                width=640,
+                autosize=False,
+                margin=dict(l=20, r=20, t=30, b=20),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(235,228,217,0.65)",
+                font=dict(color="#242220"),
+                xaxis_title="free Ca²⁺ (µM)",
+                yaxis_title="fold (scaffold / free)",
+                xaxis_type="log",
+                xaxis_range=[np.log10(x_min), np.log10(x_max)],
+            )
+            st.plotly_chart(fig_f, use_container_width=False)
+        except Exception as exc:
+            st.info(f"Trehalose dose-response plot unavailable: {exc}")
+
     st.subheader("Freeze prospective prediction (Docs §1.6)")
     st.caption(
         "Writes a checksummed prediction file before wet-lab comparison. "

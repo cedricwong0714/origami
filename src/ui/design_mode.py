@@ -25,10 +25,11 @@ from src.core.clasp_assembly import (
 from src.calibration.dose_response_metrics import fit_hill_dose_response
 from src.core.ctpr_geometry import generate_scaffold_geometry
 from src.core.linker_ensemble import compute_effective_concentration, parse_linker
-from src.core.schema import DesignSpec, MoCloPart
+from src.core.schema import DesignSpec, MechanismType, MoCloPart
 from src.core.steric_checker import run_steric_check
 from src.compliance.prediction_result import profile_prediction_to_result
 from src.profiles import get_profile
+from src.profiles.trehalose_dose_response import predict_trehalose_ca_dose_response
 from src.verification.engine import evaluate_design
 
 
@@ -121,6 +122,16 @@ class DesignMode:
             ),
         }
 
+        trehalose_dose_response = None
+        if spec.mechanism_type == MechanismType.INTERMEDIATE_TRANSFER:
+            # Slightly coarser than assembly RLU grid — each point runs two ODEs.
+            ca_tre_M = np.logspace(-7, -4, 31)
+            trehalose_dose_response = predict_trehalose_ca_dose_response(
+                ca_tre_M,
+                cam_total_M=1e-6,
+                m13_total_M=1e-6,
+            )
+
         verification = evaluate_design(
             spec,
             parts,
@@ -175,6 +186,7 @@ class DesignMode:
             "steric": steric.model_dump(),
             "prediction": prediction.model_dump() if prediction else None,
             "assembly_dose_response": assembly_dose_response,
+            "trehalose_dose_response": trehalose_dose_response,
             "verification_report": verification,
             "passport": passport,
         }
