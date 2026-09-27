@@ -64,15 +64,31 @@ class ResidualGP:
         return matern52(A, B, hypers.lengthscale, hypers.variance)
 
     def _affine(self, S: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+        """Map physics score S to the observation scale.
+
+        Unconstrained least squares with 1–2 points (or nearly collinear S)
+        is not identifiable and can send α to 10^7. Keep slope 1 until there
+        are enough well-separated physics scores, and ridge toward (α, β)=(1, 0).
+        """
         S = np.asarray(S, dtype=float).ravel()
         y = np.asarray(y, dtype=float).ravel()
         if S.size == 0:
             return 1.0, 0.0
-        if S.size == 1:
-            return 1.0, float(y[0] - S[0])
+        fallback = (1.0, float(np.mean(y - S)))
+        if S.size < 3 or float(np.ptp(S)) < 1e-8:
+            return fallback
         A = np.column_stack([S, np.ones_like(S)])
-        coef, *_ = np.linalg.lstsq(A, y, rcond=None)
-        return float(coef[0]), float(coef[1])
+        lam = 1e-2 * float(S.size)
+        ata = A.T @ A + lam * np.eye(2)
+        rhs = A.T @ y + lam * np.array([1.0, 0.0])
+        try:
+            coef = np.linalg.solve(ata, rhs)
+        except np.linalg.LinAlgError:
+            return fallback
+        alpha, beta = float(coef[0]), float(coef[1])
+        if not np.isfinite(alpha) or not np.isfinite(beta) or abs(alpha) > 50.0:
+            return fallback
+        return alpha, beta
 
     def _nll(self, params: np.ndarray, X: np.ndarray, r: np.ndarray) -> float:
         ls, var, noise = np.exp(params)

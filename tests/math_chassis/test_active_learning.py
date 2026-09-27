@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from origami.design_engine.active_learning import recommend
 from origami.design_engine.gp import ResidualGP
@@ -24,6 +25,20 @@ def test_engine_recommends_integer_in_library():
     assert result.next_experiment.n_repeats not in {6, 10}
     assert result.evidence_level == "computationally_evaluated"
     assert all("literature_placeholder" in line or "calibrated=False" in line for line in result.priors)
+
+
+def test_engine_two_user_points_stay_on_observation_scale():
+    eng = ClaspDesignEngine(payload_radii_A=[18.0, 18.0], n_min=4, n_max=16)
+    eng.add_observation(Observation(n_repeats=6, y=0.35, source="user_entered"))
+    eng.add_observation(Observation(n_repeats=12, y=0.8, source="user_entered"))
+    result = eng.run()
+    assert np.all(np.isfinite(result.posterior.mean))
+    assert np.all(result.posterior.std >= 0)
+    assert np.max(np.abs(result.posterior.mean)) < 20.0
+    # Interpolated at the observed integers: residual GP should recover y.
+    idx = {n: i for i, n in enumerate(result.candidates)}
+    assert result.posterior.mean[idx[6]] == pytest.approx(0.35, abs=0.15)
+    assert result.posterior.mean[idx[12]] == pytest.approx(0.8, abs=0.15)
 
 
 def test_engine_physics_only_still_runs():

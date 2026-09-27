@@ -35,3 +35,15 @@ def test_empty_gp_returns_physics_mean_with_prior_variance():
     post = gp.predict(np.array([[5.0], [10.0]]), np.array([1.2, 2.4]))
     assert np.allclose(post.mean, [1.2, 2.4])
     assert np.all(post.std > 0)
+
+
+def test_two_collinear_physics_scores_do_not_explode_alpha():
+    """Two observations with almost equal S must not fit a huge slope."""
+    X = np.array([[6.0], [12.0]])
+    S = np.array([1.0000001, 1.0000002])
+    y = np.array([0.35, 0.80])
+    gp = ResidualGP().fit(X, y, S, optimize=False)
+    post = gp.predict(np.array([[4.0], [6.0], [16.0]]), np.array([0.2, 1.0, 1.1]))
+    assert np.all(np.isfinite(post.mean))
+    assert np.max(np.abs(post.mean)) < 20.0
+    assert abs(gp.alpha - 1.0) < 1e-12
