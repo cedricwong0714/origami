@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from origami.confirmations import confirm_library, geometry_scene
 from origami.engine import Observation, run_design
 from origami.io.payloads import PayloadRecord, load_payloads
 from origami.physical.erickson_size import payload_size_note
@@ -115,6 +116,27 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
     library_n = list(range(N_REPEATS_MIN, N_REPEATS_MAX + 1))
     if len(payload["gp_mean"]) != len(library_n):
         raise RuntimeError("posterior length does not match the n library")
+    radii = None if payloads is None else [record.radius_A for record in payloads]
+    if radii is not None and len(radii) != 2:
+        confirmation = None
+    else:
+        confirmation = confirm_library(
+            radii,
+            thermal_prior=thermal_prior,
+            t_assay_C=t_assay,
+        )
+    if payloads is None:
+        scene_indices = [0, n_repeats - 1]
+        scene_radii = [
+            DEFAULT_PAYLOAD_RADIUS_A.value,
+            DEFAULT_PAYLOAD_RADIUS_A.value,
+        ]
+        scene_standoffs = [LINKER_SIGMA_A.value, LINKER_SIGMA_A.value]
+    else:
+        scene_indices = [record.repeat_index for record in payloads]
+        scene_radii = [record.radius_A for record in payloads]
+        scene_standoffs = [record.linker_sigma_A for record in payloads]
+    scene = geometry_scene(n_repeats, scene_indices, scene_radii, scene_standoffs)
     return {
         "input": {
             "design_id": design_id.strip(),
@@ -146,6 +168,8 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
         },
         "result": payload,
         "payload_size": size_notes,
+        "confirmation": confirmation,
+        "scene": scene,
         "library": {
             "n_repeats": library_n,
             "gp_mean": payload["gp_mean"],

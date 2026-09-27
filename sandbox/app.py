@@ -214,13 +214,14 @@ m5.metric("stability", report["stability_state"])
 if report["calibrated"]:
     st.error("calibrated is true. That should not happen from this sandbox.")
 
-tab_sum, tab_size, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
+tab_sum, tab_size, tab_confirm, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
     [
         "This scaffold",
         "Sequence / MW",
+        "Structure + stability",
         "n library",
         "Δi scan",
-        "Structure",
+        "Cα scene",
         "Team register",
         "Warnings / omitted",
         "Raw JSON",
@@ -271,6 +272,53 @@ with tab_size:
             "Clash still uses the typed radius_A."
         )
         st.dataframe(pd.DataFrame(notes), hide_index=True)
+
+with tab_confirm:
+    confirmation = bundle.get("confirmation")
+    if not confirmation:
+        st.info("Confirmation table needs zero or two payloads.")
+    else:
+        st.caption(
+            "calibrated is false. Thermal pass is a matched Phillips 2012 CTPRa DSC Tm "
+            "above the assay temperature. ΔG is printed and does not set that pass."
+        )
+        for note in confirmation["notes"]:
+            st.caption(note)
+        conf_df = pd.DataFrame(confirmation["rows"])
+        rigid = int(conf_df["rigid_screw"].sum())
+        thermal_pass = int((conf_df["thermal_state"] == "pass").sum())
+        both = int(
+            ((conf_df["thermal_state"] == "pass") & conf_df["steric_feasible"]).sum()
+        )
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Rigid screw (contour ≤ lp)", f"{rigid} / {len(conf_df)}")
+        c2.metric("Thermal pass", f"{thermal_pass} / {len(conf_df)}")
+        c3.metric("Thermal pass and steric feasible", f"{both} / {len(conf_df)}")
+        show = conf_df[
+            [
+                "n_repeats",
+                "contour_nm",
+                "rigid_screw",
+                "end_pair_chord_A",
+                "end_pair_facing_cosine",
+                "p_instability",
+                "end_pair_p_clash",
+                "end_pair_c_eff_M",
+                "physics_score",
+                "steric_feasible",
+                "thermal_state",
+                "tm_C",
+                "delta_g",
+                "delta_g_units",
+            ]
+        ]
+        st.dataframe(show, hide_index=True)
+        st.download_button(
+            "Download confirmation CSV",
+            data=conf_df.to_csv(index=False),
+            file_name=f"{report['design_id']}_confirmation.csv",
+            mime="text/csv",
+        )
 
 with tab_n:
     n_df = pd.DataFrame(
@@ -345,6 +393,52 @@ with tab_sep:
             st.caption(note)
 
 with tab_struct:
+    scene = bundle.get("scene") or {}
+    ca = scene.get("ca_A") or []
+    if ca:
+        fig3 = go.Figure()
+        fig3.add_trace(
+            go.Scatter3d(
+                x=[point[0] for point in ca],
+                y=[point[1] for point in ca],
+                z=[point[2] for point in ca],
+                mode="markers",
+                name="Cα",
+                marker=dict(size=2, color="#1f4b3a"),
+            )
+        )
+        sites = scene.get("sites_A") or []
+        if sites:
+            fig3.add_trace(
+                go.Scatter3d(
+                    x=[point[0] for point in sites],
+                    y=[point[1] for point in sites],
+                    z=[point[2] for point in sites],
+                    mode="markers",
+                    name="junction",
+                    marker=dict(size=4, color="#c4a35a"),
+                )
+            )
+        for payload in scene.get("payloads") or []:
+            center = payload["center_A"]
+            fig3.add_trace(
+                go.Scatter3d(
+                    x=[center[0]],
+                    y=[center[1]],
+                    z=[center[2]],
+                    mode="markers+text",
+                    name=f"payload r={payload['radius_A']} Å",
+                    text=[f"r={payload['radius_A']:.1f} Å"],
+                    marker=dict(size=8, color="#8c3a3a"),
+                )
+            )
+        fig3.update_layout(
+            title="Placed Cα cloud and payload centers",
+            scene=dict(aspectmode="data", xaxis_title="x (Å)", yaxis_title="y (Å)", zaxis_title="z (Å)"),
+        )
+        st.plotly_chart(fig3, use_container_width=True)
+        for note in scene.get("notes") or []:
+            st.caption(note)
     st.json(report.get("structure"))
 
 with tab_reg:

@@ -19,6 +19,9 @@ def test_default_probe_stays_uncalibrated() -> None:
     assert bundle["library"]["n_repeats"][-1] == N_REPEATS_MAX
     assert len(bundle["library"]["gp_mean"]) == len(bundle["library"]["n_repeats"])
     assert bundle["result"]["separation"]["gp_fitted"] is False
+    assert bundle["confirmation"]["calibrated"] is False
+    assert len(bundle["confirmation"]["rows"]) == 22
+    assert bundle["scene"]["ca_count"] == 8 * 34
 
 
 def test_rejects_empty_design_id() -> None:

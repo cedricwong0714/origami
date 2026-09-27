@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — 2026-09-27 (sandbox confirmations)
+
+### Added
+- `confirm_library` exports one row per n = 3..24: screw contour, rigid-rod flag, end-pair chord, physics score, clash, Phillips 2012 CTPRa DSC gate, and printed ΔG.
+- `geometry_scene` exports the placed Cα cloud and payload centers for the scaffold that was run.
+- The sandbox shows those tables, a CSV download, and the Cα plot. `calibrated` stays false. No Tm(n) model was added.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27 (payload sequence and mass)
 
 ### Added

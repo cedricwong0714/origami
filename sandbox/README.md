@@ -25,7 +25,9 @@ This module does not introduce a new biological constant.
 ## Outputs
 
 `run_sandbox` returns `input`, `process`, `result` (`DesignReport.to_dict()`),
-and the n-library posterior arrays. `calibrated` is false.
+the n-library posterior arrays, a `confirmation` table (structure + thermal
+gate + physics for n = 3..24), and a `scene` of the placed Cα cloud.
+`calibrated` is false.
 
 ## Assumptions
 
