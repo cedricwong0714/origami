@@ -4,7 +4,7 @@
 
 `n_repeats` is the integer in the authors' construct name (CTPRa6 means six consensus repeats). It is not increased by a C-terminal solvating helix when a paper includes one. Phillips et al. (2012) sometimes draw that cap as half a repeat in Figure 3; the rows below keep the integer used in their Table I.
 
-The file has 51 rows. `run_design` does not load this file by default. Rows share repeat counts across different constructs, buffers, and methods, and the thermal gate would average every \(T_m\) at the same \(n\). Pass a filtered subset in `thermal_rows` after choosing one construct series and one condition. \(\Delta G\) signs are copied as printed and are not yet one scale.
+The file has 51 rows. `run_design` does not load this file by default. Passing the whole file as `thermal_table_path` raises, because several \(T_m\) series share repeat counts and must not be averaged. The one series wired for the scaffold gate is `thermal_series="phillips2012_ctpra_dsc"`: Phillips et al. 2012, DOI 10.1002/pro.2018, Table I, DSC, CTPRa only, 50 mM phosphate, pH 7.0. CTPR rows in that table stay out. \(\Delta G\) signs are copied as printed and are not the pass/fail gate.
 
 ## Included papers
 
