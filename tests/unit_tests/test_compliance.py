@@ -28,9 +28,9 @@ def test_unsourced_parameter_warns():
 
 def test_origami_parameter_library_has_ctpr_rise():
     param = ORIGAMI_PARAMETER_LIBRARY["CTPR_RISE_NM"]
-    assert param.value == 1.1
+    assert param.value == pytest.approx(0.8416139416984938)
     assert param.units == "nm"
-    assert "CLASP" in param.source or "Dueber" in param.source
+    assert "10.1107/S0907444907024353" in param.source
 
 
 def test_sequence_checksum_stable():

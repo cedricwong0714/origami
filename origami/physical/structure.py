@@ -5,11 +5,12 @@ This module reports how that screw changes with repeat count: pitch,
 phase between docking sites, curvature, and whether the contour is
 still inside the rigid-rod persistence length.
 
-Every length comes from ``CtprGeometry`` or from
-``src.core.ctpr_geometry``. No new rise, twist, radius, or persistence
-length is introduced here. Distance intervals propagate the Jacobian
-engineering widths already stored on the geometry. They are not a
-calibrated experimental error.
+Every length on the screw comes from ``CtprGeometry``. The deposited
+block compares that screw with the C-alpha fit in
+``origami.physical.deposited``. Distance intervals propagate the
+Jacobian: rise and twist sigmas are the deposited sample standard
+deviations, and the docking-radius sigma is still the engineering width.
+They are not a calibrated experimental error.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from origami.physical.deposited import DEPOSITED_KEYS, deposited_summary
 from origami.physical.geometry import CANONICAL_GEOMETRY_PRIOR_ID, CtprGeometry
 from origami.priors import CTPR_SCAFFOLD_RADIUS_A
 from src.core.ctpr_geometry import PERSISTENCE_LENGTH_NM, wlc_mean_square_end_to_end
@@ -31,7 +33,9 @@ _NORMAL_97_5 = 1.96
 _NM_TO_A = 10.0
 
 _CONTOUR_DEFINITION = "n_repeats * rise_per_repeat"
-_UNCERTAINTY_MODEL = "delta_method_on_jacobian_engineering_widths"
+_UNCERTAINTY_MODEL = (
+    "delta_method_deposited_rise_twist_sample_std_and_engineering_radius_width"
+)
 
 STRUCTURE_KEYS = frozenset(
     {
@@ -58,6 +62,7 @@ STRUCTURE_KEYS = frozenset(
         "backbone_curvature_per_A",
         "backbone_torsion_per_A",
         "pairs",
+        "deposited",
         "warnings",
         "uncertainty_model",
     }
@@ -148,6 +153,7 @@ class StructuralReport:
     backbone_curvature_per_A: float
     backbone_torsion_per_A: float
     pairs: list[PairStructure]
+    deposited: dict[str, object]
     warnings: list[str]
     uncertainty_model: str
 
@@ -176,6 +182,7 @@ class StructuralReport:
             "backbone_curvature_per_A": float(self.backbone_curvature_per_A),
             "backbone_torsion_per_A": float(self.backbone_torsion_per_A),
             "pairs": [pair.to_dict() for pair in self.pairs],
+            "deposited": dict(self.deposited),
             "warnings": list(self.warnings),
             "uncertainty_model": self.uncertainty_model,
         }
@@ -294,6 +301,15 @@ def structural_report(
     dock_kappa, dock_tau = helix_curvature_torsion(geom.radius_A, pitch_A)
     backbone_radius_A = float(CTPR_SCAFFOLD_RADIUS_A.value)
     back_kappa, back_tau = helix_curvature_torsion(backbone_radius_A, pitch_A)
+    deposited = deposited_summary(
+        runtime_rise_A=float(geom.rise_A),
+        runtime_twist_deg=float(math.degrees(geom.rotation_rad)),
+        runtime_scaffold_radius_A=backbone_radius_A,
+        runtime_docking_radius_A=float(geom.radius_A),
+    )
+    if set(deposited) != DEPOSITED_KEYS:
+        raise RuntimeError("deposited geometry summary keys drifted")
+    warnings.extend(str(note) for note in deposited["notes"])
 
     chosen = list(range(geom.n_repeats)) if indices is None else list(indices)
     if len(set(chosen)) != len(chosen):
@@ -333,6 +349,7 @@ def structural_report(
         backbone_curvature_per_A=back_kappa,
         backbone_torsion_per_A=back_tau,
         pairs=pairs,
+        deposited=deposited,
         warnings=warnings,
         uncertainty_model=_UNCERTAINTY_MODEL,
     )

@@ -192,7 +192,9 @@ def test_missing_payload_radius_is_not_filled_in():
 
 
 def test_long_scaffold_warns_past_persistence_length():
-    result = run_design("long", 16)
+    # 16 repeats at the deposited mean rise stay under the 15 nm cutoff.
+    # 18 repeats cross it: 18 * 0.8416 nm is about 15.15 nm.
+    result = run_design("long", 18)
     assert any("exceeds persistence" in warning for warning in result.warnings)
     assert result.calibrated is False
 

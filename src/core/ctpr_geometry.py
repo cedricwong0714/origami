@@ -6,11 +6,17 @@ each repeat advances by axial rise and rotates by twist about the
 scaffold axis. Repeat centers and docking sites sit off-axis on a
 cylinder — not on a straight polypeptide rod.
 
-Key Invariants (CLASP Docs / AGENTS.md §15.1):
-- Rise per repeat: 1.1 nm (axial translation along superhelix axis)
-- Twist per repeat: 45 degrees (8 repeats ≈ 1 turn; Kajander 2007)
-- Persistence length: 15 nm (rigid-rod approx. for short scaffolds)
-- Scaffold cylinder radius: 1.8 nm
+Key Invariants:
+- Rise per repeat: mean of the deposited 2AVP/2HYZ/2FO7 screw fit
+  (Kajander et al. 2007 coordinates, DOI 10.1107/S0907444907024353).
+  The previous CLASP prior was 1.1 nm.
+- Twist per repeat: 45 degrees. That angle is inside the deposited
+  twist range and keeps eight repeats per turn. The deposited mean
+  twist is not exactly 45 degrees; see origami.physical.deposited.
+- Persistence length: 15 nm (project rigid-rod cutoff; not in the
+  deposited coordinate table)
+- Scaffold cylinder radius: 1.8 nm (not the deposited repeat-centroid
+  radius; the fit's outer C-alpha shell is wider)
 
 Center-of-mass / docking chord (Δi repeats apart, radius R):
   d = sqrt( 2 R² (1 − cos(Δi · θ)) + (Δi · rise)² )
@@ -32,14 +38,18 @@ from .schema import ScaffoldSpec
 
 # Structural Constants
 # Parameter: CTPR axial rise per repeat
-# Value: 1.1
+# Value: 0.8416139416984938
 # Units: nm
-# Source: CLASP Docs (nanometer precision claim); Dueber et al. 2009; SCABs 2024
-# System: Consensus TPR (CTPR) scaffold
-# Method: Structural / design documentation for CLASP geometry
-# Notes: Axial advance of the superhelix axis; dry-lab PDF used 0.95 nm —
-#   do not silent-switch without human review + CHANGELOG
-CTPR_RISE_NM = 1.1
+# Source: screw fit to PDB 2AVP, 2HYZ, 2FO7 C-alpha coordinates,
+#   Kajander et al. (2007) Acta Crystallogr D 63:800-811,
+#   DOI: 10.1107/S0907444907024353
+# System: Consensus TPR asymmetric-unit chains (2 or 4 repeats)
+# Method: Kabsch fit of successive 34-residue blocks, then screw decomposition.
+#   Mean of 7 steps. Recomputed by origami.physical.deposited.
+# Notes: Previous CLASP prior was 1.1 nm. This is not a number printed in
+#   the article PDF (that PDF is not open). calibrated stays false.
+#   1 nm = 10 Å, so the mean 8.416139416984938 Å is 0.8416139416984938 nm.
+CTPR_RISE_NM = 0.8416139416984938
 
 # Parameter: CTPR superhelical twist per repeat
 # Value: 45.0
@@ -53,11 +63,20 @@ CTPR_RISE_NM = 1.1
 # Notes: Superhelical twist between successive repeats, not ~24° A/B tilt
 CTPR_TWIST_DEG = 45.0
 
-# Parameter: CTPR scaffold cylinder radius (repeat-center radial distance)
+# Parameter: CTPR scaffold cylinder radius
 # Value: 1.8
 # Units: nm
 # Source: CLASP Docs §2.4 / steric_checker scaffold cylinder
+# Notes: Not the deposited repeat-centroid radius (about 1.22 nm).
+#   The deposited outer C-alpha shell is about 1.84–2.01 nm, so 1.8 nm
+#   sits inside that shell. Left unchanged; the comparison flags it.
 CTPR_RADIUS_NM = 1.8
+# Parameter: rigid-rod persistence cutoff
+# Value: 15.0
+# Units: nm
+# Source: CLASP docs cutoff. Not retrieved from the deposited coordinates
+#   or from the open abstract of Synakewicz et al. 2022,
+#   DOI: 10.1021/acsnano.1c09162.
 PERSISTENCE_LENGTH_NM = 15.0
 
 # Parameter: Docking-loop radial offset beyond scaffold cylinder
@@ -66,9 +85,12 @@ PERSISTENCE_LENGTH_NM = 15.0
 # Source: CLASP geometry prior (loop graft extension beyond cylinder)
 DOCKING_LOOP_OFFSET_NM = 0.35
 
-# Default structural std-devs (half-width of published CTPR variation ranges)
-DEFAULT_RISE_STD_NM = 0.05
-DEFAULT_TWIST_STD_DEG = 1.0
+# Sample standard deviation (n-1) of the same seven deposited screw steps.
+# Rise: 0.4760507886412968 Å = 0.04760507886412968 nm.
+# Twist: 2.3470532160238053 degrees.
+# Not a standard error printed in the paper.
+DEFAULT_RISE_STD_NM = 0.04760507886412968
+DEFAULT_TWIST_STD_DEG = 2.3470532160238053
 
 
 class DockingSiteOrientation(str, Enum):

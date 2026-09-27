@@ -111,7 +111,7 @@ def test_geometry_uncertainty_positive_and_grows_with_repeat_index():
 
 
 def test_wlc_warns_when_beyond_persistence_length():
-    # 20 repeats * 1.1 nm = 22 nm > 15 nm persistence
+    # 20 repeats * deposited mean rise (~0.842 nm) = ~16.8 nm > 15 nm persistence
     with pytest.warns(UserWarning, match="persistence length"):
         geom = generate_scaffold_geometry(
             ScaffoldSpec(scaffold_id="CTPR20", repeat_count=20, docking_positions=[1, 20])

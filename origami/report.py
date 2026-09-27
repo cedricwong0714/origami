@@ -18,6 +18,7 @@ from typing import Any
 
 import numpy as np
 
+from origami.physical.deposited import DEPOSITED_KEYS
 from origami.physical.registers import (
     REGISTER_KEYS,
     TEAM_BIOMARKER_N,
@@ -534,8 +535,11 @@ def _check_structure(value: object) -> dict[str, Any] | None:
         raise ValueError("structure.provenance must be a non-empty string")
     if value["contour_definition"] != "n_repeats * rise_per_repeat":
         raise ValueError("structure.contour_definition is not the screw contour")
-    if value["uncertainty_model"] != "delta_method_on_jacobian_engineering_widths":
-        raise ValueError("structure.uncertainty_model is not the Jacobian delta method")
+    if (
+        value["uncertainty_model"]
+        != "delta_method_deposited_rise_twist_sample_std_and_engineering_radius_width"
+    ):
+        raise ValueError("structure.uncertainty_model is not the deposited Jacobian")
     if type(value["rigid_screw"]) is not bool:
         raise TypeError("structure.rigid_screw must be a bool")
     copied: dict[str, Any] = dict(value)
@@ -594,7 +598,86 @@ def _check_structure(value: object) -> dict[str, Any] | None:
             row[name] = _json_number(f"structure.pairs[{index}].{name}", pair[name])
         copied_pairs.append(row)
     copied["pairs"] = copied_pairs
+    copied["deposited"] = _check_deposited(value["deposited"])
     copied["calibrated"] = False
+    return copied
+
+
+def _check_deposited(value: object) -> dict[str, Any]:
+    """Keep the deposited-coordinate comparison uncalibrated and consistent."""
+    if not isinstance(value, dict):
+        raise TypeError("structure.deposited must be an object")
+    if set(value) != DEPOSITED_KEYS:
+        missing = sorted(DEPOSITED_KEYS - set(value))
+        extra = sorted(set(value) - DEPOSITED_KEYS)
+        raise ValueError(f"structure.deposited keys mismatch. missing={missing} extra={extra}")
+    if value["calibrated"] is not False:
+        raise ValueError("structure.deposited.calibrated must be false")
+    if value["persistence_length_retrieved"] is not False:
+        raise ValueError("structure.deposited.persistence_length_retrieved must be false")
+    if value["doi"] != "10.1107/S0907444907024353":
+        raise ValueError("structure.deposited.doi is not the Kajander 2007 record")
+    pdb_ids = value["pdb_ids"]
+    if pdb_ids != ["2AVP", "2HYZ", "2FO7"]:
+        raise ValueError("structure.deposited.pdb_ids are not 2AVP, 2HYZ, and 2FO7")
+    copied: dict[str, Any] = dict(value)
+    copied["n_steps"] = _as_int("structure.deposited.n_steps", value["n_steps"])
+    if copied["n_steps"] != 7:
+        raise ValueError("structure.deposited.n_steps must be the seven deposited screws")
+    if not isinstance(value["method"], str) or value["method"].strip() == "":
+        raise ValueError("structure.deposited.method must be a non-empty string")
+    for name in (
+        "rise_mean_A",
+        "rise_sample_std_A",
+        "rise_min_A",
+        "rise_max_A",
+        "twist_mean_deg",
+        "twist_sample_std_deg",
+        "twist_min_deg",
+        "twist_max_deg",
+        "centroid_radius_mean_A",
+        "centroid_radius_min_A",
+        "centroid_radius_max_A",
+        "outer_ca_radius_mean_A",
+        "outer_ca_radius_min_A",
+        "outer_ca_radius_max_A",
+        "runtime_rise_A",
+        "runtime_twist_deg",
+        "runtime_scaffold_radius_A",
+        "runtime_docking_radius_A",
+    ):
+        copied[name] = _json_number(f"structure.deposited.{name}", value[name])
+    if copied["rise_sample_std_A"] <= 0.0 or copied["twist_sample_std_deg"] <= 0.0:
+        raise ValueError("deposited sample standard deviations must be > 0")
+    if not (copied["rise_min_A"] <= copied["rise_mean_A"] <= copied["rise_max_A"]):
+        raise ValueError("deposited rise mean is outside its own range")
+    flags = {
+        "runtime_rise_inside_deposited_range": (
+            copied["rise_min_A"] <= copied["runtime_rise_A"] <= copied["rise_max_A"]
+        ),
+        "runtime_twist_inside_deposited_range": (
+            copied["twist_min_deg"]
+            <= copied["runtime_twist_deg"]
+            <= copied["twist_max_deg"]
+        ),
+        "runtime_scaffold_radius_inside_outer_ca_range": (
+            copied["outer_ca_radius_min_A"]
+            <= copied["runtime_scaffold_radius_A"]
+            <= copied["outer_ca_radius_max_A"]
+        ),
+        "runtime_docking_radius_inside_outer_ca_range": (
+            copied["outer_ca_radius_min_A"]
+            <= copied["runtime_docking_radius_A"]
+            <= copied["outer_ca_radius_max_A"]
+        ),
+    }
+    for name, expected in flags.items():
+        if type(value[name]) is not bool or value[name] is not expected:
+            raise ValueError(f"structure.deposited.{name} does not match the stored range")
+    copied["notes"] = _string_list("structure.deposited.notes", value["notes"])
+    copied["calibrated"] = False
+    copied["persistence_length_retrieved"] = False
+    copied["pdb_ids"] = ["2AVP", "2HYZ", "2FO7"]
     return copied
 
 

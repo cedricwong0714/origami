@@ -83,12 +83,20 @@ ORIGAMI_PARAMETER_LIBRARY: dict[str, BiologicalParameter] = {
         name="CTPR rise per repeat",
         value=CTPR_RISE_NM,
         units="nm",
-        lower_bound=1.0,
-        upper_bound=1.2,
-        source="Dueber 2009; SCABs 2024 (CLASP Docs §2)",
-        system="CTPR scaffold repeat",
-        confidence="high",
-        notes="ORIGAMI invariant — do not tune for demos",
+        lower_bound=0.7831136408093319,
+        upper_bound=0.9021579826374051,
+        source=(
+            "PDB 2AVP, 2HYZ, 2FO7 screw fit; "
+            "Kajander et al. 2007 Acta Crystallogr D 63:800-811, "
+            "DOI: 10.1107/S0907444907024353"
+        ),
+        system="CTPR asymmetric-unit repeats",
+        confidence="medium",
+        notes=(
+            "Mean of seven deposited screw steps. The previous CLASP prior "
+            "was 1.1 nm. Bounds are the minimum and maximum of those steps. "
+            "Not a wet-lab calibration."
+        ),
     ),
     "CTPR_TWIST_DEG": BiologicalParameter(
         name="CTPR twist per repeat",

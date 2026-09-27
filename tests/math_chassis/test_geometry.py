@@ -58,7 +58,7 @@ def test_coordinates_match_src_screw_after_nm_to_angstrom():
     geom = build_ctpr(4)
     assert geom.provenance == "src.core.ctpr_geometry"
     assert geom.rise_A == pytest.approx(CTPR_RISE_NM * 10.0)
-    assert geom.rise_A == pytest.approx(11.0)
+    assert geom.rise_A == pytest.approx(8.416139416984938)
     assert geom.rotation_rad == pytest.approx(math.pi / 4)
     assert geom.radius_A == pytest.approx((CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) * 10.0)
     assert geom.radius_A == pytest.approx(21.5)

@@ -309,7 +309,7 @@
 
     <div class="honesty">
         <strong>Computational ranking only.</strong>
-        Geometry uses ORIGAMI cylindrical-screw invariants (1.1&nbsp;nm rise, 45° twist;
+        Geometry uses the deposited CTPR screw mean (0.842&nbsp;nm rise, 45° twist;
         docking on helix radius R<sub>scaffold</sub>+loop).
         Φ scores are Tier-3 heuristics — not wet-lab calibrated fitness.
         Prefer the Streamlit <em>Optimize CTPR spacing</em> mode for the Python-backed path.
@@ -451,7 +451,7 @@ function runOptimization() {
 
     // ORIGAMI CTPR invariants (src/core/ctpr_geometry.py) — Å units in this page
     const theta = 45.0 * (Math.PI / 180.0); // 45° twist per repeat (Kajander 2007)
-    const dz = 11.0;                        // 1.1 nm = 11.0 Å axial rise
+    const dz = 8.416;                       // deposited mean rise, Å (0.8416 nm)
     const R_scaffold = 18.0;                // 1.8 nm scaffold radius
     const loopOffset = 3.5;                 // 0.35 nm docking-loop offset
     const R_total = R_scaffold + loopOffset;
@@ -597,7 +597,7 @@ function runOptimization() {
     asciiMap += `Active-site estimate (d_active) : ${results[bestIdx-1].dActive.toFixed(2)} Å\n`;
     asciiMap += `Superhelical Rotation Angle     : ${bestIdx * 45}° (${(bestIdx * 45) % 360}° offset)\n`;
     asciiMap += `Steric clearance estimate       : ${(100 - results[bestIdx-1].pSteric * 100).toFixed(1)}%\n`;
-    asciiMap += `Geometry priors                 : rise=1.1 nm/repeat, twist=45°/repeat`;
+    asciiMap += `Geometry priors                 : rise=0.842 nm/repeat, twist=45°/repeat`;
 
     document.getElementById('asciiMap').innerHTML = asciiMap;
 }

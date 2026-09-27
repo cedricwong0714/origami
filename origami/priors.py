@@ -43,24 +43,28 @@ class Parameter:
 
 # Canonical screw geometry from src.core.ctpr_geometry, stored in Å and radians.
 # 1 nm = 10 Å. Twist is converted from degrees to radians (45° = π/4).
-# calibrated stays False: these are literature geometry constants, not a
-# wet-lab fit from this project. sigma is the existing Jacobian width, not a
-# standard deviation quoted in the sources below.
+# calibrated stays False. Rise and its sigma are the mean and sample
+# standard deviation of the deposited screw fit, not a wet-lab fit and not
+# a number printed in the Kajander PDF.
 CTPR_RISE_A = Parameter(
     name="ctpr_rise_per_repeat",
-    value=CTPR_RISE_NM * _NM_TO_A,  # 1.1 nm × 10 Å/nm = 11.0 Å
+    value=CTPR_RISE_NM * _NM_TO_A,
     units="Å",
-    sigma=2.0,
-    source="CLASP Docs (nanometer precision claim); Dueber et al. 2009; SCABs 2024",
-    system="Consensus TPR (CTPR) scaffold",
-    method="Structural / design documentation for CLASP geometry",
+    sigma=0.4760507886412968,
+    source=(
+        "Screw fit to PDB 2AVP, 2HYZ, and 2FO7. "
+        "Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800-811, "
+        "DOI: 10.1107/S0907444907024353. "
+        "Coordinates from RCSB mmCIF; the article PDF was not open."
+    ),
+    system="Consensus TPR asymmetric-unit chains, 34-residue repeats",
+    method="Kabsch fit of successive repeats, screw decomposition, mean of 7 steps",
     notes=(
-        "Axial advance of the superhelix axis; dry-lab PDF used 0.95 nm — "
-        "do not silent-switch without human review + CHANGELOG. "
-        "Stored in Å after explicit conversion at this boundary: "
-        "1 nm = 10 Å, so CTPR_RISE_NM 1.1 nm × 10 = 11.0 Å. "
-        "sigma is the existing Jacobian engineering width, not a standard "
-        "deviation quoted from the source above."
+        "Stored in Å: CTPR_RISE_NM × 10. "
+        "The previous CLASP prior was 1.1 nm (11.0 Å). "
+        "sigma is the sample standard deviation of the 7 deposited steps "
+        "(divisor n-1), not a standard error printed in the paper. "
+        "1 nm = 10 Å."
     ),
     provenance="literature_placeholder",
     calibrated=False,
@@ -70,7 +74,7 @@ CTPR_ROTATION_RAD = Parameter(
     name="ctpr_rotation_per_repeat",
     value=math.radians(CTPR_TWIST_DEG),  # 45 deg = π/4 rad
     units="rad",
-    sigma=0.12,
+    sigma=0.04096380633913714,
     source=(
         "Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800–811, "
         "DOI: 10.1107/S0907444907024353, PMID: 17582171 "
@@ -82,8 +86,10 @@ CTPR_ROTATION_RAD = Parameter(
     notes=(
         "Superhelical twist between successive repeats, not ~24° A/B tilt. "
         "Stored in radians: CTPR_TWIST_DEG 45 degrees = π/4 rad. "
-        "sigma is the existing Jacobian engineering width, not a standard "
-        "deviation quoted from the source above."
+        "45° is inside the deposited twist range and keeps eight repeats "
+        "per turn. The deposited mean twist is not exactly 45°. "
+        "sigma is that sample standard deviation converted from degrees "
+        "to radians, not the previous 0.12 rad engineering width."
     ),
     provenance="literature_placeholder",
     calibrated=False,

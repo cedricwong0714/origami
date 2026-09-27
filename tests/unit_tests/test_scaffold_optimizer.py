@@ -34,6 +34,6 @@ def test_static_html_demo_exists_and_uses_origami_priors():
     from src.core.asset_paths import REPO_ROOT
 
     html = (REPO_ROOT / "web" / "ctpr_scaffold_optimizer.html").read_text(encoding="utf-8")
-    assert "1.1 nm" in html or "dz = 11.0" in html
+    assert "0.842" in html or "dz = 8.416" in html
     assert "45.0" in html or "45°" in html
     assert "const theta = 20.0" not in html  # superseded: Kajander 2007 → 45°/repeat
