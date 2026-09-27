@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-27 (design sandbox)
+
+### Added
+- `sandbox/service.py` and `sandbox/app.py` wrap `run_design` for input, process, and result data.
+  The sandbox does not add a scorer. `calibrated` stays false. `next_n` is labeled as acquisition, not a team optimum.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27
 
 ### Changed

@@ -37,7 +37,7 @@ origami = "src.ui.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*", "origami*"]
+include = ["src*", "origami*", "sandbox*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

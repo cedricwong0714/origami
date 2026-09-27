@@ -65,6 +65,15 @@ Core dependencies are declared in [`pyproject.toml`](pyproject.toml). Optional U
 
 ## Quick start
 
+### Design sandbox (input → `run_design` → result data)
+
+```bash
+pip install -e ".[ui]"
+streamlit run sandbox/app.py --server.port 48621 --server.address 0.0.0.0
+```
+
+This form calls the math chassis. It does not invent sequences or mark the report calibrated.
+
 ### Streamlit UI (Explore / Design / Learn)
 
 ```bash
