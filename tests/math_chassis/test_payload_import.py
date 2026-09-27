@@ -136,3 +136,68 @@ def test_load_payloads_json_reads_caller_supplied_rows(tmp_path: Path):
     assert records[0].structure_id == "local-alpha"
     assert records[1].fusion_terminus == "C"
     assert records[1].repeat_index == 1
+
+
+def test_payload_without_external_fields_loads():
+    omitted = load_payloads([_row()])
+    explicit_nulls = load_payloads(
+        [
+            _row(
+                external_ddg=None,
+                external_ddg_units=None,
+                external_ddg_source=None,
+                external_tool=None,
+            )
+        ]
+    )
+
+    for records in (omitted, explicit_nulls):
+        record = records[0]
+        assert record.payload_id == "alpha"
+        assert record.radius_A == 12.5
+        assert record.linker_sigma_A == 8.0
+        assert record.external_ddg is None
+        assert record.external_ddg_units is None
+        assert record.external_ddg_source is None
+        assert record.external_tool is None
+
+
+def test_partial_external_ddg_without_units_source_or_tool_raises():
+    with pytest.raises(ValueError, match="alpha") as missing:
+        load_payloads([_row(external_ddg=-1.25)])
+    message = str(missing.value)
+    assert "external_ddg_units" in message
+    assert "external_ddg_source" in message
+    assert "external_tool" in message
+
+    blank_units = _row(
+        external_ddg=-1.25,
+        external_ddg_units="  ",
+        external_ddg_source="caller note",
+        external_tool="fixture-tool",
+    )
+    with pytest.raises(ValueError, match="alpha") as blank:
+        load_payloads([blank_units])
+    assert "external_ddg_units" in str(blank.value)
+
+
+def test_complete_external_fusion_context_preserves_values():
+    # Arbitrary fixture number. Not a tool result and not a cutoff.
+    records = load_payloads(
+        [
+            _row(
+                external_ddg=-1.25,
+                external_ddg_units="kcal/mol",
+                external_ddg_source="caller-supplied fixture",
+                external_tool="fixture-tool",
+            )
+        ]
+    )
+
+    record = records[0]
+    assert record.external_ddg == -1.25
+    assert record.external_ddg_units == "kcal/mol"
+    assert record.external_ddg_source == "caller-supplied fixture"
+    assert record.external_tool == "fixture-tool"
+    assert record.radius_A == 12.5
+    assert record.linker_sigma_A == 8.0

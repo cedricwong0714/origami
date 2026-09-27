@@ -13,13 +13,24 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, field
 from typing import Any
 
 import numpy as np
 
 
 _WET_LAB = "wet_lab"
+
+# Gate states from origami.stability.gate.thermal_gate. The tier is the
+# evidence class of that state, not a second temperature model.
+_STABILITY_STATES = ("pass", "fail", "extrapolated", "omitted")
+_STABILITY_TIERS = ("omitted", "literature_prior", "extrapolated")
+_TIER_FOR_STATE = {
+    "omitted": "omitted",
+    "extrapolated": "extrapolated",
+    "pass": "literature_prior",
+    "fail": "literature_prior",
+}
 
 _CALIBRATED_REFUSAL = (
     "calibrated=True requires evidence_source='wet_lab'. "
@@ -157,6 +168,11 @@ class DesignReport:
     - p_capture: probability
     - gp_mean, gp_std: posterior mean and standard deviation in the caller's units
     - next_n: recommended repeat count
+    - tm_C, tm_interval_low, tm_interval_high: degrees Celsius, as returned
+      by the thermal gate. This assembler does not estimate a melting temperature.
+    - stability_state: pass, fail, extrapolated, or omitted
+    - stability_tier: omitted, literature_prior, or extrapolated
+    - stability_omitted: names of thermal inputs that were not used
     """
 
     design_id: str
@@ -177,6 +193,12 @@ class DesignReport:
     calibrated: bool
     warnings: list[str]
     omitted: list[str]
+    tm_C: float | None = None
+    tm_interval_low: float | None = None
+    tm_interval_high: float | None = None
+    stability_state: str = "omitted"
+    stability_tier: str = "omitted"
+    stability_omitted: list[str] = field(default_factory=list)
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -211,6 +233,24 @@ class DesignReport:
         self.warnings = _string_list("warnings", self.warnings)
         self.omitted = _string_list("omitted", self.omitted)
         _check_capture_omission(self.da, self.p_capture, self.omitted)
+
+        self.tm_C = _optional_float("tm_C", self.tm_C)
+        self.tm_interval_low = _optional_float("tm_interval_low", self.tm_interval_low)
+        self.tm_interval_high = _optional_float("tm_interval_high", self.tm_interval_high)
+        self.stability_state = _stability_label(
+            "stability_state", self.stability_state, _STABILITY_STATES
+        )
+        self.stability_tier = _stability_label(
+            "stability_tier", self.stability_tier, _STABILITY_TIERS
+        )
+        self.stability_omitted = _string_list("stability_omitted", self.stability_omitted)
+        _check_stability(
+            self.stability_state,
+            self.stability_tier,
+            self.tm_C,
+            self.tm_interval_low,
+            self.tm_interval_high,
+        )
 
         self.gp_mean = _float_list("gp_mean", self.gp_mean)
         self.gp_std = _float_list("gp_std", self.gp_std, minimum=0.0)
@@ -249,6 +289,16 @@ class DesignReport:
             "calibrated": True if self.calibrated else False,
             "warnings": list(self.warnings),
             "omitted": list(self.omitted),
+            "tm_C": None if self.tm_C is None else float(self.tm_C),
+            "tm_interval_low": (
+                None if self.tm_interval_low is None else float(self.tm_interval_low)
+            ),
+            "tm_interval_high": (
+                None if self.tm_interval_high is None else float(self.tm_interval_high)
+            ),
+            "stability_state": self.stability_state,
+            "stability_tier": self.stability_tier,
+            "stability_omitted": list(self.stability_omitted),
         }
 
 
@@ -287,6 +337,49 @@ def _check_capture_omission(
         )
 
 
+def _stability_label(name: str, value: object, allowed: tuple[str, ...]) -> str:
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError(f"{name} must be one of {list(allowed)}")
+    return value
+
+
+def _check_stability(
+    state: str,
+    tier: str,
+    tm_C: float | None,
+    interval_low: float | None,
+    interval_high: float | None,
+) -> None:
+    """Keep the packaged tier and Tm consistent with the thermal-gate state.
+
+    pass and fail both used a matched Tm, so the tier is literature_prior.
+    extrapolated and omitted do not invent a Tm to fill the hole.
+    """
+    expected_tier = _TIER_FOR_STATE[state]
+    if tier != expected_tier:
+        raise ValueError(
+            f"stability_tier {tier!r} does not match stability_state {state!r}. "
+            f"Expected {expected_tier!r}."
+        )
+    if state in ("omitted", "extrapolated"):
+        if tm_C is not None or interval_low is not None or interval_high is not None:
+            raise ValueError(
+                f"stability_state {state!r} does not report a Tm. "
+                "tm_C and its interval must be None."
+            )
+        return
+    if tm_C is None:
+        raise ValueError("stability_state 'pass' or 'fail' requires tm_C")
+    if (interval_low is None) != (interval_high is None):
+        raise ValueError("tm interval bounds must both be present or both be absent")
+    if interval_low is None or interval_high is None:
+        return
+    if interval_low > interval_high:
+        raise ValueError("tm interval is inverted")
+    if not (interval_low <= tm_C <= interval_high):
+        raise ValueError("tm_C lies outside the supplied interval")
+
+
 def assemble_report(
     *,
     design_id: str,
@@ -308,6 +401,12 @@ def assemble_report(
     warnings: Sequence[str] | None = None,
     omitted: Sequence[str] | None = None,
     evidence_source: str = "none",
+    tm_C: float | None = None,
+    tm_interval_low: float | None = None,
+    tm_interval_high: float | None = None,
+    stability_state: str = "omitted",
+    stability_tier: str = "omitted",
+    stability_omitted: Sequence[str] | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -317,6 +416,13 @@ def assemble_report(
 
     This function does not call the physics, mechanism, or GP modules. It
     does not fill p_capture from da, and it does not add a theta time course.
+    It does not estimate Tm. Pass the thermal-gate numbers in, or leave the
+    stability fields at their omitted defaults.
+
+    stability_tier must match stability_state: omitted stays omitted,
+    extrapolated stays extrapolated, and pass or fail is literature_prior.
+    calibrated is still False unless evidence_source == "wet_lab". A
+    literature_prior tier is not a wet-lab calibration.
     """
     if not isinstance(evidence_source, str):
         raise TypeError("evidence_source must be a str")
@@ -348,5 +454,11 @@ def assemble_report(
         calibrated=calibrated,
         warnings=[] if warnings is None else list(warnings),
         omitted=[] if omitted is None else list(omitted),
+        tm_C=tm_C,
+        tm_interval_low=tm_interval_low,
+        tm_interval_high=tm_interval_high,
+        stability_state=stability_state,
+        stability_tier=stability_tier,
+        stability_omitted=[] if stability_omitted is None else list(stability_omitted),
         calibration_claim=claim,
     )

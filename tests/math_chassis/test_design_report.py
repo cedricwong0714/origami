@@ -224,7 +224,17 @@ def test_to_dict_round_trips_through_json():
         "calibrated",
         "warnings",
         "omitted",
+        "tm_C",
+        "tm_interval_low",
+        "tm_interval_high",
+        "stability_state",
+        "stability_tier",
+        "stability_omitted",
     }
+    assert payload["stability_state"] == "omitted"
+    assert payload["stability_tier"] == "omitted"
+    assert payload["tm_C"] is None
+    assert payload["stability_omitted"] == []
 
     partial_kwargs = _full_report_kwargs()
     partial_kwargs.update(

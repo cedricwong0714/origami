@@ -4,6 +4,11 @@ This module does not measure, estimate, or fill in radii, linker sigmas,
 dissociation constants, or sequences. Every physical number must already be
 present on the input row. Structure identifiers are stored as given; this
 module does not fetch PDB entries or generate coordinates.
+
+An optional fusion-context group (``external_ddg`` and its units, source,
+and tool) is stored only when the caller supplied the whole group. This
+module does not call FoldX, CamSol, Aggrescan, or any other tool, and it
+does not apply a cutoff to ``external_ddg``.
 """
 
 from __future__ import annotations
@@ -23,6 +28,12 @@ _REQUIRED_FIELDS = (
     "linker_sigma_A",
 )
 _PHYSICAL_FIELDS = ("radius_A", "linker_sigma_A")
+_FUSION_CONTEXT_FIELDS = (
+    "external_ddg",
+    "external_ddg_units",
+    "external_ddg_source",
+    "external_tool",
+)
 _TERMINI = ("N", "C")
 
 
@@ -33,6 +44,11 @@ class PayloadRecord:
     ``repeat_index`` is the 0-based docking repeat on the scaffold.
     ``radius_A`` and ``linker_sigma_A`` are in angstroms and must be provided
     by the caller. They are not estimated here.
+
+    ``external_ddg``, ``external_ddg_units``, ``external_ddg_source``, and
+    ``external_tool`` are one optional annotation. All four are None when
+    the caller omitted them. When the caller supplies the annotation, all
+    four are stored as given. ``external_ddg`` is not compared to a cutoff.
     """
 
     payload_id: str
@@ -42,6 +58,10 @@ class PayloadRecord:
     radius_A: float
     linker_sigma_A: float
     structure_id: str | None = None
+    external_ddg: float | None = None
+    external_ddg_units: str | None = None
+    external_ddg_source: str | None = None
+    external_tool: str | None = None
 
 
 def load_payloads(rows: list[dict]) -> list[PayloadRecord]:
@@ -51,13 +71,20 @@ def load_payloads(rows: list[dict]) -> list[PayloadRecord]:
     ``repeat_index``, ``radius_A``, and ``linker_sigma_A``. ``structure_id``
     is optional.
 
+    ``external_ddg``, ``external_ddg_units``, ``external_ddg_source``, and
+    ``external_tool`` are optional as a group. If every one of them is
+    absent or null, all four are stored as None. If any one is present,
+    all four must be present and non-empty. The number is stored as a
+    float and is not thresholded.
+
     Raises
     ------
     ValueError
         If ``radius_A`` or ``linker_sigma_A`` is missing or null, if either
         is not strictly positive, if ``repeat_index`` is negative, or if
         ``fusion_terminus`` is not ``N`` or ``C``. The error names the
-        ``payload_id`` and the field that failed.
+        ``payload_id`` and the field that failed. The same error is raised
+        when part of the external fusion-context group is missing or blank.
     """
     if not isinstance(rows, list):
         raise ValueError("payload rows must be a list of objects")
@@ -102,6 +129,9 @@ def _record_from_row(index: int, row: object) -> PayloadRecord:
         payload_id, "linker_sigma_A", row["linker_sigma_A"]
     )
     structure_id = _structure_id(payload_id, row)
+    external_ddg, external_ddg_units, external_ddg_source, external_tool = (
+        _fusion_context(payload_id, row)
+    )
     return PayloadRecord(
         payload_id=payload_id,
         role=role,
@@ -110,6 +140,10 @@ def _record_from_row(index: int, row: object) -> PayloadRecord:
         radius_A=radius_A,
         linker_sigma_A=linker_sigma_A,
         structure_id=structure_id,
+        external_ddg=external_ddg,
+        external_ddg_units=external_ddg_units,
+        external_ddg_source=external_ddg_source,
+        external_tool=external_tool,
     )
 
 
@@ -173,6 +207,64 @@ def _positive_angstrom(payload_id: str, field: str, raw: object) -> float:
             f"payload {payload_id}: {field} must be greater than 0, got {raw!r}"
         )
     return value
+
+
+def _fusion_context(
+    payload_id: str, row: dict
+) -> tuple[float | None, str | None, str | None, str | None]:
+    """Read the optional external fusion-context group.
+
+    Absent and null are the same: the caller did not supply that field.
+    When every field in the group is absent or null, the group is omitted
+    and each stored value is None. A single supplied field makes the whole
+    group required. Blank strings are not a supplied value, so they are
+    reported as missing. ``external_ddg`` is converted to float and kept,
+    including zero and negative values. It is not compared to a cutoff.
+    """
+    raw = {
+        field: row[field] if field in row else None for field in _FUSION_CONTEXT_FIELDS
+    }
+    if all(value is None for value in raw.values()):
+        return None, None, None, None
+
+    missing = [field for field, value in raw.items() if _is_blank(value)]
+    if missing:
+        raise ValueError(
+            f"payload {payload_id}: missing required field {', '.join(missing)}"
+        )
+
+    return (
+        _external_ddg(payload_id, raw["external_ddg"]),
+        _nonempty_text(payload_id, "external_ddg_units", raw["external_ddg_units"]),
+        _nonempty_text(payload_id, "external_ddg_source", raw["external_ddg_source"]),
+        _nonempty_text(payload_id, "external_tool", raw["external_tool"]),
+    )
+
+
+def _is_blank(value: object) -> bool:
+    """True when a fusion-context value was omitted or is only whitespace."""
+    if value is None:
+        return True
+    if isinstance(value, str) and value.strip() == "":
+        return True
+    return False
+
+
+def _external_ddg(payload_id: str, raw: object) -> float:
+    """Store a caller-supplied ddg number without applying a cutoff.
+
+    Zero and negative values are kept. This function does not decide
+    whether the number is stabilizing, destabilizing, or in range.
+    """
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        raise ValueError(f"payload {payload_id}: external_ddg must be a number")
+    return float(raw)
+
+
+def _nonempty_text(payload_id: str, field: str, raw: object) -> str:
+    if not isinstance(raw, str) or raw.strip() == "":
+        raise ValueError(f"payload {payload_id}: {field} must be a non-empty string")
+    return raw
 
 
 def _structure_id(payload_id: str, row: dict) -> str | None:

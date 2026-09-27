@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import inspect
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -27,10 +29,24 @@ from origami.priors import (
     all_priors,
 )
 from origami.report import DesignReport, assemble_report
+from origami.stability.gate import ThermalGateResult, ThermalRow, thermal_gate
+from origami.stability.table import load_thermal_table
 from src.core.ctpr_geometry import CTPR_RISE_NM, PERSISTENCE_LENGTH_NM
 
 # Id of the peptide Kd in origami.priors.CAM_M13_KD_M. Not a fusion measurement.
 _PRIOR_KD_ID = "cam_m13_peptide_0.19nM"
+
+# Same cutoff recommend() uses to mask a candidate. Read from that default so
+# this module does not introduce a second steric threshold. A length is
+# sterically allowed only when p_instability is strictly below this value.
+_STERIC_CLASH_LIMIT = float(inspect.signature(recommend).parameters["clash_limit"].default)
+
+_TIER_FOR_GATE_STATE = {
+    "omitted": "omitted",
+    "extrapolated": "extrapolated",
+    "pass": "literature_prior",
+    "fail": "literature_prior",
+}
 
 
 @dataclass
@@ -49,10 +65,13 @@ class EngineResult:
     physics_scores: np.ndarray
     p_instability: np.ndarray
     posterior: GPPosterior
-    next_experiment: NextExperiment
+    next_experiment: NextExperiment | None
     observations: list[Observation]
     priors: list[str] = field(default_factory=list)
     evidence_level: str = "literature_supported"
+    warnings: list[str] = field(default_factory=list)
+    # None when no thermal table was supplied. Otherwise one gate result per candidate.
+    thermal_by_n: dict[int, ThermalGateResult] | None = None
 
 
 class ClaspDesignEngine:
@@ -87,7 +106,33 @@ class ClaspDesignEngine:
             indices = [int(round(i * (n_repeats - 1) / (k - 1))) for i in range(k)]
         return physics_report(n_repeats, payload_indices=indices, radii_A=self.payload_radii_A)
 
-    def run(self) -> EngineResult:
+    def run(
+        self,
+        thermal_rows: Sequence[object] | None = None,
+        t_assay_C: float | None = None,
+        thermal_table_path: str | Path | None = None,
+    ) -> EngineResult:
+        """Score every candidate, then recommend a repeat count.
+
+        When ``thermal_rows`` and ``thermal_table_path`` are both omitted,
+        the thermal gate is not called. ``recommend`` keeps the existing
+        steric-only behavior, including its fall-through when every unused
+        length exceeds the steric threshold. A missing table must not erase
+        that recommendation.
+
+        When rows are supplied, or a table path is supplied, each candidate
+        keeps its steric and ``C_eff`` score and is then passed to
+        ``thermal_gate``. Feasible means ``p_instability`` is below
+        ``recommend``'s clash limit and the thermal state is ``pass``.
+        ``fail``, ``extrapolated``, and ``omitted`` are not feasible.
+        UCB, EI, and entropy run only on that subset. If the subset is
+        empty, ``next_experiment`` is None. The search does not fall
+        through to a sterically refused or thermally failing length.
+
+        A table path is loaded with ``allow_synthetic=False``. ``t_assay_C``
+        is required whenever rows are supplied, in degrees Celsius, and is
+        not converted.
+        """
         candidates = list(range(self.n_min, self.n_max + 1))
         reports = {n: self.evaluate_one(n) for n in candidates}
         S = np.array([reports[n].physics_score for n in candidates])
@@ -103,14 +148,32 @@ class ClaspDesignEngine:
         posterior = gp.predict(X_all, S)
 
         observed = {o.n_repeats for o in self.observations}
-        nxt = recommend(
-            X_all,
-            posterior,
-            S,
-            p_inst,
-            observed=observed,
-            acquisition=self.acquisition,
-        )
+        rows, assay = _prepare_thermal_rows(thermal_rows, t_assay_C, thermal_table_path)
+        if rows is None:
+            # No literature table: do not call thermal_gate and do not mask
+            # lengths that the steric acquisition would still rank.
+            nxt = recommend(
+                X_all,
+                posterior,
+                S,
+                p_inst,
+                observed=observed,
+                acquisition=self.acquisition,
+            )
+            thermal_by_n = None
+            thermal_warnings: list[str] = []
+        else:
+            nxt, thermal_by_n, thermal_warnings = _recommend_thermally_feasible(
+                candidates,
+                X_all,
+                posterior,
+                S,
+                p_inst,
+                observed,
+                self.acquisition,
+                rows,
+                assay,
+            )
         prior_lines = [
             f"{p.name}={p.value} {p.units} (σ={p.sigma}, {p.provenance}, calibrated={p.calibrated})"
             for p in all_priors()
@@ -130,7 +193,224 @@ class ClaspDesignEngine:
             observations=list(self.observations),
             priors=prior_lines,
             evidence_level=evidence,
+            warnings=thermal_warnings,
+            thermal_by_n=thermal_by_n,
         )
+
+
+def _as_assay_temperature_C(value: object) -> float:
+    """Assay temperature in degrees Celsius. Not converted from another unit."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("t_assay_C must be a real number in degrees Celsius")
+    assay = float(value)
+    if not math.isfinite(assay):
+        raise ValueError("t_assay_C must be finite")
+    return assay
+
+
+def _as_thermal_row(row: object) -> ThermalRow:
+    """Adapt a caller row to the gate's ThermalRow.
+
+    ``thermal_gate`` does not accept ``ThermalObservation``. Copying the
+    shared fields here keeps that type boundary in the engine.
+    """
+    if isinstance(row, ThermalRow):
+        parsed = row
+    else:
+        try:
+            n_repeats = row.n_repeats  # type: ignore[attr-defined]
+            observable = row.observable  # type: ignore[attr-defined]
+            value = row.value  # type: ignore[attr-defined]
+            units = row.units  # type: ignore[attr-defined]
+            uncertainty = row.uncertainty  # type: ignore[attr-defined]
+            data_class = row.data_class  # type: ignore[attr-defined]
+        except AttributeError as exc:
+            raise TypeError(
+                "thermal row must be a ThermalRow or provide n_repeats, observable, "
+                "value, units, uncertainty, and data_class"
+            ) from exc
+        if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
+            raise TypeError("thermal row n_repeats must be an int")
+        if not isinstance(observable, str) or observable.strip() == "":
+            raise TypeError("thermal row observable must be a non-empty string")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError("thermal row value must be a real number")
+        if not isinstance(units, str):
+            raise TypeError("thermal row units must be a string")
+        if uncertainty is not None and (
+            isinstance(uncertainty, bool) or not isinstance(uncertainty, (int, float))
+        ):
+            raise TypeError("thermal row uncertainty must be a real number or None")
+        if not isinstance(data_class, str) or data_class.strip() == "":
+            raise TypeError("thermal row data_class must be a non-empty string")
+        number = float(value)
+        if not math.isfinite(number):
+            raise ValueError("thermal row value must be finite")
+        width = None if uncertainty is None else float(uncertainty)
+        if width is not None and not math.isfinite(width):
+            raise ValueError("thermal row uncertainty must be finite")
+        parsed = ThermalRow(
+            n_repeats=n_repeats,
+            observable=observable,
+            value=number,
+            units=units,
+            uncertainty=width,
+            data_class=data_class,
+        )
+    if not math.isfinite(parsed.value):
+        raise ValueError("thermal row value must be finite")
+    if parsed.uncertainty is not None and not math.isfinite(parsed.uncertainty):
+        raise ValueError("thermal row uncertainty must be finite")
+    if parsed.observable == "Tm_C" and parsed.units != "C":
+        raise ValueError(
+            f"Tm_C row at n={parsed.n_repeats} must use units 'C', got {parsed.units!r}"
+        )
+    return parsed
+
+
+def _prepare_thermal_rows(
+    thermal_rows: Sequence[object] | None,
+    t_assay_C: float | None,
+    thermal_table_path: str | Path | None,
+) -> tuple[list[ThermalRow] | None, float | None]:
+    """Resolve the thermal input.
+
+    Both arguments omitted: return ``(None, None)`` and skip the gate.
+    A path is loaded with ``allow_synthetic=False``. An empty file is a
+    supplied table, not a missing one. ``t_assay_C`` is required once any
+    rows are supplied.
+    """
+    if thermal_rows is not None and thermal_table_path is not None:
+        raise ValueError("pass thermal_rows or thermal_table_path, not both")
+    if isinstance(thermal_rows, (str, bytes)):
+        raise TypeError("thermal_rows must be a sequence of thermal rows, not a string")
+    resolved: Sequence[object] | None
+    if thermal_table_path is not None:
+        resolved = load_thermal_table(
+            Path(thermal_table_path),
+            allow_synthetic=False,
+        )
+    else:
+        resolved = thermal_rows
+    if resolved is None:
+        return None, None
+    if t_assay_C is None:
+        raise ValueError("t_assay_C is required when thermal rows are supplied")
+    assay = _as_assay_temperature_C(t_assay_C)
+    return [_as_thermal_row(row) for row in resolved], assay
+
+
+def _slice_posterior(posterior: GPPosterior, idx: np.ndarray) -> GPPosterior:
+    """Restrict an already-computed posterior to the feasible candidates.
+
+    The GP is still fit on the full library. Only the acquisition sees
+    this slice. UCB, EI, and entropy are unchanged.
+    """
+    return GPPosterior(
+        X=posterior.X[idx],
+        mean=posterior.mean[idx],
+        variance=posterior.variance[idx],
+        physics_mean=posterior.physics_mean[idx],
+        residual_mean=posterior.residual_mean[idx],
+        alpha=posterior.alpha,
+        beta=posterior.beta,
+        interpolated=posterior.interpolated[idx],
+        hyperparameters=posterior.hyperparameters,
+    )
+
+
+def _infeasibility_warning(
+    n_repeats: int,
+    p_instability: float,
+    gate: ThermalGateResult,
+) -> str | None:
+    """One line per candidate that steric refusal or the thermal gate rejects."""
+    steric_ok = p_instability < _STERIC_CLASH_LIMIT
+    thermal_ok = gate.state == "pass"
+    if steric_ok and thermal_ok:
+        return None
+    reasons: list[str] = []
+    if not steric_ok:
+        reasons.append(
+            "steric refusal: p_instability="
+            f"{p_instability:.6g} is not below {_STERIC_CLASH_LIMIT}"
+        )
+    if not thermal_ok:
+        reasons.append(f"thermal gate {gate.state}: {gate.reason}")
+    return f"n={n_repeats} infeasible: " + "; ".join(reasons)
+
+
+def _recommend_thermally_feasible(
+    candidates: list[int],
+    X_all: np.ndarray,
+    posterior: GPPosterior,
+    physics_scores: np.ndarray,
+    p_instability: np.ndarray,
+    observed: set[int],
+    acquisition: str,
+    rows: list[ThermalRow],
+    t_assay_C: float | None,
+) -> tuple[NextExperiment | None, dict[int, ThermalGateResult], list[str]]:
+    """Run acquisition on lengths that pass steric and thermal gates."""
+    if t_assay_C is None:
+        raise ValueError("t_assay_C is required when thermal rows are supplied")
+    gates = {n: thermal_gate(n, t_assay_C, rows) for n in candidates}
+    warnings: list[str] = []
+    feasible_idx: list[int] = []
+    for index, n_repeats in enumerate(candidates):
+        warning = _infeasibility_warning(n_repeats, float(p_instability[index]), gates[n_repeats])
+        if warning is None:
+            feasible_idx.append(index)
+        else:
+            warnings.append(warning)
+    if not feasible_idx:
+        warnings.append(
+            "No candidate passed the steric gate and the thermal gate. next_n is None."
+        )
+        return None, gates, warnings
+    idx = np.array(feasible_idx, dtype=int)
+    chosen = recommend(
+        X_all[idx],
+        _slice_posterior(posterior, idx),
+        physics_scores[idx],
+        p_instability[idx],
+        observed=observed,
+        acquisition=acquisition,
+    )
+    return chosen, gates, warnings
+
+
+def _stability_from_gate(gate: ThermalGateResult | None) -> dict[str, Any]:
+    """Map one gate result onto DesignReport stability fields.
+
+    No gate means the table was not supplied. That omission is named
+    ``tm_table`` and is not a thermal failure of any length.
+    """
+    if gate is None:
+        return {
+            "tm_C": None,
+            "tm_interval_low": None,
+            "tm_interval_high": None,
+            "stability_state": "omitted",
+            "stability_tier": "omitted",
+            "stability_omitted": ["tm_table"],
+        }
+    omitted: list[str] = []
+    if gate.state == "omitted":
+        # "no Tm_C rows" is the gate's reason when nothing can set tm_C.
+        # Any other omission is a gap at this n. Interpolation is not filled in.
+        if gate.reason == "no Tm_C rows":
+            omitted.append("Tm_C")
+        else:
+            omitted.append("tm_at_n")
+    return {
+        "tm_C": gate.tm_C,
+        "tm_interval_low": gate.interval_low,
+        "tm_interval_high": gate.interval_high,
+        "stability_state": gate.state,
+        "stability_tier": _TIER_FOR_GATE_STATE[gate.state],
+        "stability_omitted": omitted,
+    }
 
 
 def _lookup(obj: object, name: str) -> Any:
@@ -363,6 +643,9 @@ def run_design(
     k_m_M: float | None = None,
     k_escape_per_s: float | None = None,
     v_prod_M_per_s: float | None = None,
+    thermal_rows: Sequence[object] | None = None,
+    t_assay_C: float | None = None,
+    thermal_table_path: str | Path | None = None,
 ) -> DesignReport:
     """Score one scaffold and return a ``DesignReport``.
 
@@ -382,6 +665,16 @@ def run_design(
     ``assemble_report`` stores ``calibrated=False`` with evidence_source
     ``"none"``. A passing call is not a wet-lab validation. The report has
     no occupancy time course. ``to_dict()`` is the JSON mapping.
+
+    Thermal rows are optional. When ``thermal_rows`` and
+    ``thermal_table_path`` are both omitted, the thermal gate is skipped:
+    ``stability_state`` is ``omitted``, ``stability_omitted`` includes
+    ``tm_table``, and the repeat-count recommendation stays the existing
+    steric / ``C_eff`` result. When either thermal input is supplied,
+    ``t_assay_C`` is required (degrees Celsius, not converted). A table
+    path is loaded with ``allow_synthetic=False``. Feasible lengths are
+    those that pass the steric refusal threshold and whose thermal state
+    is ``pass``. If none do, ``next_n`` is None.
     """
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
         raise ValueError("n_repeats must be an integer")
@@ -499,9 +792,27 @@ def run_design(
         engine = ClaspDesignEngine()
     for obs in observations or []:
         engine.add_observation(obs)
-    library = engine.run()
-    if library.next_experiment.n_repeats < N_REPEATS_MIN:
-        raise RuntimeError("recommend returned a repeat count outside the library")
+    library = engine.run(
+        thermal_rows=thermal_rows,
+        t_assay_C=t_assay_C,
+        thermal_table_path=thermal_table_path,
+    )
+    warnings.extend(library.warnings)
+    if library.next_experiment is None:
+        next_n = None
+    else:
+        next_n = int(library.next_experiment.n_repeats)
+        if next_n < N_REPEATS_MIN:
+            raise RuntimeError("recommend returned a repeat count outside the library")
+    if library.thermal_by_n is None:
+        stability = _stability_from_gate(None)
+    else:
+        design_gate = library.thermal_by_n.get(n_repeats)
+        if design_gate is None:
+            raise RuntimeError(
+                f"thermal gate was not evaluated at the design repeat count {n_repeats}"
+            )
+        stability = _stability_from_gate(design_gate)
 
     return assemble_report(
         design_id=design_id,
@@ -518,9 +829,15 @@ def run_design(
         p_capture=p_capture,
         gp_mean=[float(value) for value in library.posterior.mean],
         gp_std=[float(value) for value in library.posterior.std],
-        next_n=int(library.next_experiment.n_repeats),
+        next_n=next_n,
         calibrated=False,
         warnings=warnings,
         omitted=omitted,
         evidence_source="none",
+        tm_C=stability["tm_C"],
+        tm_interval_low=stability["tm_interval_low"],
+        tm_interval_high=stability["tm_interval_high"],
+        stability_state=stability["stability_state"],
+        stability_tier=stability["stability_tier"],
+        stability_omitted=stability["stability_omitted"],
     )
