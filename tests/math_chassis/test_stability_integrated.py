@@ -71,24 +71,24 @@ def _steric_p_by_n(radii: list[float] | None = None) -> dict[int, float]:
     return {n: float(p) for n, p in zip(preview.candidates, preview.p_instability)}
 
 
-def test_no_thermal_rows_keeps_the_steric_recommendation() -> None:
-    # Rule under test: thermal_rows is None, so the gate is skipped.
-    steric_only = ClaspDesignEngine().run()
-    assert steric_only.next_experiment is not None
-    report = run_design("omit-table", 8)
-    explicit = run_design("omit-table", 8, thermal_rows=None, t_assay_C=None)
+def test_default_prior_is_phillips_ctpra_dsc() -> None:
+    # No lab Tm. The default prior is Phillips et al. 2012 Table I, CTPRa DSC.
+    # 37 C is the chosen operating point, not a temperature from that table.
+    from origami.stability.series import load_named_series
 
-    assert report.stability_state == "omitted"
-    assert report.stability_tier == "omitted"
-    assert report.stability_omitted == ["tm_table"]
-    assert report.tm_C is None
-    assert report.tm_interval_low is None
-    assert report.tm_interval_high is None
+    cited = {row.n_repeats: row.value for row in load_named_series("phillips2012_ctpra_dsc")}
+    report = run_design("default-prior", 8)
+    assert report.stability_state == "pass"
+    assert report.stability_tier == "literature_prior"
+    assert report.tm_C == cited[8]
     assert report.calibrated is False
-    assert report.next_n == steric_only.next_experiment.n_repeats
-    assert explicit.next_n == report.next_n
-    assert explicit.to_dict()["stability_state"] == "omitted"
-    assert "tm_table" in explicit.stability_omitted
+    assert report.next_n in {3, 4, 5, 6, 8, 10}
+    assert any("10.1002/pro.2018" in warning for warning in report.warnings)
+
+    skipped = run_design("steric-only", 8, thermal_prior=False)
+    assert skipped.stability_state == "omitted"
+    assert skipped.stability_omitted == ["tm_table"]
+    assert skipped.tm_C is None
 
 
 def test_two_passing_tm_rows_recommend_one_of_them() -> None:
@@ -312,7 +312,7 @@ def test_to_dict_is_json_serializable() -> None:
     assert payload["next_n"] == 4
     assert type(payload["next_n"]) is int
 
-    omitted = run_design("json-omit", 8)
+    omitted = run_design("json-omit", 8, thermal_prior=False)
     omitted_payload = omitted.to_dict()
     assert json.loads(json.dumps(omitted_payload)) == omitted_payload
     assert type(omitted_payload["next_n"]) is int

@@ -30,7 +30,12 @@ from origami.priors import (
 )
 from origami.report import DesignReport, assemble_report
 from origami.stability.gate import ThermalGateResult, ThermalRow, thermal_gate
-from origami.stability.series import assert_single_tm_series, load_named_series
+from origami.stability.series import (
+    DEFAULT_OPERATING_TEMPERATURE_C,
+    PHILLIPS_2012_CTPRA_DSC,
+    assert_single_tm_series,
+    load_named_series,
+)
 from origami.stability.table import load_thermal_table
 from src.core.ctpr_geometry import CTPR_RISE_NM, PERSISTENCE_LENGTH_NM
 
@@ -113,6 +118,7 @@ class ClaspDesignEngine:
         t_assay_C: float | None = None,
         thermal_table_path: str | Path | None = None,
         thermal_series: str | None = None,
+        thermal_prior: bool = True,
     ) -> EngineResult:
         """Score every candidate, then recommend a repeat count.
 
@@ -150,14 +156,15 @@ class ClaspDesignEngine:
         posterior = gp.predict(X_all, S)
 
         observed = {o.n_repeats for o in self.observations}
-        rows, assay = _prepare_thermal_rows(
+        rows, assay, used_default_prior = _prepare_thermal_rows(
             thermal_rows,
             t_assay_C,
             thermal_table_path,
             thermal_series,
+            thermal_prior,
         )
         if rows is None:
-            # No literature table: do not call thermal_gate and do not mask
+            # thermal_prior=False: do not call thermal_gate and do not mask
             # lengths that the steric acquisition would still rank.
             nxt = recommend(
                 X_all,
@@ -180,6 +187,13 @@ class ClaspDesignEngine:
                 self.acquisition,
                 rows,
                 assay,
+            )
+        if used_default_prior:
+            thermal_warnings.append(
+                "Stability prior is Phillips et al. 2012, DOI 10.1002/pro.2018, "
+                "Table I, DSC, CTPRa only. "
+                f"Comparison temperature is {assay} C, the chosen E. coli operating "
+                "point, not a temperature from that table. calibrated is false."
             )
         prior_lines = [
             f"{p.name}={p.value} {p.units} (σ={p.sigma}, {p.provenance}, calibrated={p.calibrated})"
@@ -280,13 +294,18 @@ def _prepare_thermal_rows(
     t_assay_C: float | None,
     thermal_table_path: str | Path | None,
     thermal_series: str | None = None,
-) -> tuple[list[ThermalRow] | None, float | None]:
+    thermal_prior: bool = True,
+) -> tuple[list[ThermalRow] | None, float | None, bool]:
     """Resolve the thermal input.
 
-    Both arguments omitted: return ``(None, None)`` and skip the gate.
+    With no rows, no path, and no series name, ``thermal_prior=True`` loads
+    Phillips et al. 2012 CTPRa DSC and compares it with
+    ``DEFAULT_OPERATING_TEMPERATURE_C`` when ``t_assay_C`` is omitted.
+    ``thermal_prior=False`` returns ``(None, None, False)`` and skips the gate.
+
     A path is loaded with ``allow_synthetic=False``. An empty file is a
     supplied table, not a missing one. ``t_assay_C`` is required once any
-    rows are supplied.
+    caller-supplied rows are in use.
 
     ``thermal_series`` loads one named series (see ``load_named_series``).
     A path with more than one ``Tm_C`` series and no ``thermal_series``
@@ -298,6 +317,7 @@ def _prepare_thermal_rows(
         raise ValueError("pass thermal_rows or thermal_table_path, not both")
     if isinstance(thermal_rows, (str, bytes)):
         raise TypeError("thermal_rows must be a sequence of thermal rows, not a string")
+    used_default = False
     resolved: Sequence[object] | None
     if thermal_series is not None:
         path = None if thermal_table_path is None else Path(thermal_table_path)
@@ -308,14 +328,21 @@ def _prepare_thermal_rows(
             allow_synthetic=False,
         )
         resolved = assert_single_tm_series(loaded)
-    else:
+    elif thermal_rows is not None:
         resolved = thermal_rows
+    elif thermal_prior:
+        resolved = load_named_series(PHILLIPS_2012_CTPRA_DSC)
+        used_default = True
+        if t_assay_C is None:
+            t_assay_C = DEFAULT_OPERATING_TEMPERATURE_C
+    else:
+        resolved = None
     if resolved is None:
-        return None, None
+        return None, None, False
     if t_assay_C is None:
         raise ValueError("t_assay_C is required when thermal rows are supplied")
     assay = _as_assay_temperature_C(t_assay_C)
-    return [_as_thermal_row(row) for row in resolved], assay
+    return [_as_thermal_row(row) for row in resolved], assay, used_default
 
 
 def _slice_posterior(posterior: GPPosterior, idx: np.ndarray) -> GPPosterior:
@@ -665,6 +692,7 @@ def run_design(
     t_assay_C: float | None = None,
     thermal_table_path: str | Path | None = None,
     thermal_series: str | None = None,
+    thermal_prior: bool = True,
 ) -> DesignReport:
     """Score one scaffold and return a ``DesignReport``.
 
@@ -816,6 +844,7 @@ def run_design(
         t_assay_C=t_assay_C,
         thermal_table_path=thermal_table_path,
         thermal_series=thermal_series,
+        thermal_prior=thermal_prior,
     )
     warnings.extend(library.warnings)
     if library.next_experiment is None:

@@ -23,6 +23,13 @@ from origami.stability.table import ThermalObservation, load_thermal_table
 # Citation text matches data/stability/ctpr_thermal_literature.json.
 PHILLIPS_2012_CTPRA_DSC = "phillips2012_ctpra_dsc"
 
+# Operating temperature for the design screen when the caller does not
+# supply one. Phillips et al. 2012 Table I reports melting temperatures,
+# not this value. 37 C is the conventional E. coli incubation temperature
+# used here as the comparison point. It is an operating assumption, not
+# a DSC setpoint from that paper.
+DEFAULT_OPERATING_TEMPERATURE_C = 37.0
+
 _NAMED_SERIES: dict[str, dict[str, object]] = {
     PHILLIPS_2012_CTPRA_DSC: {
         "doi": "10.1002/pro.2018",
