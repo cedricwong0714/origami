@@ -1,0 +1,6607 @@
+{
+  "note": "Temporary dry-lab checkpoint from run_sandbox. calibrated is false. Not a wet-lab dataset.",
+  "pytest": "171 passed: math_chassis, stream1 engines, sandbox service, scaffold optimizer, docking indexing",
+  "input": {
+    "design_id": "checkpoint-n8",
+    "n_repeats": 8,
+    "payload_count": 0,
+    "thermal_prior": true,
+    "t_assay_C": 37.0,
+    "thermal_series": "phillips2012_ctpra_dsc",
+    "observation_count": 0,
+    "observation_sources": []
+  },
+  "process": {
+    "steps": [
+      "build_ctpr: canonical deposited screw (rise mean, 45\u00b0 twist)",
+      "structural_report: pitch, phase, deposited comparison",
+      "steric_report: payload spheres vs placed C-alpha envelope",
+      "pair C_eff: worm-like-chain width from the (GGGGS)3 prior or caller sigmas",
+      "occupancy: default CaM-M13 Kd unless a signal pair is supplied",
+      "ClaspDesignEngine.run: physics library 3\u201324, residual GP, thermal gate",
+      "separation_library: \u0394i scan on this scaffold with a new unfitted GP",
+      "assemble_report: calibrated stays false"
+    ],
+    "notes": [
+      "This sandbox calls run_design. It does not invent sequences or citations.",
+      "calibrated stays false until a wet-lab claim is attached in code.",
+      "next_n and next_delta_i are acquisition outputs, not team optima.",
+      "No payloads were supplied. run_design places the default 25.0 \u00c5 heuristic radius on each end repeat. That radius is not a measured OtsA/OtsB size.",
+      "Default linker width is 19.860010 \u00c5 (GGGGS)3 Kratky-Porod RMS."
+    ]
+  },
+  "result": {
+    "design_id": "checkpoint-n8",
+    "prior_geometry_id": "src.core.ctpr_geometry",
+    "prior_kd_id": "cam_m13_peptide_0.19nM",
+    "n_repeats": 8,
+    "pair_distances_A": {
+      "0-7": 73.40907092939824
+    },
+    "p_clash": {
+      "0-7": 1.020113140215227e-12
+    },
+    "c_eff_M": {
+      "0-7": 8.768201113529876e-07
+    },
+    "theta_ss": 0.0,
+    "theta_95_lower": 0.0,
+    "theta_95_upper": 0.0,
+    "da": null,
+    "p_capture": null,
+    "gp_mean": [
+      2.4472362465113332e-05,
+      1.8705685676975867e-09,
+      1.8987222085032544e-11,
+      2.1680395828626088e-10,
+      3.287569654631015e-07,
+      0.0003806312877734388,
+      0.0019336049747036997,
+      5.115395898411609e-06,
+      5.932658293126595e-11,
+      4.821637332766433e-16,
+      0.0,
+      0.0,
+      9.64327466553287e-17,
+      1.9286549331065313e-14,
+      1.1379064105328638e-14,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "gp_std": [
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393
+    ],
+    "next_n": 8,
+    "calibrated": false,
+    "warnings": [
+      "Rise, twist, and radius are a screw fit to deposited C-alpha coordinates from PDB 2AVP, 2HYZ, and 2FO7. DOI 10.1107/S0907444907024353. The article PDF was not open, so no sentence was copied from it.",
+      "The asymmetric unit holds 2 or 4 repeats, not a full eight-repeat superhelix. The step is the transform between consecutive 34-residue blocks in that chain.",
+      "Sample standard deviations divide by n-1. They are the scatter of 7 steps, not a standard error printed in the paper.",
+      "No persistence length is in this coordinate table. The open abstract of Synakewicz et al. 2022, ACS Nano, DOI 10.1021/acsnano.1c09162, also does not state one. The 15 nm cutoff stays a project cutoff.",
+      "The runtime scaffold radius is the mean repeat-centroid radius. Payload clash uses the placed C-alpha trace, not a cylinder of this radius.",
+      "The runtime docking radius is the mean radial distance of the inter-repeat junction: the midpoint of C-alpha 34 and C-alpha 1 of the next 34-residue block. In these entries that junction follows DPRS. The previous 0.35 nm loop offset is not used.",
+      "All structural/kinetic numbers are literature placeholders, not this project's lab data.",
+      "Recruitment Kd is default_cam_m13_pair() from origami.priors.CAM_M13_KD_M (1.9e-10 M), prior id cam_m13_peptide_0.19nM. kon is absent on that pair and is not invented.",
+      "c_free_M was not supplied. Recruitment was evaluated with the signal gate off. No physiological free concentration was assumed.",
+      "No time course: association is off.",
+      "n=7 infeasible: thermal gate omitted: no measurement at this n; interpolation is not implemented",
+      "n=9 infeasible: thermal gate omitted: no measurement at this n; interpolation is not implemented",
+      "n=11 infeasible: thermal gate extrapolated: n=11 is outside the cited repeat range [2, 10]",
+      "n=12 infeasible: thermal gate extrapolated: n=12 is outside the cited repeat range [2, 10]",
+      "n=13 infeasible: thermal gate extrapolated: n=13 is outside the cited repeat range [2, 10]",
+      "n=14 infeasible: thermal gate extrapolated: n=14 is outside the cited repeat range [2, 10]",
+      "n=15 infeasible: thermal gate extrapolated: n=15 is outside the cited repeat range [2, 10]",
+      "n=16 infeasible: thermal gate extrapolated: n=16 is outside the cited repeat range [2, 10]",
+      "n=17 infeasible: thermal gate extrapolated: n=17 is outside the cited repeat range [2, 10]",
+      "n=18 infeasible: thermal gate extrapolated: n=18 is outside the cited repeat range [2, 10]",
+      "n=19 infeasible: thermal gate extrapolated: n=19 is outside the cited repeat range [2, 10]",
+      "n=20 infeasible: thermal gate extrapolated: n=20 is outside the cited repeat range [2, 10]",
+      "n=21 infeasible: thermal gate extrapolated: n=21 is outside the cited repeat range [2, 10]",
+      "n=22 infeasible: thermal gate extrapolated: n=22 is outside the cited repeat range [2, 10]",
+      "n=23 infeasible: thermal gate extrapolated: n=23 is outside the cited repeat range [2, 10]",
+      "n=24 infeasible: thermal gate extrapolated: n=24 is outside the cited repeat range [2, 10]",
+      "Stability prior is Phillips et al. 2012, DOI 10.1002/pro.2018, Table I, DSC, CTPRa only. Comparison temperature is 37.0 C, the chosen E. coli operating point, not a temperature from that table. calibrated is false.",
+      "delta_i is the repeat separation of two payloads on this scaffold. It is not the total repeat count n.",
+      "The residual GP was not fit. Its posterior mean equals the physics score and its variance is flat. Repeat-count observations were not used.",
+      "next_delta_i is that untrained acquisition. It is not a team length and it is not trained toward 14.",
+      "Effective concentration comes from physics_report. Each payload stands off by one (GGGGS)3 RMS, and the pair width is the hypotenuse of two of those widths. A payload linker_sigma_A on the design is not substituted. The residual GP stays unfitted: the retrieved literature has geometry and linker mechanics, not an assay y for this score.",
+      "A separation that is a multiple of 8 repeats puts the docking sites on the same face again. Pair clash can rise there.",
+      "Untrained acquisition selected delta_i=7. calibrated is false.",
+      "delta_G is the unfolding free energy from the same Table I as the Tm series (10.1002/pro.2018, Table I, kcal mol-1). The sign is as printed. It is not the pass/fail rule.",
+      "Among repeat counts that pass the steric gate and the Tm gate, the largest printed unfolding \u0394G in Table I (10.1002/pro.2018, kcal mol-1) is at n=10. The comparison uses the sign printed in that table. It does not change next_n and it is not a second model."
+    ],
+    "omitted": [
+      "kon",
+      "k_cat",
+      "K_m",
+      "k_escape",
+      "v_prod"
+    ],
+    "tm_C": 74.0,
+    "tm_interval_low": 73.5,
+    "tm_interval_high": 74.5,
+    "delta_g": 14.3,
+    "delta_g_units": "kcal mol-1",
+    "delta_g_uncertainty": 1.5,
+    "highest_cited_delta_g_n": 10,
+    "highest_cited_delta_g": 23.4,
+    "highest_cited_delta_g_units": "kcal mol-1",
+    "highest_cited_delta_g_uncertainty": 2.1,
+    "structure": {
+      "provenance": "src.core.ctpr_geometry",
+      "calibrated": false,
+      "n_repeats": 8,
+      "rise_A": 8.416139416984938,
+      "twist_rad": 0.7853981633974483,
+      "docking_radius_A": 12.363166305578241,
+      "scaffold_radius_A": 12.185585199113614,
+      "pitch_A": 67.32911533587951,
+      "repeats_per_turn": 8.0,
+      "axial_span_A": 58.91297591889457,
+      "contour_A": 67.32911533587951,
+      "contour_nm": 6.73291153358795,
+      "contour_definition": "n_repeats * rise_per_repeat",
+      "persistence_length_nm": 15.0,
+      "persistence_length_A": 150.0,
+      "wlc_end_to_end_rms_A": 62.6474924663038,
+      "wlc_end_to_end_rms_nm": 6.26474924663038,
+      "rigid_screw": true,
+      "docking_curvature_per_A": 0.046187154675239164,
+      "docking_torsion_per_A": 0.04003266821303613,
+      "backbone_curvature_per_A": 0.04627741473025118,
+      "backbone_torsion_per_A": 0.040695439069609714,
+      "pairs": [
+        {
+          "i": 0,
+          "j": 7,
+          "delta_repeats": 7,
+          "linearization_crosses_zero": false,
+          "phase_rad": 5.497787143782138,
+          "facing_cosine": 0.7071067811865474,
+          "chord_A": 59.668039580568426,
+          "axial_A": 58.91297591889456,
+          "chord_sigma_A": 3.3321237731596502,
+          "chord_95_low_A": 53.13707698517551,
+          "chord_95_high_A": 66.19900217596134
+        }
+      ],
+      "deposited": {
+        "calibrated": false,
+        "doi": "10.1107/S0907444907024353",
+        "pdb_ids": [
+          "2AVP",
+          "2HYZ",
+          "2FO7"
+        ],
+        "n_steps": 7,
+        "method": "C-alpha coordinates of the asymmetric-unit polymer chain. Residues are consecutive blocks of 34, the period at which that chain sequence is identical. Each block is rigidly fit onto the next by Kabsch, then decomposed into a screw. Coordinates are rounded to 0.001 angstrom. The Kajander 2007 article PDF is not open access; these are the deposited coordinates cited by that article, not a sentence copied from the PDF.",
+        "rise_mean_A": 8.416139416984938,
+        "rise_sample_std_A": 0.4760507886412968,
+        "rise_min_A": 7.831136408093319,
+        "rise_max_A": 9.021579826374051,
+        "twist_mean_deg": 46.011689319796936,
+        "twist_sample_std_deg": 2.3470532160238053,
+        "twist_min_deg": 43.16983678550871,
+        "twist_max_deg": 49.96113131529198,
+        "centroid_radius_mean_A": 12.185585199113614,
+        "centroid_radius_sample_std_A": 0.5696084155839191,
+        "centroid_radius_min_A": 11.591045194229974,
+        "centroid_radius_max_A": 12.964728739854154,
+        "junction_radius_mean_A": 12.363166305578243,
+        "junction_radius_sample_std_A": 0.7344357597832961,
+        "junction_radius_min_A": 11.435901634621061,
+        "junction_radius_max_A": 13.388430967421602,
+        "outer_ca_radius_mean_A": 19.252475319229234,
+        "outer_ca_radius_min_A": 18.42420551861433,
+        "outer_ca_radius_max_A": 20.091971654005626,
+        "runtime_rise_A": 8.416139416984938,
+        "runtime_twist_deg": 45.0,
+        "runtime_scaffold_radius_A": 12.185585199113614,
+        "runtime_docking_radius_A": 12.363166305578241,
+        "runtime_rise_inside_deposited_range": true,
+        "runtime_twist_inside_deposited_range": true,
+        "runtime_scaffold_radius_inside_outer_ca_range": false,
+        "runtime_docking_radius_inside_outer_ca_range": false,
+        "persistence_length_retrieved": false,
+        "notes": [
+          "Rise, twist, and radius are a screw fit to deposited C-alpha coordinates from PDB 2AVP, 2HYZ, and 2FO7. DOI 10.1107/S0907444907024353. The article PDF was not open, so no sentence was copied from it.",
+          "The asymmetric unit holds 2 or 4 repeats, not a full eight-repeat superhelix. The step is the transform between consecutive 34-residue blocks in that chain.",
+          "Sample standard deviations divide by n-1. They are the scatter of 7 steps, not a standard error printed in the paper.",
+          "No persistence length is in this coordinate table. The open abstract of Synakewicz et al. 2022, ACS Nano, DOI 10.1021/acsnano.1c09162, also does not state one. The 15 nm cutoff stays a project cutoff.",
+          "The runtime scaffold radius is the mean repeat-centroid radius. Payload clash uses the placed C-alpha trace, not a cylinder of this radius.",
+          "The runtime docking radius is the mean radial distance of the inter-repeat junction: the midpoint of C-alpha 34 and C-alpha 1 of the next 34-residue block. In these entries that junction follows DPRS. The previous 0.35 nm loop offset is not used."
+        ]
+      },
+      "warnings": [
+        "Rise, twist, and radius are a screw fit to deposited C-alpha coordinates from PDB 2AVP, 2HYZ, and 2FO7. DOI 10.1107/S0907444907024353. The article PDF was not open, so no sentence was copied from it.",
+        "The asymmetric unit holds 2 or 4 repeats, not a full eight-repeat superhelix. The step is the transform between consecutive 34-residue blocks in that chain.",
+        "Sample standard deviations divide by n-1. They are the scatter of 7 steps, not a standard error printed in the paper.",
+        "No persistence length is in this coordinate table. The open abstract of Synakewicz et al. 2022, ACS Nano, DOI 10.1021/acsnano.1c09162, also does not state one. The 15 nm cutoff stays a project cutoff.",
+        "The runtime scaffold radius is the mean repeat-centroid radius. Payload clash uses the placed C-alpha trace, not a cylinder of this radius.",
+        "The runtime docking radius is the mean radial distance of the inter-repeat junction: the midpoint of C-alpha 34 and C-alpha 1 of the next 34-residue block. In these entries that junction follows DPRS. The previous 0.35 nm loop offset is not used."
+      ],
+      "uncertainty_model": "delta_method_deposited_rise_twist_and_junction_radius_sample_std"
+    },
+    "registers": {
+      "calibrated": false,
+      "lower_extrema_n": 2,
+      "upper_extrema_n": 20,
+      "biomarker_n": 3,
+      "channeling_candidate_n": 14,
+      "one_turn_n": 8,
+      "lower_bound_in_phillips2012_ctpra_dsc": true,
+      "upper_bound_in_phillips2012_ctpra_dsc": false,
+      "channeling_candidate_in_phillips2012_ctpra_dsc": false,
+      "biomarker_n_is_library_minimum": true,
+      "shortest_end_pair_n": 3,
+      "channeling_candidate_is_steric_minimum": false,
+      "active_learner_next_n": 8,
+      "end_pairs": [
+        {
+          "n": 3,
+          "end_pair_p_clash": 1.1038040164979557e-150,
+          "p_instability": 0.0,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 4,
+          "end_pair_p_clash": 0.0,
+          "p_instability": 0.0,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 5,
+          "end_pair_p_clash": 0.0,
+          "p_instability": 0.0,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 6,
+          "end_pair_p_clash": 4.588373772200983e-281,
+          "p_instability": 0.0,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 7,
+          "end_pair_p_clash": 1.9577901954987108e-72,
+          "p_instability": 0.0,
+          "thermal_state": "omitted"
+        },
+        {
+          "n": 8,
+          "end_pair_p_clash": 1.020113140215227e-12,
+          "p_instability": 1.0200729150255938e-12,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 9,
+          "end_pair_p_clash": 2.6793965765344486e-06,
+          "p_instability": 2.6793965764992933e-06,
+          "thermal_state": "omitted"
+        },
+        {
+          "n": 10,
+          "end_pair_p_clash": 8.932590267101744e-19,
+          "p_instability": 0.0,
+          "thermal_state": "pass"
+        },
+        {
+          "n": 11,
+          "end_pair_p_clash": 9.32660322071022e-55,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 12,
+          "end_pair_p_clash": 3.261646230315049e-117,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 13,
+          "end_pair_p_clash": 4.0512529559807953e-150,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 14,
+          "end_pair_p_clash": 8.034848893017111e-98,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 15,
+          "end_pair_p_clash": 6.455698445595593e-51,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 16,
+          "end_pair_p_clash": 4.567273241920301e-32,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 17,
+          "end_pair_p_clash": 5.323174585895742e-29,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 18,
+          "end_pair_p_clash": 3.2827943001765506e-35,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 19,
+          "end_pair_p_clash": 1.2200402505837704e-50,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 20,
+          "end_pair_p_clash": 3.712184546902585e-73,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 21,
+          "end_pair_p_clash": 4.240103434862833e-84,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 22,
+          "end_pair_p_clash": 1.0819773184141813e-69,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 23,
+          "end_pair_p_clash": 1.9894855986273234e-51,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        },
+        {
+          "n": 24,
+          "end_pair_p_clash": 3.0263970071558495e-42,
+          "p_instability": 0.0,
+          "thermal_state": "extrapolated"
+        }
+      ],
+      "notes": [
+        "n=2 and n=20 are the team bounds. They are not optima.",
+        "n=3 is the biomarker measurement length, chosen next to the lower bound.",
+        "n=14 is the team channeling candidate. shortest_end_pair_n is the first scanned length whose end-pair clash probability is below the same limit recommend() uses. Those two numbers are equal only when the scan says so.",
+        "active_learner_next_n is the untrained acquisition on this scan. No observation was added to force a repeat count.",
+        "n=14 is not a measured row in the default Phillips CTPRa DSC series. The thermal gate marks it extrapolated, so the acquisition does not rank it while that prior is on.",
+        "n=20 is the team upper bound. It is not a measured melting temperature in the default series, and it is not a solubility limit."
+      ]
+    },
+    "separation": {
+      "calibrated": false,
+      "gp_fitted": false,
+      "active_process": "unfitted_residual_gp_plus_recommend",
+      "n_repeats": 8,
+      "anchor_index": 0,
+      "radius_anchor_A": 25.0,
+      "radius_partner_A": 25.0,
+      "design_delta_i": 7,
+      "thermal_state": "pass",
+      "one_turn_n": 8,
+      "acquisition_name": "UCB(\u03ba=1.8)",
+      "next_delta_i": 7,
+      "candidates": [
+        {
+          "delta_i": 1,
+          "partner_index": 1,
+          "on_integer_turn": false,
+          "phase_rad": 0.7853981633974483,
+          "facing_cosine": 0.7071067811865476,
+          "chord_A": 12.663633698672633,
+          "chord_sigma_A": 0.6314560248512877,
+          "axial_A": 8.416139416984938,
+          "p_clash": 0.9999999999999578,
+          "p_instability": 0.9999999999999578,
+          "c_eff_M": 0.000563157678993422,
+          "physics_score": 8.184681776895393e-15,
+          "posterior_mean": 8.184681776895393e-15,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 2,
+          "partner_index": 2,
+          "on_integer_turn": false,
+          "phase_rad": 1.5707963267948966,
+          "facing_cosine": 6.123233995736766e-17,
+          "chord_A": 24.269762523421623,
+          "chord_sigma_A": 1.1234505138917352,
+          "axial_A": 16.832278833969877,
+          "p_clash": 1.1038040164979557e-150,
+          "p_instability": 0.0,
+          "c_eff_M": 5.635128467642181e-08,
+          "physics_score": 2.4472362465113332e-05,
+          "posterior_mean": 2.4472362465113332e-05,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 3,
+          "partner_index": 3,
+          "on_integer_turn": false,
+          "phase_rad": 2.356194490192345,
+          "facing_cosine": -0.7071067811865475,
+          "chord_A": 34.04905186351977,
+          "chord_sigma_A": 1.450054348729168,
+          "axial_A": 25.248418250954813,
+          "p_clash": 0.0,
+          "p_instability": 0.0,
+          "c_eff_M": 4.307143284852816e-12,
+          "physics_score": 1.8705685676975867e-09,
+          "posterior_mean": 1.8705685676975867e-09,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 4,
+          "partner_index": 4,
+          "on_integer_turn": false,
+          "phase_rad": 3.141592653589793,
+          "facing_cosine": -1.0,
+          "chord_A": 41.76953396167573,
+          "chord_sigma_A": 1.7639210389670923,
+          "axial_A": 33.664557667939754,
+          "p_clash": 0.0,
+          "p_instability": 0.0,
+          "c_eff_M": 4.371964331972921e-14,
+          "physics_score": 1.8987222085032544e-11,
+          "posterior_mean": 1.8987222085032544e-11,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 5,
+          "partner_index": 5,
+          "on_integer_turn": false,
+          "phase_rad": 3.9269908169872414,
+          "facing_cosine": -0.7071067811865477,
+          "chord_A": 47.88152436778408,
+          "chord_sigma_A": 2.238063250381179,
+          "axial_A": 42.080697084924694,
+          "p_clash": 4.588373772200983e-281,
+          "p_instability": 0.0,
+          "c_eff_M": 4.992094719141481e-13,
+          "physics_score": 2.1680395828626088e-10,
+          "posterior_mean": 2.1680395828626088e-10,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 6,
+          "partner_index": 6,
+          "on_integer_turn": false,
+          "phase_rad": 4.71238898038469,
+          "facing_cosine": -1.8369701987210297e-16,
+          "chord_A": 53.43806002185486,
+          "chord_sigma_A": 2.8097712164667707,
+          "axial_A": 50.49683650190963,
+          "p_clash": 1.9577901954987108e-72,
+          "p_instability": 0.0,
+          "c_eff_M": 7.569911743791436e-10,
+          "physics_score": 3.287569654631015e-07,
+          "posterior_mean": 3.287569654631015e-07,
+          "posterior_std": 1.0012492197250393
+        },
+        {
+          "delta_i": 7,
+          "partner_index": 7,
+          "on_integer_turn": false,
+          "phase_rad": 5.497787143782138,
+          "facing_cosine": 0.7071067811865474,
+          "chord_A": 59.668039580568426,
+          "chord_sigma_A": 3.3321237731596502,
+          "axial_A": 58.91297591889456,
+          "p_clash": 1.020113140215227e-12,
+          "p_instability": 1.0200729150255938e-12,
+          "c_eff_M": 8.768201113529876e-07,
+          "physics_score": 0.0003806312877734388,
+          "posterior_mean": 0.0003806312877734388,
+          "posterior_std": 1.0012492197250393
+        }
+      ],
+      "notes": [
+        "delta_i is the repeat separation of two payloads on this scaffold. It is not the total repeat count n.",
+        "The residual GP was not fit. Its posterior mean equals the physics score and its variance is flat. Repeat-count observations were not used.",
+        "next_delta_i is that untrained acquisition. It is not a team length and it is not trained toward 14.",
+        "Effective concentration comes from physics_report. Each payload stands off by one (GGGGS)3 RMS, and the pair width is the hypotenuse of two of those widths. A payload linker_sigma_A on the design is not substituted. The residual GP stays unfitted: the retrieved literature has geometry and linker mechanics, not an assay y for this score.",
+        "A separation that is a multiple of 8 repeats puts the docking sites on the same face again. Pair clash can rise there.",
+        "Untrained acquisition selected delta_i=7. calibrated is false."
+      ]
+    },
+    "stability_state": "pass",
+    "stability_tier": "literature_prior",
+    "stability_omitted": []
+  },
+  "payload_size": [],
+  "confirmation": {
+    "calibrated": false,
+    "thermal_series": "phillips2012_ctpra_dsc",
+    "linker_sigma_A": 19.86001021107669,
+    "payload_radii_A": [
+      25.0,
+      25.0
+    ],
+    "notes": [
+      "Each row is structural_report plus the thermal gate plus physics_report.",
+      "rigid_screw is true when contour length is at most the 15 nm persistence length.",
+      "thermal_state pass requires a matched Phillips 2012 CTPRa DSC Tm above t_assay.",
+      "n outside that table is extrapolated. No Tm(n) was fit.",
+      "delta_g is the printed unfolding value. It does not set thermal_state.",
+      "The library linker is the (GGGGS)3 RMS. A design-specific tether is not used here."
+    ],
+    "rows": [
+      {
+        "n_repeats": 3,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 16.832278833969877,
+        "contour_nm": 2.524841825095481,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 2.4559536873375687,
+        "rigid_screw": true,
+        "end_pair_chord_A": 24.269762523421623,
+        "end_pair_chord_sigma_A": 1.1234505138917352,
+        "end_pair_phase_rad": 1.5707963267948966,
+        "end_pair_facing_cosine": 6.123233995736766e-17,
+        "physics_score": 2.4472362465113332e-05,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.8441616749043796e-84,
+        "end_pair_p_clash": 1.1038040164979557e-150,
+        "end_pair_distance_A": 82.65778530820316,
+        "end_pair_c_eff_M": 5.635128467642181e-08,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 63.0,
+        "tm_interval_low": 62.4,
+        "tm_interval_high": 63.6,
+        "thermal_reason": "matched Tm_C 63.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 4.8,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.4
+      },
+      {
+        "n_repeats": 4,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 25.248418250954813,
+        "contour_nm": 3.366455766793975,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 3.2451057016960543,
+        "rigid_screw": true,
+        "end_pair_chord_A": 34.04905186351977,
+        "end_pair_chord_sigma_A": 1.450054348729168,
+        "end_pair_phase_rad": 2.356194490192345,
+        "end_pair_facing_cosine": -0.7071067811865475,
+        "physics_score": 1.8705685676975867e-09,
+        "p_instability": 0.0,
+        "p_scaffold_max": 8.948755736577825e-84,
+        "end_pair_p_clash": 0.0,
+        "end_pair_distance_A": 108.70739341784886,
+        "end_pair_c_eff_M": 4.307143284852816e-12,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 68.0,
+        "tm_interval_low": 67.9,
+        "tm_interval_high": 68.1,
+        "thermal_reason": "matched Tm_C 68.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 4.2,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 1.1
+      },
+      {
+        "n_repeats": 5,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 33.664557667939754,
+        "contour_nm": 4.208069708492469,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 4.020181026210597,
+        "rigid_screw": true,
+        "end_pair_chord_A": 41.76953396167573,
+        "end_pair_chord_sigma_A": 1.7639210389670923,
+        "end_pair_phase_rad": 3.141592653589793,
+        "end_pair_facing_cosine": -1.0,
+        "physics_score": 1.8987222085032544e-11,
+        "p_instability": 0.0,
+        "p_scaffold_max": 7.818778237487838e-83,
+        "end_pair_p_clash": 0.0,
+        "end_pair_distance_A": 119.2948874244116,
+        "end_pair_c_eff_M": 4.371964331972921e-14,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 71.0,
+        "tm_interval_low": 70.9,
+        "tm_interval_high": 71.1,
+        "thermal_reason": "matched Tm_C 71.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 6.0,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.8
+      },
+      {
+        "n_repeats": 6,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 42.080697084924694,
+        "contour_nm": 5.049683650190962,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 4.781565571619175,
+        "rigid_screw": true,
+        "end_pair_chord_A": 47.88152436778408,
+        "end_pair_chord_sigma_A": 2.238063250381179,
+        "end_pair_phase_rad": 3.9269908169872414,
+        "end_pair_facing_cosine": -0.7071067811865477,
+        "physics_score": 2.1680395828626088e-10,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.180494171759428e-81,
+        "end_pair_p_clash": 4.588373772200983e-281,
+        "end_pair_distance_A": 113.80070222402414,
+        "end_pair_c_eff_M": 4.992094719141481e-13,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 71.0,
+        "tm_interval_low": 70.0,
+        "tm_interval_high": 72.0,
+        "thermal_reason": "matched Tm_C 71.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 7.7,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.2
+      },
+      {
+        "n_repeats": 7,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 50.49683650190963,
+        "contour_nm": 5.891297591889456,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 5.5296338379389,
+        "rigid_screw": true,
+        "end_pair_chord_A": 53.43806002185486,
+        "end_pair_chord_sigma_A": 2.8097712164667707,
+        "end_pair_phase_rad": 4.71238898038469,
+        "end_pair_facing_cosine": -1.8369701987210297e-16,
+        "physics_score": 3.287569654631015e-07,
+        "p_instability": 0.0,
+        "p_scaffold_max": 2.9311819270907293e-80,
+        "end_pair_p_clash": 1.9577901954987108e-72,
+        "end_pair_distance_A": 95.38822966180413,
+        "end_pair_c_eff_M": 7.569911743791436e-10,
+        "steric_feasible": true,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 8,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 58.91297591889457,
+        "contour_nm": 6.73291153358795,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 6.26474924663038,
+        "rigid_screw": true,
+        "end_pair_chord_A": 59.668039580568426,
+        "end_pair_chord_sigma_A": 3.3321237731596502,
+        "end_pair_phase_rad": 5.497787143782138,
+        "end_pair_facing_cosine": 0.7071067811865474,
+        "physics_score": 0.0003806312877734388,
+        "p_instability": 1.0200729150255938e-12,
+        "p_scaffold_max": 1.1320801683928497e-78,
+        "end_pair_p_clash": 1.020113140215227e-12,
+        "end_pair_distance_A": 73.40907092939824,
+        "end_pair_c_eff_M": 8.768201113529876e-07,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 74.0,
+        "tm_interval_low": 73.5,
+        "tm_interval_high": 74.5,
+        "thermal_reason": "matched Tm_C 74.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 14.3,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 1.5
+      },
+      {
+        "n_repeats": 9,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 67.32911533587951,
+        "contour_nm": 7.574525475286444,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 6.9872644637201065,
+        "rigid_screw": true,
+        "end_pair_chord_A": 67.32911533587951,
+        "end_pair_chord_sigma_A": 3.808406309121499,
+        "end_pair_phase_rad": 6.283185307179586,
+        "end_pair_facing_cosine": 1.0,
+        "physics_score": 0.0019336049747036997,
+        "p_instability": 2.6793965764992933e-06,
+        "p_scaffold_max": 6.406647691029589e-77,
+        "end_pair_p_clash": 2.6793965765344486e-06,
+        "end_pair_distance_A": 67.32911533587951,
+        "end_pair_c_eff_M": 4.462228142212987e-06,
+        "steric_feasible": true,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 10,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 75.74525475286444,
+        "contour_nm": 8.416139416984938,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 7.69752171410626,
+        "rigid_screw": true,
+        "end_pair_chord_A": 76.33400181665024,
+        "end_pair_chord_sigma_A": 4.283904977773422,
+        "end_pair_phase_rad": 7.0685834705770345,
+        "end_pair_facing_cosine": 0.7071067811865477,
+        "physics_score": 5.115395898411609e-06,
+        "p_instability": 0.0,
+        "p_scaffold_max": 4.995394463636629e-75,
+        "end_pair_p_clash": 8.932590267101744e-19,
+        "end_pair_distance_A": 87.49569464078505,
+        "end_pair_c_eff_M": 1.1778703708774089e-08,
+        "steric_feasible": true,
+        "thermal_state": "pass",
+        "tm_C": 74.0,
+        "tm_interval_low": 72.7,
+        "tm_interval_high": 75.3,
+        "thermal_reason": "matched Tm_C 74.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 23.4,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 2.1
+      },
+      {
+        "n_repeats": 11,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 84.16139416984939,
+        "contour_nm": 9.257753358683432,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 8.395853087267703,
+        "rigid_screw": true,
+        "end_pair_chord_A": 85.95833892538599,
+        "end_pair_chord_sigma_A": 4.72229112014255,
+        "end_pair_phase_rad": 7.853981633974483,
+        "end_pair_facing_cosine": 3.061616997868383e-16,
+        "physics_score": 5.932658293126595e-11,
+        "p_instability": 0.0,
+        "p_scaffold_max": 5.046876322131237e-73,
+        "end_pair_p_clash": 9.32660322071022e-55,
+        "end_pair_distance_A": 116.75668773104714,
+        "end_pair_c_eff_M": 1.3660443700038297e-13,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=11 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 12,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 92.57753358683432,
+        "contour_nm": 10.099367300381925,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 9.082580834590447,
+        "rigid_screw": true,
+        "end_pair_chord_A": 95.35436557206465,
+        "end_pair_chord_sigma_A": 5.119985872304964,
+        "end_pair_phase_rad": 8.63937979737193,
+        "end_pair_facing_cosine": -0.7071067811865467,
+        "physics_score": 4.821637332766433e-16,
+        "p_instability": 0.0,
+        "p_scaffold_max": 6.22475566071318e-71,
+        "end_pair_p_clash": 3.261646230315049e-117,
+        "end_pair_distance_A": 140.53616788766251,
+        "end_pair_c_eff_M": 1.2101628072487123e-18,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=12 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 13,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 100.99367300381925,
+        "contour_nm": 10.94098124208042,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 9.758017658520517,
+        "rigid_screw": true,
+        "end_pair_chord_A": 103.976504611378,
+        "end_pair_chord_sigma_A": 5.559712745032744,
+        "end_pair_phase_rad": 9.42477796076938,
+        "end_pair_facing_cosine": -1.0,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 8.859425172816944e-69,
+        "end_pair_p_clash": 4.0512529559807953e-150,
+        "end_pair_distance_A": 152.63580742875297,
+        "end_pair_c_eff_M": 1.4237200110888996e-21,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=13 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 14,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 109.4098124208042,
+        "contour_nm": 11.782595183778913,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 10.422466993747252,
+        "rigid_screw": true,
+        "end_pair_chord_A": 111.769237102993,
+        "end_pair_chord_sigma_A": 6.086189233504919,
+        "end_pair_phase_rad": 10.210176124166829,
+        "end_pair_facing_cosine": -0.7071067811865471,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.3812195645172262e-66,
+        "end_pair_p_clash": 8.034848893017111e-98,
+        "end_pair_distance_A": 152.1522980880781,
+        "end_pair_c_eff_M": 1.8841882602109996e-21,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=14 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 15,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 117.82595183778913,
+        "contour_nm": 12.624209125477408,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 11.076223280615908,
+        "rigid_screw": true,
+        "end_pair_chord_A": 119.11612270670908,
+        "end_pair_chord_sigma_A": 6.635221364114623,
+        "end_pair_phase_rad": 10.995574287564276,
+        "end_pair_facing_cosine": -4.286263797015736e-16,
+        "physics_score": 9.64327466553287e-17,
+        "p_instability": 0.0,
+        "p_scaffold_max": 2.250304074106739e-64,
+        "end_pair_p_clash": 6.455698445595593e-51,
+        "end_pair_distance_A": 142.94033296377023,
+        "end_pair_c_eff_M": 3.3115078591987333e-19,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=15 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 16,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 126.24209125477408,
+        "contour_nm": 13.4658230671759,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 11.719572230963879,
+        "rigid_screw": true,
+        "end_pair_chord_A": 126.59621566281803,
+        "end_pair_chord_sigma_A": 7.140207519257003,
+        "end_pair_phase_rad": 11.780972450961723,
+        "end_pair_facing_cosine": 0.7071067811865466,
+        "physics_score": 1.9286549331065313e-14,
+        "p_instability": 0.0,
+        "p_scaffold_max": 3.67464979707623e-62,
+        "end_pair_p_clash": 4.567273241920301e-32,
+        "end_pair_distance_A": 133.6234207295857,
+        "end_pair_c_eff_M": 4.445687932057581e-17,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=16 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 17,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 134.65823067175901,
+        "contour_nm": 14.307437008874397,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 12.35279108657004,
+        "rigid_screw": true,
+        "end_pair_chord_A": 134.65823067175901,
+        "end_pair_chord_sigma_A": 7.616812618242998,
+        "end_pair_phase_rad": 12.566370614359172,
+        "end_pair_facing_cosine": 1.0,
+        "physics_score": 1.1379064105328638e-14,
+        "p_instability": 0.0,
+        "p_scaffold_max": 5.80024348851722e-60,
+        "end_pair_p_clash": 5.323174585895742e-29,
+        "end_pair_distance_A": 134.65823067175901,
+        "end_pair_c_eff_M": 2.6222478595343944e-17,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=17 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 18,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 143.07437008874396,
+        "contour_nm": 15.149050950572889,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 12.976148870402437,
+        "rigid_screw": false,
+        "end_pair_chord_A": 143.38692964164792,
+        "end_pair_chord_sigma_A": 8.092349520714604,
+        "end_pair_phase_rad": 13.351768777756622,
+        "end_pair_facing_cosine": 0.7071067811865472,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 8.5810443521977e-58,
+        "end_pair_p_clash": 3.2827943001765506e-35,
+        "end_pair_distance_A": 149.62763227221112,
+        "end_pair_c_eff_M": 8.022559807731113e-21,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=18 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 19,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 151.49050950572888,
+        "contour_nm": 15.990664892271383,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 13.589906630845059,
+        "rigid_screw": false,
+        "end_pair_chord_A": 152.49613186079213,
+        "end_pair_chord_sigma_A": 8.545259002418511,
+        "end_pair_phase_rad": 14.137166941154069,
+        "end_pair_facing_cosine": 5.51091059616309e-16,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.159709687414688e-55,
+        "end_pair_p_clash": 1.2200402505837704e-50,
+        "end_pair_distance_A": 171.75086122525798,
+        "end_pair_c_eff_M": 1.0783848284260396e-26,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=19 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 20,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 159.90664892271383,
+        "contour_nm": 16.832278833969877,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 14.194317679080317,
+        "rigid_screw": false,
+        "end_pair_chord_A": 161.53015717915204,
+        "end_pair_chord_sigma_A": 8.971240052130426,
+        "end_pair_phase_rad": 14.922565104551516,
+        "end_pair_facing_cosine": -0.7071067811865465,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.4022122292013445e-53,
+        "end_pair_p_clash": 3.712184546902585e-73,
+        "end_pair_distance_A": 191.7027676618673,
+        "end_pair_c_eff_M": 1.1072514615641466e-32,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=20 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 21,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 168.32278833969877,
+        "contour_nm": 17.67389277566837,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 14.789627819799717,
+        "rigid_screw": false,
+        "end_pair_chord_A": 170.12922323589376,
+        "end_pair_chord_sigma_A": 9.4223402492735,
+        "end_pair_phase_rad": 15.707963267948966,
+        "end_pair_facing_cosine": -1.0,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.4920246786884703e-51,
+        "end_pair_p_clash": 4.240103434862833e-84,
+        "end_pair_distance_A": 203.5449060946405,
+        "end_pair_c_eff_M": 1.50980391638653e-36,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=21 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 22,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 176.7389277566837,
+        "contour_nm": 18.515506717366865,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 15.376075575411354,
+        "rigid_screw": false,
+        "end_pair_chord_A": 178.2091577142201,
+        "end_pair_chord_sigma_A": 9.929831490802682,
+        "end_pair_phase_rad": 16.493361431346415,
+        "end_pair_facing_cosine": -0.7071067811865474,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.3796799311828336e-49,
+        "end_pair_p_clash": 1.0819773184141813e-69,
+        "end_pair_distance_A": 205.9525754733601,
+        "end_pair_c_eff_M": 2.3158677193538564e-37,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=22 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 23,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 185.15506717366864,
+        "contour_nm": 19.35712065906536,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 15.953892403908855,
+        "rigid_screw": false,
+        "end_pair_chord_A": 185.97874787804255,
+        "end_pair_chord_sigma_A": 10.453462216300736,
+        "end_pair_phase_rad": 17.27875959474386,
+        "end_pair_facing_cosine": -2.4499125789312946e-15,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 1.098641308374894e-47,
+        "end_pair_p_clash": 1.9894855986273234e-51,
+        "end_pair_distance_A": 202.0677677448787,
+        "end_pair_c_eff_M": 4.717465613126056e-36,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=23 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "n_repeats": 24,
+        "rise_A": 8.416139416984938,
+        "twist_rad": 0.7853981633974483,
+        "docking_radius_A": 12.363166305578241,
+        "scaffold_radius_A": 12.185585199113614,
+        "pitch_A": 67.32911533587951,
+        "repeats_per_turn": 8.0,
+        "axial_span_A": 193.5712065906536,
+        "contour_nm": 20.19873460076385,
+        "persistence_length_nm": 15.0,
+        "wlc_end_to_end_rms_nm": 16.5233029105628,
+        "rigid_screw": false,
+        "end_pair_chord_A": 193.8023432178505,
+        "end_pair_chord_sigma_A": 10.948758987554163,
+        "end_pair_phase_rad": 18.06415775814131,
+        "end_pair_facing_cosine": 0.7071067811865464,
+        "physics_score": 0.0,
+        "p_instability": 0.0,
+        "p_scaffold_max": 7.4874536761587e-46,
+        "end_pair_p_clash": 3.0263970071558495e-42,
+        "end_pair_distance_A": 198.4640143302021,
+        "end_pair_c_eff_M": 7.340327284385163e-35,
+        "steric_feasible": true,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=24 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      }
+    ]
+  },
+  "drylab": {
+    "calibrated": false,
+    "gp_fitted": false,
+    "source": "dry_lab",
+    "purpose": "measurements of the models. Not use-case optima.",
+    "measurements": [
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 2.524841825095481,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 24.269762523421623,
+        "uncertainty": 1.1234505138917352,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 6.123233995736766e-17,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 5.635128467642181e-08,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 3,
+        "delta_i": 2,
+        "value": 2.4472362465113332e-05,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 3,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": 3.366455766793975,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": 34.04905186351977,
+        "uncertainty": 1.450054348729168,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": -0.7071067811865475,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": 4.307143284852816e-12,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 4,
+        "delta_i": 3,
+        "value": 1.8705685676975867e-09,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 4,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": 4.208069708492469,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": 41.76953396167573,
+        "uncertainty": 1.7639210389670923,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": -1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": 4.371964331972921e-14,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 5,
+        "delta_i": 4,
+        "value": 1.8987222085032544e-11,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 5,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": 5.049683650190962,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": 47.88152436778408,
+        "uncertainty": 2.238063250381179,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": -0.7071067811865477,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": 4.992094719141481e-13,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 6,
+        "delta_i": 5,
+        "value": 2.1680395828626088e-10,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 6,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": 5.891297591889456,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": 53.43806002185486,
+        "uncertainty": 2.8097712164667707,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": -1.8369701987210297e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": 7.569911743791436e-10,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 7,
+        "delta_i": 6,
+        "value": 3.287569654631015e-07,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 7,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 6.73291153358795,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 59.668039580568426,
+        "uncertainty": 3.3321237731596502,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 0.7071067811865474,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 1.0200729150255938e-12,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 8.768201113529876e-07,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 0.0003806312877734388,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 8,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 7.574525475286444,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 67.32911533587951,
+        "uncertainty": 3.808406309121499,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 2.6793965764992933e-06,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 4.462228142212987e-06,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 9,
+        "delta_i": 8,
+        "value": 0.0019336049747036997,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 9,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 8.416139416984938,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 76.33400181665024,
+        "uncertainty": 4.283904977773422,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 0.7071067811865477,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 1.1778703708774089e-08,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 10,
+        "delta_i": 9,
+        "value": 5.115395898411609e-06,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 10,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 9.257753358683432,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 85.95833892538599,
+        "uncertainty": 4.72229112014255,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 3.061616997868383e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 1.3660443700038297e-13,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 11,
+        "delta_i": 10,
+        "value": 5.932658293126595e-11,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 11,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": 10.099367300381925,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": 95.35436557206465,
+        "uncertainty": 5.119985872304964,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": -0.7071067811865467,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": 1.2101628072487123e-18,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 12,
+        "delta_i": 11,
+        "value": 4.821637332766433e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 12,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": 10.94098124208042,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": 103.976504611378,
+        "uncertainty": 5.559712745032744,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": -1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": 1.4237200110888996e-21,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 13,
+        "delta_i": 12,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 13,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": 11.782595183778913,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": 111.769237102993,
+        "uncertainty": 6.086189233504919,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": -0.7071067811865471,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": 1.8841882602109996e-21,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 14,
+        "delta_i": 13,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 14,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": 12.624209125477408,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": 119.11612270670908,
+        "uncertainty": 6.635221364114623,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": -4.286263797015736e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": 3.3115078591987333e-19,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 15,
+        "delta_i": 14,
+        "value": 9.64327466553287e-17,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 15,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 13.4658230671759,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 126.59621566281803,
+        "uncertainty": 7.140207519257003,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 0.7071067811865466,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 4.445687932057581e-17,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 16,
+        "delta_i": 15,
+        "value": 1.9286549331065313e-14,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 16,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 14.307437008874397,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 134.65823067175901,
+        "uncertainty": 7.616812618242998,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 2.6222478595343944e-17,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 17,
+        "delta_i": 16,
+        "value": 1.1379064105328638e-14,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 17,
+        "delta_i": null,
+        "value": 1.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 15.149050950572889,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 143.38692964164792,
+        "uncertainty": 8.092349520714604,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 0.7071067811865472,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 8.022559807731113e-21,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 18,
+        "delta_i": 17,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 18,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 15.990664892271383,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 152.49613186079213,
+        "uncertainty": 8.545259002418511,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 5.51091059616309e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 1.0783848284260396e-26,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 19,
+        "delta_i": 18,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 19,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": 16.832278833969877,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": 161.53015717915204,
+        "uncertainty": 8.971240052130426,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": -0.7071067811865465,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": 1.1072514615641466e-32,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 20,
+        "delta_i": 19,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 20,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": 17.67389277566837,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": 170.12922323589376,
+        "uncertainty": 9.4223402492735,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": -1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": 1.50980391638653e-36,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 21,
+        "delta_i": 20,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 21,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": 18.515506717366865,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": 178.2091577142201,
+        "uncertainty": 9.929831490802682,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": -0.7071067811865474,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": 2.3158677193538564e-37,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 22,
+        "delta_i": 21,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 22,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": 19.35712065906536,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": 185.97874787804255,
+        "uncertainty": 10.453462216300736,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": -2.4499125789312946e-15,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": 4.717465613126056e-36,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 23,
+        "delta_i": 22,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 23,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "contour_nm",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 20.19873460076385,
+        "uncertainty": null,
+        "units": "nm",
+        "method": "n * deposited rise"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_chord_A",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 193.8023432178505,
+        "uncertainty": 10.948758987554163,
+        "units": "\u00c5",
+        "method": "structural_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_facing_cosine",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 0.7071067811865464,
+        "uncertainty": null,
+        "units": "1",
+        "method": "cos(delta * twist)"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "p_instability",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "delta_method_ca_envelope"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "end_pair_c_eff_M",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 7.340327284385163e-35,
+        "uncertainty": null,
+        "units": "M",
+        "method": "kratky_porod_pair"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "score",
+        "observable": "physics_score",
+        "n_repeats": 24,
+        "delta_i": 23,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "physics_report"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "structure",
+        "observable": "rigid_screw",
+        "n_repeats": 24,
+        "delta_i": null,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "bool",
+        "method": "contour <= persistence length 15 nm"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 1,
+        "value": 12.663633698672633,
+        "uncertainty": 0.6314560248512877,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 1,
+        "value": 0.7071067811865476,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 1,
+        "value": 0.9999999999999578,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 1,
+        "value": 0.000563157678993422,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 1,
+        "value": 8.184681776895393e-15,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 2,
+        "value": 24.269762523421623,
+        "uncertainty": 1.1234505138917352,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 2,
+        "value": 6.123233995736766e-17,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 2,
+        "value": 1.1038040164979557e-150,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 2,
+        "value": 5.635128467642181e-08,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 2,
+        "value": 2.4472362465113332e-05,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 3,
+        "value": 34.04905186351977,
+        "uncertainty": 1.450054348729168,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 3,
+        "value": -0.7071067811865475,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 3,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 3,
+        "value": 4.307143284852816e-12,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 3,
+        "value": 1.8705685676975867e-09,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 4,
+        "value": 41.76953396167573,
+        "uncertainty": 1.7639210389670923,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 4,
+        "value": -1.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 4,
+        "value": 0.0,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 4,
+        "value": 4.371964331972921e-14,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 4,
+        "value": 1.8987222085032544e-11,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 5,
+        "value": 47.88152436778408,
+        "uncertainty": 2.238063250381179,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 5,
+        "value": -0.7071067811865477,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 5,
+        "value": 4.588373772200983e-281,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 5,
+        "value": 4.992094719141481e-13,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 5,
+        "value": 2.1680395828626088e-10,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 6,
+        "value": 53.43806002185486,
+        "uncertainty": 2.8097712164667707,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 6,
+        "value": -1.8369701987210297e-16,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 6,
+        "value": 1.9577901954987108e-72,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 6,
+        "value": 7.569911743791436e-10,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 6,
+        "value": 3.287569654631015e-07,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "chord_A",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 59.668039580568426,
+        "uncertainty": 3.3321237731596502,
+        "units": "\u00c5",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "facing_cosine",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 0.7071067811865474,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "p_clash",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 1.020113140215227e-12,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "c_eff_M",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 8.768201113529876e-07,
+        "uncertainty": null,
+        "units": "M",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "domain": "separation",
+        "observable": "physics_score",
+        "n_repeats": 8,
+        "delta_i": 7,
+        "value": 0.0003806312877734388,
+        "uncertainty": null,
+        "units": "1",
+        "method": "separation_library"
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 0,
+        "value_mean_A": 13.691136204384655,
+        "value_min_A": 8.272997582496927,
+        "value_max_A": 19.250456410173758,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 1,
+        "value_mean_A": 13.691163576723486,
+        "value_min_A": 8.272937144690513,
+        "value_max_A": 19.250472435761154,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 2,
+        "value_mean_A": 13.691136204384655,
+        "value_min_A": 8.272997582496927,
+        "value_max_A": 19.250456410173758,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 3,
+        "value_mean_A": 13.691163576723486,
+        "value_min_A": 8.272937144690513,
+        "value_max_A": 19.250472435761154,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 4,
+        "value_mean_A": 13.691136204384655,
+        "value_min_A": 8.272997582496927,
+        "value_max_A": 19.250456410173758,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 5,
+        "value_mean_A": 13.691163576723486,
+        "value_min_A": 8.272937144690513,
+        "value_max_A": 19.250472435761154,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 6,
+        "value_mean_A": 13.691136204384655,
+        "value_min_A": 8.272997582496927,
+        "value_max_A": 19.250456410173758,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      },
+      {
+        "source": "dry_lab",
+        "calibrated": false,
+        "observable": "ca_radial_A",
+        "n_repeats": 8,
+        "repeat_index": 7,
+        "value_mean_A": 13.691163576723486,
+        "value_min_A": 8.272937144690513,
+        "value_max_A": 19.250472435761154,
+        "units": "\u00c5",
+        "method": "placed consensus C-alpha cloud",
+        "uncertainty": null
+      }
+    ],
+    "stability_panel": [
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 3,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 63.0,
+        "tm_uncertainty_C": 0.6000000000000014,
+        "tm_interval_low": 62.4,
+        "tm_interval_high": 63.6,
+        "thermal_reason": "matched Tm_C 63.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 4.8,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.4
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 4,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 68.0,
+        "tm_uncertainty_C": 0.09999999999999432,
+        "tm_interval_low": 67.9,
+        "tm_interval_high": 68.1,
+        "thermal_reason": "matched Tm_C 68.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 4.2,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 1.1
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 5,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 71.0,
+        "tm_uncertainty_C": 0.09999999999999432,
+        "tm_interval_low": 70.9,
+        "tm_interval_high": 71.1,
+        "thermal_reason": "matched Tm_C 71.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 6.0,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.8
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 6,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 71.0,
+        "tm_uncertainty_C": 1.0,
+        "tm_interval_low": 70.0,
+        "tm_interval_high": 72.0,
+        "thermal_reason": "matched Tm_C 71.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 7.7,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.2
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 7,
+        "t_assay_C": 37.0,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 8,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 74.0,
+        "tm_uncertainty_C": 0.5,
+        "tm_interval_low": 73.5,
+        "tm_interval_high": 74.5,
+        "thermal_reason": "matched Tm_C 74.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 14.3,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 1.5
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 9,
+        "t_assay_C": 37.0,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 10,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 74.0,
+        "tm_uncertainty_C": 1.2999999999999972,
+        "tm_interval_low": 72.7,
+        "tm_interval_high": 75.3,
+        "thermal_reason": "matched Tm_C 74.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 23.4,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 2.1
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 11,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=11 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 12,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=12 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 13,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=13 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 14,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=14 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 15,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=15 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 16,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=16 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 17,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=17 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 18,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=18 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 19,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=19 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 20,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=20 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 21,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=21 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 22,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=22 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 23,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=23 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_dsc",
+        "n_repeats": 24,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=24 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 3,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 68.3,
+        "tm_uncertainty_C": 0.0,
+        "tm_interval_low": 68.3,
+        "tm_interval_high": 68.3,
+        "thermal_reason": "matched Tm_C 68.3 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 4,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 72.7,
+        "tm_uncertainty_C": 0.0,
+        "tm_interval_low": 72.7,
+        "tm_interval_high": 72.7,
+        "thermal_reason": "matched Tm_C 72.7 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 5,
+        "t_assay_C": 37.0,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 6,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 77.1,
+        "tm_uncertainty_C": 0.0,
+        "tm_interval_low": 77.1,
+        "tm_interval_high": 77.1,
+        "thermal_reason": "matched Tm_C 77.1 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 7,
+        "t_assay_C": 37.0,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 8,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 78.9,
+        "tm_uncertainty_C": 0.0,
+        "tm_interval_low": 78.9,
+        "tm_interval_high": 78.9,
+        "thermal_reason": "matched Tm_C 78.9 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 9,
+        "t_assay_C": 37.0,
+        "thermal_state": "omitted",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "no measurement at this n; interpolation is not implemented",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 10,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 80.1,
+        "tm_uncertainty_C": 0.0,
+        "tm_interval_low": 80.1,
+        "tm_interval_high": 80.1,
+        "thermal_reason": "matched Tm_C 80.1 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 11,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=11 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 12,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=12 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 13,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=13 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 14,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=14 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 15,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=15 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 16,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=16 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 17,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=17 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 18,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=18 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 19,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=19 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 20,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=20 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 21,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=21 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 22,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=22 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 23,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=23 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "cortajarena2011_ctpra_dsc",
+        "n_repeats": 24,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=24 is outside the cited repeat range [2, 10]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 3,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 62.0,
+        "tm_uncertainty_C": 0.03999999999999915,
+        "tm_interval_low": 61.96,
+        "tm_interval_high": 62.04,
+        "thermal_reason": "matched Tm_C 62.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 4,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 67.0,
+        "tm_uncertainty_C": 0.030000000000001137,
+        "tm_interval_low": 66.97,
+        "tm_interval_high": 67.03,
+        "thermal_reason": "matched Tm_C 67.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 5,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 70.0,
+        "tm_uncertainty_C": 0.030000000000001137,
+        "tm_interval_low": 69.97,
+        "tm_interval_high": 70.03,
+        "thermal_reason": "matched Tm_C 70.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 6,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 71.0,
+        "tm_uncertainty_C": 0.030000000000001137,
+        "tm_interval_low": 70.97,
+        "tm_interval_high": 71.03,
+        "thermal_reason": "matched Tm_C 71.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 7,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=7 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 8,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=8 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 9,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=9 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 10,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=10 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 11,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=11 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 12,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=12 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 13,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=13 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 14,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=14 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 15,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=15 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 16,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=16 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 17,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=17 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 18,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=18 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 19,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=19 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 20,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=20 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 21,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=21 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 22,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=22 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 23,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=23 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpra_cd",
+        "n_repeats": 24,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=24 is outside the cited repeat range [2, 6]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 3,
+        "t_assay_C": 37.0,
+        "thermal_state": "pass",
+        "tm_C": 76.0,
+        "tm_uncertainty_C": 0.09999999999999432,
+        "tm_interval_low": 75.9,
+        "tm_interval_high": 76.1,
+        "thermal_reason": "matched Tm_C 76.0 C is strictly greater than assay temperature 37.0 C",
+        "delta_g": 12.0,
+        "delta_g_units": "kcal mol-1",
+        "delta_g_uncertainty": 0.7
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 4,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=4 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 5,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=5 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 6,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=6 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 7,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=7 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 8,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=8 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 9,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=9 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 10,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=10 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 11,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=11 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 12,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=12 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 13,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=13 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 14,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=14 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 15,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=15 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 16,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=16 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 17,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=17 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 18,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=18 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 19,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=19 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 20,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=20 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 21,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=21 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 22,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=22 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 23,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=23 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      },
+      {
+        "source": "literature_lookup",
+        "calibrated": false,
+        "series_id": "phillips2012_ctpr_dsc",
+        "n_repeats": 24,
+        "t_assay_C": 37.0,
+        "thermal_state": "extrapolated",
+        "tm_C": null,
+        "tm_uncertainty_C": null,
+        "tm_interval_low": null,
+        "tm_interval_high": null,
+        "thermal_reason": "n=24 is outside the cited repeat range [2, 3]",
+        "delta_g": null,
+        "delta_g_units": null,
+        "delta_g_uncertainty": null
+      }
+    ],
+    "active_learning": {
+      "gp_fitted": false,
+      "calibrated": false,
+      "next_n": 8,
+      "next_delta_i": 7,
+      "acquisition_name": "UCB(\u03ba=1.8)",
+      "notes": [
+        "next_n and next_delta_i are the next measurement coordinates.",
+        "They are not agriculture, biomarker, or general-use optima.",
+        "The residual GP is not fit. These dry-lab scores are the model output, not an assay residual.",
+        "A typed assay y can be added later. It is not invented here."
+      ]
+    }
+  },
+  "library": {
+    "n_repeats": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
+    ],
+    "gp_mean": [
+      2.4472362465113332e-05,
+      1.8705685676975867e-09,
+      1.8987222085032544e-11,
+      2.1680395828626088e-10,
+      3.287569654631015e-07,
+      0.0003806312877734388,
+      0.0019336049747036997,
+      5.115395898411609e-06,
+      5.932658293126595e-11,
+      4.821637332766433e-16,
+      0.0,
+      0.0,
+      9.64327466553287e-17,
+      1.9286549331065313e-14,
+      1.1379064105328638e-14,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "gp_std": [
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393,
+      1.0012492197250393
+    ]
+  },
+  "scene": {
+    "n_repeats": 8,
+    "method": "delta_method_ca_envelope",
+    "ca_count": 272,
+    "residues_per_repeat": 34,
+    "sites_A": [
+      [
+        12.363,
+        0.0,
+        0.0
+      ],
+      [
+        8.742,
+        8.742,
+        8.416
+      ],
+      [
+        0.0,
+        12.363,
+        16.832
+      ],
+      [
+        -8.742,
+        8.742,
+        25.248
+      ],
+      [
+        -12.363,
+        0.0,
+        33.665
+      ],
+      [
+        -8.742,
+        -8.742,
+        42.081
+      ],
+      [
+        -0.0,
+        -12.363,
+        50.497
+      ],
+      [
+        8.742,
+        -8.742,
+        58.913
+      ]
+    ],
+    "payloads": [
+      {
+        "repeat_index": 0,
+        "radius_A": 25.0,
+        "standoff_A": 19.86001021107669,
+        "center_A": [
+          57.223,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "repeat_index": 7,
+        "radius_A": 25.0,
+        "standoff_A": 19.86001021107669,
+        "center_A": [
+          40.463,
+          -40.463,
+          58.913
+        ]
+      }
+    ],
+    "notes": [
+      "C-alpha trace only. Side chains are absent, so excluded volume is understated.",
+      "Each payload center is one tether RMS plus one radius out from the junction."
+    ],
+    "ca_A": [
+      [
+        11.667,
+        3.385,
+        -7.851
+      ],
+      [
+        8.367,
+        1.526,
+        -7.535
+      ],
+      [
+        10.106,
+        -1.829,
+        -7.781
+      ],
+      [
+        12.68,
+        -0.959,
+        -5.121
+      ],
+      [
+        9.904,
+        0.434,
+        -2.955
+      ],
+      [
+        7.829,
+        -2.725,
+        -3.356
+      ],
+      [
+        10.845,
+        -4.898,
+        -2.632
+      ],
+      [
+        11.194,
+        -2.846,
+        0.55
+      ],
+      [
+        7.533,
+        -3.42,
+        1.397
+      ],
+      [
+        7.922,
+        -7.177,
+        0.899
+      ],
+      [
+        10.79,
+        -7.246,
+        3.388
+      ],
+      [
+        8.857,
+        -4.959,
+        5.723
+      ],
+      [
+        5.913,
+        -7.368,
+        5.66
+      ],
+      [
+        8.301,
+        -10.221,
+        6.475
+      ],
+      [
+        9.67,
+        -8.328,
+        9.444
+      ],
+      [
+        13.044,
+        -7.568,
+        7.885
+      ],
+      [
+        13.139,
+        -3.894,
+        8.68
+      ],
+      [
+        16.869,
+        -3.511,
+        8.042
+      ],
+      [
+        16.567,
+        -4.869,
+        4.505
+      ],
+      [
+        13.364,
+        -2.864,
+        4.015
+      ],
+      [
+        15.228,
+        0.309,
+        4.945
+      ],
+      [
+        18.006,
+        -0.433,
+        2.447
+      ],
+      [
+        15.523,
+        -0.816,
+        -0.393
+      ],
+      [
+        13.364,
+        2.138,
+        0.621
+      ],
+      [
+        16.565,
+        4.199,
+        0.57
+      ],
+      [
+        17.337,
+        3.012,
+        -2.956
+      ],
+      [
+        13.808,
+        3.949,
+        -4.035
+      ],
+      [
+        14.237,
+        7.402,
+        -2.485
+      ],
+      [
+        17.534,
+        7.946,
+        -4.3
+      ],
+      [
+        15.57,
+        7.447,
+        -7.522
+      ],
+      [
+        12.461,
+        9.384,
+        -6.442
+      ],
+      [
+        13.005,
+        11.651,
+        -3.415
+      ],
+      [
+        9.522,
+        13.134,
+        -3.697
+      ],
+      [
+        7.587,
+        10.013,
+        -2.769
+      ],
+      [
+        5.857,
+        10.643,
+        0.566
+      ],
+      [
+        4.837,
+        6.996,
+        0.881
+      ],
+      [
+        8.439,
+        5.853,
+        0.635
+      ],
+      [
+        9.645,
+        8.288,
+        3.296
+      ],
+      [
+        6.696,
+        7.311,
+        5.462
+      ],
+      [
+        7.463,
+        3.609,
+        5.061
+      ],
+      [
+        11.132,
+        4.206,
+        5.784
+      ],
+      [
+        9.928,
+        5.903,
+        8.966
+      ],
+      [
+        7.745,
+        2.908,
+        9.813
+      ],
+      [
+        10.676,
+        0.527,
+        9.315
+      ],
+      [
+        12.753,
+        2.506,
+        11.805
+      ],
+      [
+        9.769,
+        2.756,
+        14.14
+      ],
+      [
+        9.391,
+        -1.029,
+        14.076
+      ],
+      [
+        13.097,
+        -1.357,
+        14.891
+      ],
+      [
+        12.726,
+        0.949,
+        17.86
+      ],
+      [
+        14.575,
+        3.873,
+        16.301
+      ],
+      [
+        12.044,
+        6.537,
+        17.096
+      ],
+      [
+        14.41,
+        9.445,
+        16.459
+      ],
+      [
+        15.158,
+        8.272,
+        12.921
+      ],
+      [
+        11.475,
+        7.425,
+        12.431
+      ],
+      [
+        10.55,
+        10.986,
+        13.361
+      ],
+      [
+        13.038,
+        12.426,
+        10.863
+      ],
+      [
+        11.553,
+        10.4,
+        8.023
+      ],
+      [
+        7.938,
+        10.961,
+        9.037
+      ],
+      [
+        8.744,
+        14.683,
+        8.986
+      ],
+      [
+        10.129,
+        14.389,
+        5.46
+      ],
+      [
+        6.972,
+        12.556,
+        4.381
+      ],
+      [
+        4.833,
+        15.301,
+        5.931
+      ],
+      [
+        6.78,
+        18.017,
+        4.116
+      ],
+      [
+        5.744,
+        16.276,
+        0.894
+      ],
+      [
+        2.176,
+        15.447,
+        1.974
+      ],
+      [
+        0.957,
+        17.434,
+        5.001
+      ],
+      [
+        -2.554,
+        16.021,
+        4.719
+      ],
+      [
+        -1.715,
+        12.445,
+        5.647
+      ],
+      [
+        -3.385,
+        11.667,
+        8.982
+      ],
+      [
+        -1.526,
+        8.367,
+        9.297
+      ],
+      [
+        1.829,
+        10.106,
+        9.051
+      ],
+      [
+        0.959,
+        12.68,
+        11.712
+      ],
+      [
+        -0.434,
+        9.904,
+        13.878
+      ],
+      [
+        2.725,
+        7.829,
+        13.477
+      ],
+      [
+        4.898,
+        10.845,
+        14.2
+      ],
+      [
+        2.846,
+        11.194,
+        17.382
+      ],
+      [
+        3.42,
+        7.533,
+        18.229
+      ],
+      [
+        7.177,
+        7.922,
+        17.731
+      ],
+      [
+        7.246,
+        10.79,
+        20.221
+      ],
+      [
+        4.959,
+        8.857,
+        22.556
+      ],
+      [
+        7.368,
+        5.913,
+        22.492
+      ],
+      [
+        10.221,
+        8.301,
+        23.307
+      ],
+      [
+        8.328,
+        9.67,
+        26.276
+      ],
+      [
+        7.568,
+        13.044,
+        24.717
+      ],
+      [
+        3.894,
+        13.139,
+        25.512
+      ],
+      [
+        3.511,
+        16.869,
+        24.875
+      ],
+      [
+        4.869,
+        16.567,
+        21.337
+      ],
+      [
+        2.864,
+        13.364,
+        20.848
+      ],
+      [
+        -0.309,
+        15.228,
+        21.777
+      ],
+      [
+        0.433,
+        18.006,
+        19.279
+      ],
+      [
+        0.816,
+        15.523,
+        16.44
+      ],
+      [
+        -2.138,
+        13.364,
+        17.453
+      ],
+      [
+        -4.199,
+        16.565,
+        17.402
+      ],
+      [
+        -3.012,
+        17.337,
+        13.876
+      ],
+      [
+        -3.949,
+        13.808,
+        12.797
+      ],
+      [
+        -7.402,
+        14.237,
+        14.347
+      ],
+      [
+        -7.946,
+        17.534,
+        12.532
+      ],
+      [
+        -7.447,
+        15.57,
+        9.31
+      ],
+      [
+        -9.384,
+        12.461,
+        10.39
+      ],
+      [
+        -11.651,
+        13.005,
+        13.417
+      ],
+      [
+        -13.134,
+        9.522,
+        13.135
+      ],
+      [
+        -10.013,
+        7.587,
+        14.063
+      ],
+      [
+        -10.643,
+        5.857,
+        17.398
+      ],
+      [
+        -6.996,
+        4.837,
+        17.713
+      ],
+      [
+        -5.853,
+        8.439,
+        17.467
+      ],
+      [
+        -8.288,
+        9.645,
+        20.128
+      ],
+      [
+        -7.311,
+        6.696,
+        22.294
+      ],
+      [
+        -3.609,
+        7.463,
+        21.893
+      ],
+      [
+        -4.206,
+        11.132,
+        22.617
+      ],
+      [
+        -5.903,
+        9.928,
+        25.798
+      ],
+      [
+        -2.908,
+        7.745,
+        26.645
+      ],
+      [
+        -0.527,
+        10.676,
+        26.147
+      ],
+      [
+        -2.506,
+        12.753,
+        28.637
+      ],
+      [
+        -2.756,
+        9.769,
+        30.972
+      ],
+      [
+        1.029,
+        9.391,
+        30.908
+      ],
+      [
+        1.357,
+        13.097,
+        31.724
+      ],
+      [
+        -0.949,
+        12.726,
+        34.692
+      ],
+      [
+        -3.873,
+        14.575,
+        33.133
+      ],
+      [
+        -6.537,
+        12.044,
+        33.928
+      ],
+      [
+        -9.445,
+        14.41,
+        33.291
+      ],
+      [
+        -8.272,
+        15.158,
+        29.753
+      ],
+      [
+        -7.425,
+        11.475,
+        29.264
+      ],
+      [
+        -10.986,
+        10.55,
+        30.193
+      ],
+      [
+        -12.426,
+        13.038,
+        27.695
+      ],
+      [
+        -10.4,
+        11.553,
+        24.856
+      ],
+      [
+        -10.961,
+        7.938,
+        25.869
+      ],
+      [
+        -14.683,
+        8.744,
+        25.818
+      ],
+      [
+        -14.389,
+        10.129,
+        22.292
+      ],
+      [
+        -12.556,
+        6.972,
+        21.213
+      ],
+      [
+        -15.301,
+        4.833,
+        22.763
+      ],
+      [
+        -18.017,
+        6.78,
+        20.948
+      ],
+      [
+        -16.276,
+        5.744,
+        17.726
+      ],
+      [
+        -15.447,
+        2.176,
+        18.806
+      ],
+      [
+        -17.434,
+        0.957,
+        21.833
+      ],
+      [
+        -16.021,
+        -2.554,
+        21.551
+      ],
+      [
+        -12.445,
+        -1.715,
+        22.479
+      ],
+      [
+        -11.667,
+        -3.385,
+        25.814
+      ],
+      [
+        -8.367,
+        -1.526,
+        26.13
+      ],
+      [
+        -10.106,
+        1.829,
+        25.883
+      ],
+      [
+        -12.68,
+        0.959,
+        28.544
+      ],
+      [
+        -9.904,
+        -0.434,
+        30.71
+      ],
+      [
+        -7.829,
+        2.725,
+        30.309
+      ],
+      [
+        -10.845,
+        4.898,
+        31.033
+      ],
+      [
+        -11.194,
+        2.846,
+        34.214
+      ],
+      [
+        -7.533,
+        3.42,
+        35.061
+      ],
+      [
+        -7.922,
+        7.177,
+        34.563
+      ],
+      [
+        -10.79,
+        7.246,
+        37.053
+      ],
+      [
+        -8.857,
+        4.959,
+        39.388
+      ],
+      [
+        -5.913,
+        7.368,
+        39.324
+      ],
+      [
+        -8.301,
+        10.221,
+        40.14
+      ],
+      [
+        -9.67,
+        8.328,
+        43.108
+      ],
+      [
+        -13.044,
+        7.568,
+        41.549
+      ],
+      [
+        -13.139,
+        3.894,
+        42.345
+      ],
+      [
+        -16.869,
+        3.511,
+        41.707
+      ],
+      [
+        -16.567,
+        4.869,
+        38.169
+      ],
+      [
+        -13.364,
+        2.864,
+        37.68
+      ],
+      [
+        -15.228,
+        -0.309,
+        38.609
+      ],
+      [
+        -18.006,
+        0.433,
+        36.111
+      ],
+      [
+        -15.523,
+        0.816,
+        33.272
+      ],
+      [
+        -13.364,
+        -2.138,
+        34.285
+      ],
+      [
+        -16.565,
+        -4.199,
+        34.235
+      ],
+      [
+        -17.337,
+        -3.012,
+        30.708
+      ],
+      [
+        -13.808,
+        -3.949,
+        29.63
+      ],
+      [
+        -14.237,
+        -7.402,
+        31.179
+      ],
+      [
+        -17.534,
+        -7.946,
+        29.364
+      ],
+      [
+        -15.57,
+        -7.447,
+        26.142
+      ],
+      [
+        -12.461,
+        -9.384,
+        27.222
+      ],
+      [
+        -13.005,
+        -11.651,
+        30.249
+      ],
+      [
+        -9.522,
+        -13.134,
+        29.967
+      ],
+      [
+        -7.587,
+        -10.013,
+        30.896
+      ],
+      [
+        -5.857,
+        -10.643,
+        34.23
+      ],
+      [
+        -4.837,
+        -6.996,
+        34.546
+      ],
+      [
+        -8.439,
+        -5.853,
+        34.299
+      ],
+      [
+        -9.645,
+        -8.288,
+        36.96
+      ],
+      [
+        -6.696,
+        -7.311,
+        39.126
+      ],
+      [
+        -7.463,
+        -3.609,
+        38.725
+      ],
+      [
+        -11.132,
+        -4.206,
+        39.449
+      ],
+      [
+        -9.928,
+        -5.903,
+        42.631
+      ],
+      [
+        -7.745,
+        -2.908,
+        43.478
+      ],
+      [
+        -10.676,
+        -0.527,
+        42.98
+      ],
+      [
+        -12.753,
+        -2.506,
+        45.469
+      ],
+      [
+        -9.769,
+        -2.756,
+        47.804
+      ],
+      [
+        -9.391,
+        1.029,
+        47.74
+      ],
+      [
+        -13.097,
+        1.357,
+        48.556
+      ],
+      [
+        -12.726,
+        -0.949,
+        51.525
+      ],
+      [
+        -14.575,
+        -3.873,
+        49.965
+      ],
+      [
+        -12.044,
+        -6.537,
+        50.761
+      ],
+      [
+        -14.41,
+        -9.445,
+        50.123
+      ],
+      [
+        -15.158,
+        -8.272,
+        46.585
+      ],
+      [
+        -11.475,
+        -7.425,
+        46.096
+      ],
+      [
+        -10.55,
+        -10.986,
+        47.025
+      ],
+      [
+        -13.038,
+        -12.426,
+        44.527
+      ],
+      [
+        -11.553,
+        -10.4,
+        41.688
+      ],
+      [
+        -7.938,
+        -10.961,
+        42.701
+      ],
+      [
+        -8.744,
+        -14.683,
+        42.651
+      ],
+      [
+        -10.129,
+        -14.389,
+        39.125
+      ],
+      [
+        -6.972,
+        -12.556,
+        38.046
+      ],
+      [
+        -4.833,
+        -15.301,
+        39.595
+      ],
+      [
+        -6.78,
+        -18.017,
+        37.781
+      ],
+      [
+        -5.744,
+        -16.276,
+        34.558
+      ],
+      [
+        -2.176,
+        -15.447,
+        35.639
+      ],
+      [
+        -0.957,
+        -17.434,
+        38.665
+      ],
+      [
+        2.554,
+        -16.021,
+        38.383
+      ],
+      [
+        1.715,
+        -12.445,
+        39.312
+      ],
+      [
+        3.385,
+        -11.667,
+        42.646
+      ],
+      [
+        1.526,
+        -8.367,
+        42.962
+      ],
+      [
+        -1.829,
+        -10.106,
+        42.716
+      ],
+      [
+        -0.959,
+        -12.68,
+        45.376
+      ],
+      [
+        0.434,
+        -9.904,
+        47.542
+      ],
+      [
+        -2.725,
+        -7.829,
+        47.141
+      ],
+      [
+        -4.898,
+        -10.845,
+        47.865
+      ],
+      [
+        -2.846,
+        -11.194,
+        51.047
+      ],
+      [
+        -3.42,
+        -7.533,
+        51.894
+      ],
+      [
+        -7.177,
+        -7.922,
+        51.396
+      ],
+      [
+        -7.246,
+        -10.79,
+        53.885
+      ],
+      [
+        -4.959,
+        -8.857,
+        56.22
+      ],
+      [
+        -7.368,
+        -5.913,
+        56.156
+      ],
+      [
+        -10.221,
+        -8.301,
+        56.972
+      ],
+      [
+        -8.328,
+        -9.67,
+        59.941
+      ],
+      [
+        -7.568,
+        -13.044,
+        58.381
+      ],
+      [
+        -3.894,
+        -13.139,
+        59.177
+      ],
+      [
+        -3.511,
+        -16.869,
+        58.539
+      ],
+      [
+        -4.869,
+        -16.567,
+        55.002
+      ],
+      [
+        -2.864,
+        -13.364,
+        54.512
+      ],
+      [
+        0.309,
+        -15.228,
+        55.442
+      ],
+      [
+        -0.433,
+        -18.006,
+        52.943
+      ],
+      [
+        -0.816,
+        -15.523,
+        50.104
+      ],
+      [
+        2.138,
+        -13.364,
+        51.118
+      ],
+      [
+        4.199,
+        -16.565,
+        51.067
+      ],
+      [
+        3.012,
+        -17.337,
+        47.541
+      ],
+      [
+        3.949,
+        -13.808,
+        46.462
+      ],
+      [
+        7.402,
+        -14.237,
+        48.011
+      ],
+      [
+        7.946,
+        -17.534,
+        46.197
+      ],
+      [
+        7.447,
+        -15.57,
+        42.974
+      ],
+      [
+        9.384,
+        -12.461,
+        44.055
+      ],
+      [
+        11.651,
+        -13.005,
+        47.081
+      ],
+      [
+        13.134,
+        -9.522,
+        46.8
+      ],
+      [
+        10.013,
+        -7.587,
+        47.728
+      ],
+      [
+        10.643,
+        -5.857,
+        51.062
+      ],
+      [
+        6.996,
+        -4.837,
+        51.378
+      ],
+      [
+        5.853,
+        -8.439,
+        51.132
+      ],
+      [
+        8.288,
+        -9.645,
+        53.792
+      ],
+      [
+        7.311,
+        -6.696,
+        55.958
+      ],
+      [
+        3.609,
+        -7.463,
+        55.557
+      ],
+      [
+        4.206,
+        -11.132,
+        56.281
+      ],
+      [
+        5.903,
+        -9.928,
+        59.463
+      ],
+      [
+        2.908,
+        -7.745,
+        60.31
+      ],
+      [
+        0.527,
+        -10.676,
+        59.812
+      ],
+      [
+        2.506,
+        -12.753,
+        62.301
+      ],
+      [
+        2.756,
+        -9.769,
+        64.636
+      ],
+      [
+        -1.029,
+        -9.391,
+        64.572
+      ],
+      [
+        -1.357,
+        -13.097,
+        65.388
+      ],
+      [
+        0.949,
+        -12.726,
+        68.357
+      ],
+      [
+        3.873,
+        -14.575,
+        66.798
+      ],
+      [
+        6.537,
+        -12.044,
+        67.593
+      ],
+      [
+        9.445,
+        -14.41,
+        66.955
+      ],
+      [
+        8.272,
+        -15.158,
+        63.418
+      ],
+      [
+        7.425,
+        -11.475,
+        62.928
+      ],
+      [
+        10.986,
+        -10.55,
+        63.858
+      ],
+      [
+        12.426,
+        -13.038,
+        61.36
+      ],
+      [
+        10.4,
+        -11.553,
+        58.52
+      ],
+      [
+        10.961,
+        -7.938,
+        59.534
+      ],
+      [
+        14.683,
+        -8.744,
+        59.483
+      ],
+      [
+        14.389,
+        -10.129,
+        55.957
+      ],
+      [
+        12.556,
+        -6.972,
+        54.878
+      ],
+      [
+        15.301,
+        -4.833,
+        56.427
+      ],
+      [
+        18.017,
+        -6.78,
+        54.613
+      ],
+      [
+        16.276,
+        -5.744,
+        51.391
+      ],
+      [
+        15.447,
+        -2.176,
+        52.471
+      ],
+      [
+        17.434,
+        -0.957,
+        55.498
+      ],
+      [
+        16.021,
+        2.554,
+        55.216
+      ],
+      [
+        12.445,
+        1.715,
+        56.144
+      ]
+    ]
+  }
+}

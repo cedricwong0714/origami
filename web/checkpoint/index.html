@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ORIGAMI checkpoint — not final</title>
+  <style>
+    :root { --ink:#242220; --paper:#f3efe9; --line:#d7cfc3; --accent:#266fb1; }
+    body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; background: var(--paper); color: var(--ink); }
+    main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.4rem; }
+    .banner { background: #fff3d6; border: 1px solid #e0c36a; padding: 0.8rem 1rem; margin-bottom: 1rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.8rem; background: #fff; }
+    th, td { border: 1px solid var(--line); padding: 0.3rem 0.4rem; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    a { color: var(--accent); }
+    pre { background: #fff; padding: 0.8rem; overflow: auto; border: 1px solid var(--line); }
+    .grid { display: grid; gap: 1rem; }
+    @media (min-width: 800px) { .grid.two { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="banner">
+      Temporary teammate checkpoint. This page is a <strong>saved n=8 run</strong>, not a live Python host.
+      <code>calibrated</code> is false. Vercel cannot run the numpy/scipy chassis. To run the models, use the local commands below.
+    </div>
+    <h1>ORIGAMI dry-lab checkpoint</h1>
+    <p id="meta">Loading checkpoint-n8.json…</p>
+    <p>
+      Files:
+      <a href="./checkpoint-n8.json">checkpoint-n8.json</a> ·
+      <a href="./confirmation-n3-24.csv">confirmation-n3-24.csv</a> ·
+      <a href="./stability-panel.csv">stability-panel.csv</a>
+    </p>
+
+    <div class="grid two">
+      <section>
+        <h2>How teammates run the live models</h2>
+        <pre>python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[ui]"
+streamlit run sandbox/app.py --server.port 48621</pre>
+        <p>Then open <code>http://127.0.0.1:48621</code>. That is the sandbox, not this static page.</p>
+        <pre>from origami.engine import run_design
+from sandbox.service import run_sandbox
+run_design("probe", 8)
+run_sandbox({"design_id": "probe", "n_repeats": 8})</pre>
+      </section>
+      <section>
+        <h2>This snapshot</h2>
+        <ul id="snap"></ul>
+      </section>
+    </div>
+
+    <h2>Confirmation table (n = 3–24)</h2>
+    <div style="overflow:auto; max-height: 28rem;">
+      <table id="conf"></table>
+    </div>
+
+    <h2>Stability panel (four series, unmixed)</h2>
+    <p>Filter shown: n = 8 only. Full table is in the CSV.</p>
+    <div style="overflow:auto;">
+      <table id="stab"></table>
+    </div>
+  </main>
+  <script>
+    async function main() {
+      const bundle = await fetch("./checkpoint-n8.json").then((r) => r.json());
+      const r = bundle.result;
+      const sep = r.separation || {};
+      document.getElementById("meta").textContent =
+        "design_id=" + r.design_id +
+        " · n=" + r.n_repeats +
+        " · calibrated=" + r.calibrated +
+        " · gp_fitted=" + (sep.gp_fitted);
+      document.getElementById("snap").innerHTML = [
+        ["next_n (coordinate to measure)", r.next_n],
+        ["next_delta_i", sep.next_delta_i],
+        ["stability_state at n=8", r.stability_state],
+        ["tm_C", r.tm_C],
+        ["theta_ss", r.theta_ss],
+        ["pytest note", bundle.pytest],
+      ].map(([k, v]) => "<li><strong>" + k + "</strong>: " + v + "</li>").join("");
+
+      const rows = bundle.confirmation.rows;
+      const keys = ["n_repeats", "rigid_screw", "thermal_state", "tm_C", "delta_g", "p_instability", "physics_score"];
+      const conf = document.getElementById("conf");
+      conf.innerHTML = "<thead><tr>" + keys.map((k) => "<th>" + k + "</th>").join("") + "</tr></thead><tbody>" +
+        rows.map((row) => "<tr>" + keys.map((k) => "<td>" + row[k] + "</td>").join("") + "</tr>").join("") +
+        "</tbody>";
+
+      const n8 = bundle.drylab.stability_panel.filter((row) => row.n_repeats === 8);
+      const skeys = ["series_id", "thermal_state", "tm_C", "delta_g", "delta_g_units"];
+      const stab = document.getElementById("stab");
+      stab.innerHTML = "<thead><tr>" + skeys.map((k) => "<th>" + k + "</th>").join("") + "</tr></thead><tbody>" +
+        n8.map((row) => "<tr>" + skeys.map((k) => "<td>" + row[k] + "</td>").join("") + "</tr>").join("") +
+        "</tbody>";
+    }
+    main().catch((err) => {
+      document.getElementById("meta").textContent = "Could not load checkpoint-n8.json: " + err;
+    });
+  </script>
+</body>
+</html>
