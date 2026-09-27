@@ -1,8 +1,10 @@
 """Import caller-supplied protein physical properties.
 
 This module does not measure, estimate, or fill in radii, linker sigmas,
-dissociation constants, or sequences. Every physical number must already be
-present on the input row. Structure identifiers are stored as given; this
+or dissociation constants. An optional protein sequence is stored only as
+the caller typed it, with a SHA-256 checksum. An optional molecular weight
+is stored only as the caller typed it. Neither field is converted into
+``radius_A``. Structure identifiers are stored as given; this
 module does not fetch PDB entries or generate coordinates.
 
 An optional fusion-context group (``external_ddg`` and its units, source,
@@ -13,6 +15,7 @@ does not apply a cutoff to ``external_ddg``.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 from dataclasses import dataclass
@@ -35,6 +38,8 @@ _FUSION_CONTEXT_FIELDS = (
     "external_tool",
 )
 _TERMINI = ("N", "C")
+_PROTEIN_ALPHABET = set("ACDEFGHIKLMNPQRSTVWY")
+_MW_FIELDS = ("mw_Da", "mw_source")
 
 
 @dataclass(frozen=True)
@@ -43,7 +48,8 @@ class PayloadRecord:
 
     ``repeat_index`` is the 0-based docking repeat on the scaffold.
     ``radius_A`` and ``linker_sigma_A`` are in angstroms and must be provided
-    by the caller. They are not estimated here.
+    by the caller. They are not estimated here. ``protein_sequence`` and
+    ``mw_Da`` are optional annotations. Mass is not converted into a radius.
 
     ``external_ddg``, ``external_ddg_units``, ``external_ddg_source``, and
     ``external_tool`` are one optional annotation. All four are None when
@@ -58,6 +64,10 @@ class PayloadRecord:
     radius_A: float
     linker_sigma_A: float
     structure_id: str | None = None
+    protein_sequence: str | None = None
+    sequence_checksum: str | None = None
+    mw_Da: float | None = None
+    mw_source: str | None = None
     external_ddg: float | None = None
     external_ddg_units: str | None = None
     external_ddg_source: str | None = None
@@ -129,6 +139,8 @@ def _record_from_row(index: int, row: object) -> PayloadRecord:
         payload_id, "linker_sigma_A", row["linker_sigma_A"]
     )
     structure_id = _structure_id(payload_id, row)
+    protein_sequence, sequence_checksum = _protein_sequence(payload_id, row)
+    mw_Da, mw_source = _molecular_weight(payload_id, row)
     external_ddg, external_ddg_units, external_ddg_source, external_tool = (
         _fusion_context(payload_id, row)
     )
@@ -140,6 +152,10 @@ def _record_from_row(index: int, row: object) -> PayloadRecord:
         radius_A=radius_A,
         linker_sigma_A=linker_sigma_A,
         structure_id=structure_id,
+        protein_sequence=protein_sequence,
+        sequence_checksum=sequence_checksum,
+        mw_Da=mw_Da,
+        mw_source=mw_source,
         external_ddg=external_ddg,
         external_ddg_units=external_ddg_units,
         external_ddg_source=external_ddg_source,
@@ -265,6 +281,54 @@ def _nonempty_text(payload_id: str, field: str, raw: object) -> str:
     if not isinstance(raw, str) or raw.strip() == "":
         raise ValueError(f"payload {payload_id}: {field} must be a non-empty string")
     return raw
+
+
+def _protein_sequence(
+    payload_id: str, row: dict
+) -> tuple[str | None, str | None]:
+    """Store a caller-typed protein sequence and its checksum.
+
+    The sequence is not generated here. Only the 20 canonical amino-acid
+    letters are accepted. Checksum is SHA-256 of the uppercase letters.
+    """
+    if "protein_sequence" not in row or row["protein_sequence"] is None:
+        return None, None
+    raw = row["protein_sequence"]
+    if not isinstance(raw, str):
+        raise ValueError(f"payload {payload_id}: protein_sequence must be a string")
+    letters = "".join(raw.split()).upper()
+    if letters == "":
+        raise ValueError(f"payload {payload_id}: protein_sequence is empty")
+    bad = sorted({ch for ch in letters if ch not in _PROTEIN_ALPHABET})
+    if bad:
+        raise ValueError(
+            f"payload {payload_id}: protein_sequence has characters outside "
+            f"the canonical amino-acid alphabet: {bad}"
+        )
+    checksum = hashlib.sha256(letters.encode("ascii")).hexdigest()
+    return letters, checksum
+
+
+def _molecular_weight(
+    payload_id: str, row: dict
+) -> tuple[float | None, str | None]:
+    """Store a caller-typed mass. This is not converted into radius_A."""
+    raw = {field: row[field] if field in row else None for field in _MW_FIELDS}
+    if all(value is None for value in raw.values()):
+        return None, None
+    missing = [field for field, value in raw.items() if _is_blank(value)]
+    if missing:
+        raise ValueError(
+            f"payload {payload_id}: missing required field {', '.join(missing)}"
+        )
+    mw = raw["mw_Da"]
+    if isinstance(mw, bool) or not isinstance(mw, (int, float)):
+        raise ValueError(f"payload {payload_id}: mw_Da must be a number greater than 0")
+    mass = float(mw)
+    if not math.isfinite(mass) or mass <= 0.0:
+        raise ValueError(f"payload {payload_id}: mw_Da must be greater than 0")
+    source = _nonempty_text(payload_id, "mw_source", raw["mw_source"])
+    return mass, source
 
 
 def _structure_id(payload_id: str, row: dict) -> str | None:

@@ -17,7 +17,8 @@ This module does not introduce a new biological constant.
 - `design_id`: string
 - `n_repeats`: integer in [3, 24]
 - optional payload rows with `payload_id`, `role`, `fusion_terminus`,
-  `repeat_index`, `radius_A` (Å), `linker_sigma_A` (Å)
+  `repeat_index`, `radius_A` (Å), `linker_sigma_A` (Å), optional
+  `protein_sequence`, and optional `mw_Da` + `mw_source`
 - optional `thermal_prior` and `t_assay_C` (°C)
 - optional user-entered observations `{n_repeats, y, source}`
 
@@ -33,8 +34,9 @@ default 25 Å heuristic radius on each end repeat.
 
 ## Known limitations
 
-No sequence export. No wet-lab import. The residual GP stays unfitted until
-the caller enters y. Payload shape is still a sphere.
+No sequence export. Sequences are only stored as typed, with a checksum.
+Mass is not converted into the clash radius. The residual GP stays unfitted
+until the caller enters y. Payload shape is still a sphere.
 
 ## Parameter sources
 

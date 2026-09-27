@@ -11,6 +11,7 @@ from typing import Any
 
 from origami.engine import Observation, run_design
 from origami.io.payloads import PayloadRecord, load_payloads
+from origami.physical.erickson_size import payload_size_note
 from origami.priors import (
     DEFAULT_PAYLOAD_RADIUS_A,
     LINKER_SIGMA_A,
@@ -83,6 +84,25 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
             "(GGGGS)3 Kratky-Porod RMS."
         )
 
+    size_notes = []
+    if payloads is not None:
+        for record in payloads:
+            if record.mw_Da is None:
+                continue
+            size_notes.append(
+                {
+                    "payload_id": record.payload_id,
+                    "mw_source": record.mw_source,
+                    "sequence_checksum": record.sequence_checksum,
+                    "residue_count": (
+                        None
+                        if record.protein_sequence is None
+                        else len(record.protein_sequence)
+                    ),
+                    **payload_size_note(record.mw_Da, record.radius_A),
+                }
+            )
+
     report = run_design(
         design_id.strip(),
         n_repeats,
@@ -125,6 +145,7 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
             "notes": notes,
         },
         "result": payload,
+        "payload_size": size_notes,
         "library": {
             "n_repeats": library_n,
             "gp_mean": payload["gp_mean"],

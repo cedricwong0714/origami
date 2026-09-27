@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-27 (payload sequence and mass)
+
+### Added
+- Optional `protein_sequence` (canonical amino acids + SHA-256) and `mw_Da` + `mw_source` on payload import.
+- Erickson (2009) eq 2.2 Rmin from that mass (DOI 10.1007/s12575-009-9008-x). Rmin is a lower bound. It is not written into `radius_A`.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27 (design sandbox)
 
 ### Added

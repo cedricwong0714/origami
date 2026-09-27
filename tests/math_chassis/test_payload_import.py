@@ -4,6 +4,7 @@ Numeric values in these tests are arbitrary fixtures. They are not measured
 radii, linker sigmas, or other biological parameters.
 """
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -179,6 +180,30 @@ def test_partial_external_ddg_without_units_source_or_tool_raises():
     with pytest.raises(ValueError, match="alpha") as blank:
         load_payloads([blank_units])
     assert "external_ddg_units" in str(blank.value)
+
+
+def test_protein_sequence_is_checksummed_and_not_a_radius() -> None:
+    records = load_payloads([_row(protein_sequence="  acdefg  ")])
+    record = records[0]
+    assert record.protein_sequence == "ACDEFG"
+    assert record.sequence_checksum == hashlib.sha256(b"ACDEFG").hexdigest()
+    assert record.radius_A == 12.5
+
+
+def test_mw_requires_source_and_is_not_converted() -> None:
+    with pytest.raises(ValueError, match="mw_source"):
+        load_payloads([_row(mw_Da=47400.0)])
+    records = load_payloads(
+        [_row(mw_Da=47400.0, mw_source="caller construct calculator")]
+    )
+    assert records[0].mw_Da == 47400.0
+    assert records[0].mw_source == "caller construct calculator"
+    assert records[0].radius_A == 12.5
+
+
+def test_invalid_protein_sequence_is_rejected() -> None:
+    with pytest.raises(ValueError, match="alphabet"):
+        load_payloads([_row(protein_sequence="ACDEFGBX")])
 
 
 def test_complete_external_fusion_context_preserves_values():

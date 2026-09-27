@@ -18,6 +18,33 @@ from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, LINKER_SIGMA_A, N_REPEATS_M
 from origami.stability.series import DEFAULT_OPERATING_TEMPERATURE_C
 from sandbox.service import run_sandbox
 
+
+def _payload_row(
+    payload_id: str,
+    role: str,
+    terminus: str,
+    repeat_index: int,
+    radius_A: float,
+    linker_sigma_A: float,
+    mw_Da: float,
+    mw_source: str,
+    sequence: str,
+) -> dict:
+    row = {
+        "payload_id": payload_id,
+        "role": role,
+        "fusion_terminus": terminus,
+        "repeat_index": repeat_index,
+        "radius_A": radius_A,
+        "linker_sigma_A": linker_sigma_A,
+    }
+    if mw_Da > 0.0:
+        row["mw_Da"] = float(mw_Da)
+        row["mw_source"] = mw_source
+    if sequence.strip():
+        row["protein_sequence"] = sequence
+    return row
+
 st.set_page_config(page_title="ORIGAMI design sandbox", layout="wide")
 st.title("ORIGAMI design sandbox")
 st.caption(
@@ -69,6 +96,9 @@ with st.sidebar:
                 step=0.1,
                 format="%.6f",
             )
+            a_mw = st.number_input("A mw_Da (optional, 0 = omit)", min_value=0.0, value=0.0, step=100.0)
+            a_mw_src = st.text_input("A mw_source", value="")
+            a_seq = st.text_area("A protein_sequence (optional)", value="")
         with col_b:
             st.subheader("Payload B")
             b_id = st.text_input("B payload_id", value="payload_b")
@@ -89,23 +119,12 @@ with st.sidebar:
                 format="%.6f",
                 key="b_s",
             )
+            b_mw = st.number_input("B mw_Da (optional, 0 = omit)", min_value=0.0, value=0.0, step=100.0, key="b_mw")
+            b_mw_src = st.text_input("B mw_source", value="", key="b_mw_src")
+            b_seq = st.text_area("B protein_sequence (optional)", value="", key="b_seq")
         payloads = [
-            {
-                "payload_id": a_id,
-                "role": a_role,
-                "fusion_terminus": a_term,
-                "repeat_index": int(a_idx),
-                "radius_A": float(a_r),
-                "linker_sigma_A": float(a_s),
-            },
-            {
-                "payload_id": b_id,
-                "role": b_role,
-                "fusion_terminus": b_term,
-                "repeat_index": int(b_idx),
-                "radius_A": float(b_r),
-                "linker_sigma_A": float(b_s),
-            },
+            _payload_row(a_id, a_role, a_term, int(a_idx), float(a_r), float(a_s), a_mw, a_mw_src, a_seq),
+            _payload_row(b_id, b_role, b_term, int(b_idx), float(b_r), float(b_s), b_mw, b_mw_src, b_seq),
         ]
     else:
         st.info(
@@ -195,9 +214,10 @@ m5.metric("stability", report["stability_state"])
 if report["calibrated"]:
     st.error("calibrated is true. That should not happen from this sandbox.")
 
-tab_sum, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
+tab_sum, tab_size, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
     [
         "This scaffold",
+        "Sequence / MW",
         "n library",
         "Δi scan",
         "Structure",
@@ -237,6 +257,20 @@ with tab_sum:
         "da and p_capture stay empty unless k_cat, K_m, k_escape, and v_prod "
         "are supplied. This sandbox does not invent those rates."
     )
+
+with tab_size:
+    notes = bundle.get("payload_size") or []
+    if not notes:
+        st.info(
+            "No mw_Da was supplied. Sequence and mass are optional. "
+            "They do not replace radius_A. Erickson Rmin is a lower bound, not a clash radius."
+        )
+    else:
+        st.caption(
+            "Rmin is Erickson 2009 eq 2.2 (DOI 10.1007/s12575-009-9008-x). "
+            "Clash still uses the typed radius_A."
+        )
+        st.dataframe(pd.DataFrame(notes), hide_index=True)
 
 with tab_n:
     n_df = pd.DataFrame(
