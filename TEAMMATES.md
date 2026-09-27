@@ -2,6 +2,8 @@
 
 This is a checkpoint so others can see saved numbers and run the models locally without the Cursor agent. It is not a production host and not a wet-lab dataset. `calibrated` stays false.
 
+Live hosting that survives the Cursor agent is documented in [`HOSTING.md`](HOSTING.md). Start **`host_app.py`**. Do not `pip install origami` from PyPI.
+
 ## What Vercel can do
 
 Vercel can serve the **static** folder `web/checkpoint/`. That page loads a saved `n = 8` run. It does **not** execute `run_design`, numpy, or Streamlit.
