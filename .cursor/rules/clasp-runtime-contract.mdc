@@ -1,0 +1,26 @@
+---
+description: CLASP Copilot runtime contract: AI advises, tools enforce, humans approve. Use when routing design/export/biosecurity/ML/simulation work.
+alwaysApply: true
+---
+
+# CLASP Copilot runtime contract
+
+**AI advises. Tools enforce. Humans approve.** LLMs are not final authority on export, `screen_sequence`, or `validate_*`.
+
+## Pipeline
+
+`request → Orchestrator → RAG → Verification → Biosecurity → ML → Simulation → Ethics → Human Gate → export`
+
+- **Green:** proceed to the next stage.
+- **Yellow:** label as review-required; continue only with human review.
+- **Red:** halt (`halt_on_red`) and use `fallback`. Do not continue toward export.
+
+## Hard rules
+
+- No sequence export without biosecurity screening **and** human sign-off.
+- No claim without a citation, or return insufficient evidence.
+- No bare ML prediction: require uncertainty **and** applicability domain (`check_ood`).
+- Least privilege: each agent uses only its declared tools.
+- Every agent action is recorded via `log_audit`.
+- Orchestrator routes and audits; it never exports.
+- Human Gate is a UI sign-off record, not an LLM approval.
