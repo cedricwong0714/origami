@@ -77,9 +77,9 @@ def test_chord_matches_the_coordinate_distance_and_one_rise_of_axis():
 def test_chord_interval_uses_the_joint_jacobian_covariance():
     """Shared helical error can shrink or widen a chord.
 
-    With the deposited rise and twist sample standard deviations, sites
-    2 and 3 have a smaller joint chord width than independent sites, and
-    sites 1 and 2 have a larger one. The report uses the joint block
+    With the deposited rise, twist, and junction-radius sample standard
+    deviations, sites 2 and 3 and sites 1 and 2 both have a smaller joint
+    chord width than independent sites. The report uses the joint block
     either way.
     """
     geom = build_ctpr(8)
@@ -100,11 +100,11 @@ def test_chord_interval_uses_the_joint_jacobian_covariance():
     shrunk = chord_sigma_A(geom, 2, 3)
     assert shrunk == pytest.approx(sigma(2, 3, joint=True))
     assert shrunk < sigma(2, 3, joint=False)
-    widened = chord_sigma_A(geom, 1, 2)
-    assert widened == pytest.approx(sigma(1, 2, joint=True))
-    assert widened > sigma(1, 2, joint=False)
+    narrowed = chord_sigma_A(geom, 1, 2)
+    assert narrowed == pytest.approx(sigma(1, 2, joint=True))
+    assert narrowed < sigma(1, 2, joint=False)
     pair = structural_report(geom, [1, 2]).pairs[0]
-    assert pair.chord_95_high_A - pair.chord_95_low_A == pytest.approx(2.0 * 1.96 * widened)
+    assert pair.chord_95_high_A - pair.chord_95_low_A == pytest.approx(2.0 * 1.96 * narrowed)
     assert pair.linearization_crosses_zero is (pair.chord_95_low_A < 0.0)
 
 
@@ -136,7 +136,8 @@ def test_runtime_rise_is_the_deposited_screw_mean_and_twist_stays_one_turn():
     Failure mode: a 1.1 nm rise is outside that step range, so pitch,
     chords, and clash would describe a different screw.
     Twist stays 45° because that angle is inside the deposited range.
-    The 1.8 nm cylinder is not the repeat-centroid radius.
+    The scaffold radius is the repeat centroid. The docking radius is
+    the inter-repeat junction. Neither is the outer C-alpha shell.
     """
     steps = screw_steps()
     assert len(steps) == 7
@@ -159,15 +160,20 @@ def test_runtime_rise_is_the_deposited_screw_mean_and_twist_stays_one_turn():
     )
     assert DEFAULT_TWIST_STD_DEG == pytest.approx(deposited["twist_sample_std_deg"])
     assert deposited["centroid_radius_mean_A"] == pytest.approx(12.185585199113614)
+    assert deposited["junction_radius_mean_A"] == pytest.approx(12.363166305578243)
     assert deposited["runtime_scaffold_radius_inside_outer_ca_range"] is False
     assert deposited["runtime_docking_radius_inside_outer_ca_range"] is False
-    assert CTPR_SCAFFOLD_RADIUS_A.value == pytest.approx(18.0)
-    assert CTPR_RADIUS_A.value == pytest.approx(21.5)
+    assert CTPR_SCAFFOLD_RADIUS_A.value == pytest.approx(deposited["centroid_radius_mean_A"])
+    assert CTPR_RADIUS_A.value == pytest.approx(deposited["junction_radius_mean_A"])
+    assert CTPR_SCAFFOLD_RADIUS_A.sigma == pytest.approx(
+        deposited["centroid_radius_sample_std_A"]
+    )
+    assert CTPR_RADIUS_A.sigma == pytest.approx(deposited["junction_radius_sample_std_A"])
     fresh = deposited_summary(
         runtime_rise_A=report.rise_A,
         runtime_twist_deg=45.0,
-        runtime_scaffold_radius_A=18.0,
-        runtime_docking_radius_A=21.5,
+        runtime_scaffold_radius_A=CTPR_SCAFFOLD_RADIUS_A.value,
+        runtime_docking_radius_A=CTPR_RADIUS_A.value,
     )
     assert fresh["rise_mean_A"] == pytest.approx(deposited["rise_mean_A"])
 

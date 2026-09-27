@@ -452,8 +452,8 @@ function runOptimization() {
     // ORIGAMI CTPR invariants (src/core/ctpr_geometry.py) — Å units in this page
     const theta = 45.0 * (Math.PI / 180.0); // 45° twist per repeat (Kajander 2007)
     const dz = 8.416;                       // deposited mean rise, Å (0.8416 nm)
-    const R_scaffold = 18.0;                // 1.8 nm scaffold radius
-    const loopOffset = 3.5;                 // 0.35 nm docking-loop offset
+    const R_scaffold = 12.186;              // deposited repeat-centroid radius, Å
+    const loopOffset = 0.178;               // junction minus centroid, Å
     const R_total = R_scaffold + loopOffset;
     const rClash = rA + rB;                 // Combined collision radius
     const wClash = 5.0;                      // Soft boundary buffer

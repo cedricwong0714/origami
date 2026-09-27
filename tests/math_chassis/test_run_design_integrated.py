@@ -92,11 +92,12 @@ def test_run_design_packages_payloads_and_default_pair():
     assert "time_s" not in payload
     assert json.loads(json.dumps(payload)) == payload
 
-    # Pair C_eff uses both supplied linker widths. Variances add.
+    # Pair C_eff uses both supplied linker widths as the standoffs. Variances add.
     geom = build_ctpr(8)
     distance_A = float(
         np.linalg.norm(
-            payload_center(geom.site(0), 20.0) - payload_center(geom.site(7), 22.0)
+            payload_center(geom.site(0), 12.0 + 20.0)
+            - payload_center(geom.site(7), 15.0 + 22.0)
         )
     )
     sigma_A = math.hypot(12.0, 15.0)
@@ -140,14 +141,10 @@ def test_payload_dict_missing_linker_is_not_defaulted():
         run_design("missing-linker", 6, payloads=[row])
 
 
-def test_scaffold_excluded_volume_is_src_cylinder_in_angstroms():
-    # 1 nm = 10 Å. CTPR_RADIUS_NM is 1.8 nm, so the cylinder is 18.0 Å.
-    # src.core.ctpr_geometry does not define a numeric sigma for that radius.
+def test_scaffold_radius_is_the_deposited_centroid_in_angstroms():
+    # 1 nm = 10 Å. CTPR_RADIUS_NM is the deposited repeat-centroid radius.
     assert CTPR_SCAFFOLD_RADIUS_A.value == pytest.approx(CTPR_RADIUS_NM * 10.0)
-    assert CTPR_SCAFFOLD_RADIUS_A.value == pytest.approx(18.0)
+    assert CTPR_SCAFFOLD_RADIUS_A.value == pytest.approx(12.185585199113614)
     assert CTPR_SCAFFOLD_RADIUS_A.units == "Å"
-    assert (
-        CTPR_SCAFFOLD_RADIUS_A.source
-        == "CLASP Docs §2.4 / steric_checker scaffold cylinder"
-    )
-    assert CTPR_SCAFFOLD_RADIUS_A.sigma == 3.0
+    assert "10.1107/S0907444907024353" in CTPR_SCAFFOLD_RADIUS_A.source
+    assert CTPR_SCAFFOLD_RADIUS_A.sigma == pytest.approx(0.5696084155839191)

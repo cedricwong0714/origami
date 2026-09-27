@@ -1,11 +1,13 @@
 """
 ORIGAMI Core: Steric Accessibility Checker
 Detects payload-payload and payload-scaffold collisions.
-Uses simplified sphere representations per CLASP Docs §2.4.
+The math-chassis clash model uses the deposited C-alpha trace.
+This module still approximates the scaffold as a cylinder, now at the
+deposited repeat-centroid radius rather than the old 1.8 nm prior.
 
 Key Invariants:
 - Payloads modeled as spheres with radius from PayloadSpec
-- Scaffold backbone modeled as cylinder (radius 1.8 nm)
+- Scaffold backbone modeled as a cylinder at CTPR_RADIUS_NM
 - Docking sites have exclusion zones
 - Overlap threshold: 0.5 nm penetration tolerance
 """
@@ -14,10 +16,10 @@ from __future__ import annotations
 import numpy as np
 from pydantic import BaseModel, Field
 from typing import List, Tuple
-from .ctpr_geometry import ScaffoldGeometry
+from .ctpr_geometry import CTPR_RADIUS_NM, ScaffoldGeometry
 
 STERIC_OVERLAP_TOLERANCE_NM = 0.5
-SCAFFOLD_CYLINDER_RADIUS_NM = 1.8
+SCAFFOLD_CYLINDER_RADIUS_NM = CTPR_RADIUS_NM
 
 
 class StericViolation(BaseModel):

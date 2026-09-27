@@ -15,8 +15,10 @@ Key Invariants:
   twist is not exactly 45 degrees; see origami.physical.deposited.
 - Persistence length: 15 nm (project rigid-rod cutoff; not in the
   deposited coordinate table)
-- Scaffold cylinder radius: 1.8 nm (not the deposited repeat-centroid
-  radius; the fit's outer C-alpha shell is wider)
+- Repeat-centroid radius: mean of the deposited screw steps.
+  The previous CLASP cylinder was 1.8 nm.
+- Docking radius: that centroid plus the deposited inter-repeat
+  junction offset. The previous unsourced offset was 0.35 nm.
 
 Center-of-mass / docking chord (Δi repeats apart, radius R):
   d = sqrt( 2 R² (1 − cos(Δi · θ)) + (Δi · rise)² )
@@ -63,14 +65,20 @@ CTPR_RISE_NM = 0.8416139416984938
 # Notes: Superhelical twist between successive repeats, not ~24° A/B tilt
 CTPR_TWIST_DEG = 45.0
 
-# Parameter: CTPR scaffold cylinder radius
-# Value: 1.8
+# Parameter: CTPR repeat-centroid radius
+# Value: 1.2185585199113613
 # Units: nm
-# Source: CLASP Docs §2.4 / steric_checker scaffold cylinder
-# Notes: Not the deposited repeat-centroid radius (about 1.22 nm).
-#   The deposited outer C-alpha shell is about 1.84–2.01 nm, so 1.8 nm
-#   sits inside that shell. Left unchanged; the comparison flags it.
-CTPR_RADIUS_NM = 1.8
+# Source: mean radial distance of the 34-residue C-alpha centroid on
+#   seven screw steps from PDB 2AVP, 2HYZ, and 2FO7.
+#   Kajander et al. (2007) Acta Crystallogr D 63:800-811,
+#   DOI: 10.1107/S0907444907024353
+# System: Consensus TPR asymmetric-unit chains
+# Method: radial distance of the repeat centroid from the Kabsch screw axis
+# Notes: Previous CLASP cylinder was 1.8 nm. This is the centroid, not
+#   the outer C-alpha shell (about 1.84–2.01 nm). 1 nm = 10 Å, so
+#   12.185585199113614 Å is 1.2185585199113613 nm.
+#   Payload clash uses the placed C-alpha trace, not a cylinder.
+CTPR_RADIUS_NM = 1.2185585199113613
 # Parameter: rigid-rod persistence cutoff
 # Value: 15.0
 # Units: nm
@@ -79,11 +87,20 @@ CTPR_RADIUS_NM = 1.8
 #   DOI: 10.1021/acsnano.1c09162.
 PERSISTENCE_LENGTH_NM = 15.0
 
-# Parameter: Docking-loop radial offset beyond scaffold cylinder
-# Value: 0.35
+# Parameter: radial offset from the repeat centroid to the inter-repeat junction
+# Value: 0.01775811064646291
 # Units: nm
-# Source: CLASP geometry prior (loop graft extension beyond cylinder)
-DOCKING_LOOP_OFFSET_NM = 0.35
+# Source: mean junction radius minus mean centroid radius on the same
+#   seven deposited steps. The junction is the midpoint of C-alpha 34 and
+#   C-alpha 1 of the next 34-residue block (DPRS in 2AVP, 2HYZ, and 2FO7).
+#   Ripka, Perez-Riba, Chaturbedy, and Itzhaki insert after the inter-repeat
+#   loop, DOI: 10.1016/j.crstbi.2020.12.002. Volume and pages are not copied
+#   here because they were not on the open page that was read.
+# Notes: Replaces the unsourced 0.35 nm offset. This is a difference of
+#   two deposited means, not an independent measurement. 1 nm = 10 Å.
+#   (12.363166305578243 - 12.185585199113614) Å = 0.1775811064646291 Å
+#   = 0.01775811064646291 nm.
+DOCKING_LOOP_OFFSET_NM = 0.01775811064646291
 
 # Sample standard deviation (n-1) of the same seven deposited screw steps.
 # Rise: 0.4760507886412968 Å = 0.04760507886412968 nm.

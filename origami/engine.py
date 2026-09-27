@@ -27,6 +27,7 @@ from origami.physical.structure import structural_report
 from origami.priors import (
     CAM_M13_KD_M,
     DEFAULT_PAYLOAD_RADIUS_A,
+    LINKER_SIGMA_A,
     N_REPEATS_MAX,
     N_REPEATS_MIN,
     all_priors,
@@ -666,6 +667,23 @@ def _resolve_payloads(
     return indices, radii, sigmas
 
 
+def _payload_standoffs(
+    sigmas: list[float | None] | None,
+    count: int,
+) -> list[float]:
+    """Radial standoff of each payload center, in Å.
+
+    A supplied linker width is that payload's tether. An omitted width
+    uses ``LINKER_SIGMA_A``, the (GGGGS)3 worm-like-chain RMS.
+    """
+    if sigmas is None:
+        return [LINKER_SIGMA_A.value] * count
+    standoffs: list[float] = []
+    for value in sigmas:
+        standoffs.append(LINKER_SIGMA_A.value if value is None else float(value))
+    return standoffs
+
+
 def _pair_linker_sigma_A(
     sigmas: list[float | None] | None,
     a: int,
@@ -678,7 +696,7 @@ def _pair_linker_sigma_A(
     model then uses ``LINKER_SIGMA_A``. The missing width is not invented.
     """
     if sigmas is None:
-        return None
+        return float(math.hypot(LINKER_SIGMA_A.value, LINKER_SIGMA_A.value))
     left, right = sigmas[a], sigmas[b]
     if left is None or right is None:
         return None
@@ -915,7 +933,8 @@ def run_design(
         raise RuntimeError("scaffold geometry was not built from the canonical prior")
     structure = structural_report(geom, indices)
     warnings.extend(structure.warnings)
-    steric = steric_report(geom, indices, radii)
+    standoffs = _payload_standoffs(sigmas, len(indices))
+    steric = steric_report(geom, indices, radii, standoff_A=standoffs)
     if steric.p_any_instability < 0:
         raise RuntimeError("clash probability cannot be negative")
 
@@ -925,8 +944,8 @@ def run_design(
             i, j = indices[a], indices[b]
             distance_A = float(
                 np.linalg.norm(
-                    payload_center(geom.site(i), radii[a])
-                    - payload_center(geom.site(j), radii[b])
+                    payload_center(geom.site(i), standoffs[a] + radii[a])
+                    - payload_center(geom.site(j), standoffs[b] + radii[b])
                 )
             )
             pair_ceffs.append(

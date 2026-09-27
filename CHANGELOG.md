@@ -19,6 +19,24 @@
   Impact: chord intervals and clash probabilities.
 
 ### Unchanged
-- Scaffold cylinder radius 1.8 nm and docking radius 21.5 Å. The deposited outer C-alpha shell is 18.42–20.09 Å, and the repeat-centroid radius is about 12.19 Å. Those radii were not substituted.
 - Persistence length 15 nm. It is not in the deposited coordinate table.
 - Team lengths 2, 3, 14, and 20. They are still not acquisition targets.
+- The residual GP is still unfitted. The retrieved literature has no assay of the design score, so it was not trained on a substitute target. `calibrated` stays false.
+
+## Unreleased — 2026-09-27 (geometry follow-up)
+
+### Changed
+- Scaffold radius: changed from 1.8 nm (18.0 Å) to 1.2185585199113613 nm (12.185585199113614 Å).
+  Reason: 1.8 nm was a cylinder prior, not the repeat centroid.
+  New source: mean centroid radius of the same seven deposited screw steps.
+  Impact: backbone curvature. Payload clash no longer uses this radius as a cylinder.
+- Docking radius: changed from 21.5 Å to 12.363166305578243 Å.
+  Reason: the 0.35 nm loop offset had no source.
+  New source: mean radial distance of the inter-repeat junction (midpoint of C-alpha 34 and the next C-alpha 1) on those seven steps.
+  Impact: docking-site coordinates, chords, clash, and effective concentration.
+- Linker width: changed from 18 Å to the Kratky–Porod RMS of one (GGGGS)3 chain.
+  Source: van Rosmalen, Krom, and Merkx (2017) Biochemistry 56:6565–6574, DOI 10.1021/acs.biochem.7b00902. Residue length 3.8 Å. G4S2 persistence length 3.7 Å.
+  (GGGGS) is not G4S2. The persistence length was not interpolated. No standard error was printed, so the parameter sigma is 0.
+  Impact: payload standoff and C_eff. A pair of tethers adds the two variances.
+- Payload clash: the scaffold body is the placed C-alpha trace. The payload remains a sphere of the caller radius around a center one tether RMS out from the junction.
+  Reviewed by: not a human wet-lab review. `calibrated` stays false.

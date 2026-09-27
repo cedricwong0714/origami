@@ -61,7 +61,7 @@ def test_coordinates_match_src_screw_after_nm_to_angstrom():
     assert geom.rise_A == pytest.approx(8.416139416984938)
     assert geom.rotation_rad == pytest.approx(math.pi / 4)
     assert geom.radius_A == pytest.approx((CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) * 10.0)
-    assert geom.radius_A == pytest.approx(21.5)
+    assert geom.radius_A == pytest.approx(12.363166305578243)
     assert CTPR_RISE_A.value == pytest.approx(geom.rise_A)
     assert CTPR_ROTATION_RAD.value == pytest.approx(geom.rotation_rad)
     assert CTPR_RADIUS_A.value == pytest.approx(geom.radius_A)

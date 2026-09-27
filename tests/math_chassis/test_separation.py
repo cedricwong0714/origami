@@ -91,14 +91,11 @@ def test_extrapolated_scaffold_reports_candidates_and_recommends_none():
     assert any("no separation was recommended" in note for note in scan["notes"])
 
 
-def test_half_turn_faces_opposite_and_stays_inside_the_clash_mask():
-    """Outward spheres half a turn apart do not meet.
+def test_half_turn_faces_opposite_and_is_not_a_trained_target():
+    """Δi = 4 is half a turn. 400 Å is a caller fixture, not an enzyme radius.
 
-    400 Å is a caller fixture, not a measured enzyme radius. At that size
-    every other separation on an 8-repeat screw exceeds recommend()'s clash
-    limit. Δi = 4 is half a turn, facing cosine -1, and remains legal.
-    The acquisition therefore keeps it. It does not fall through, and it
-    does not return 14.
+    The acquisition follows the unfitted score under recommend()'s clash
+    limit. It is not trained toward 14.
     """
     scan = separation_library(
         8,
@@ -110,14 +107,9 @@ def test_half_turn_faces_opposite_and_stays_inside_the_clash_mask():
     assert half["facing_cosine"] == pytest.approx(-1.0)
     assert half["phase_rad"] == pytest.approx(math.pi)
     assert half["p_instability"] < _CLASH_LIMIT
-    assert all(
-        row["p_instability"] >= _CLASH_LIMIT
-        for row in scan["candidates"]
-        if row["delta_i"] != 4
-    )
-    assert "exceed steric threshold" not in scan["acquisition_name"]
-    assert scan["next_delta_i"] == 4
     assert scan["next_delta_i"] == _expected_next_delta(scan["candidates"])
+    assert scan["next_delta_i"] != 14
+    assert scan["gp_fitted"] is False
 
 
 def test_run_design_ranks_delta_i_without_using_repeat_count_observations():

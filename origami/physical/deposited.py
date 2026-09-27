@@ -44,8 +44,13 @@ DEPOSITED_KEYS = frozenset(
         "twist_min_deg",
         "twist_max_deg",
         "centroid_radius_mean_A",
+        "centroid_radius_sample_std_A",
         "centroid_radius_min_A",
         "centroid_radius_max_A",
+        "junction_radius_mean_A",
+        "junction_radius_sample_std_A",
+        "junction_radius_min_A",
+        "junction_radius_max_A",
         "outer_ca_radius_mean_A",
         "outer_ca_radius_min_A",
         "outer_ca_radius_max_A",
@@ -84,6 +89,8 @@ def screw_steps() -> list[dict[str, float | str | int]]:
             angle_deg, rise_A, axis, origin = _screw(rotation, translation)
             centroid = repeats[index].mean(axis=0)
             centroid_radius = _radial_distance(centroid, origin, axis)
+            junction = 0.5 * (repeats[index][33] + repeats[index + 1][0])
+            junction_radius = _radial_distance(junction, origin, axis)
             outer = max(
                 _radial_distance(point, origin, axis) for point in repeats[index]
             )
@@ -94,6 +101,7 @@ def screw_steps() -> list[dict[str, float | str | int]]:
                     "twist_deg": angle_deg,
                     "rise_A": rise_A,
                     "centroid_radius_A": centroid_radius,
+                    "junction_radius_A": junction_radius,
                     "outer_ca_radius_A": outer,
                 }
             )
@@ -120,6 +128,7 @@ def deposited_summary(
     rise = _span([float(step["rise_A"]) for step in steps])
     twist = _span([float(step["twist_deg"]) for step in steps])
     centroid = _span([float(step["centroid_radius_A"]) for step in steps])
+    junction = _span([float(step["junction_radius_A"]) for step in steps])
     outer = _span([float(step["outer_ca_radius_A"]) for step in steps])
     rise_inside = rise["min"] <= runtime_rise_A <= rise["max"]
     twist_inside = twist["min"] <= runtime_twist_deg <= twist["max"]
@@ -153,10 +162,22 @@ def deposited_summary(
             "The runtime rise is outside the deposited step range. "
             "Coordinates that still use it are not the crystal screw."
         )
-    if not scaffold_inside:
+    if abs(runtime_scaffold_radius_A - centroid["mean"]) <= 1e-6:
+        notes.append(
+            "The runtime scaffold radius is the mean repeat-centroid radius. "
+            "Payload clash uses the placed C-alpha trace, not a cylinder of this radius."
+        )
+    elif not scaffold_inside:
         notes.append(
             "The runtime scaffold radius is outside the deposited outer "
             "C-alpha shell. It is not the repeat-centroid radius."
+        )
+    if abs(runtime_docking_radius_A - junction["mean"]) <= 1e-6:
+        notes.append(
+            "The runtime docking radius is the mean radial distance of the "
+            "inter-repeat junction: the midpoint of C-alpha 34 and C-alpha 1 "
+            "of the next 34-residue block. In these entries that junction "
+            "follows DPRS. The previous 0.35 nm loop offset is not used."
         )
     return {
         "calibrated": False,
@@ -173,8 +194,13 @@ def deposited_summary(
         "twist_min_deg": twist["min"],
         "twist_max_deg": twist["max"],
         "centroid_radius_mean_A": centroid["mean"],
+        "centroid_radius_sample_std_A": centroid["sample_std"],
         "centroid_radius_min_A": centroid["min"],
         "centroid_radius_max_A": centroid["max"],
+        "junction_radius_mean_A": junction["mean"],
+        "junction_radius_sample_std_A": junction["sample_std"],
+        "junction_radius_min_A": junction["min"],
+        "junction_radius_max_A": junction["max"],
         "outer_ca_radius_mean_A": outer["mean"],
         "outer_ca_radius_min_A": outer["min"],
         "outer_ca_radius_max_A": outer["max"],
@@ -189,6 +215,75 @@ def deposited_summary(
         "persistence_length_retrieved": False,
         "notes": notes,
     }
+
+
+def consensus_repeat_ca() -> np.ndarray:
+    """Mean 34-residue Cα cloud, with the screw axis on z and the centroid on x.
+
+    Each source repeat is written in the frame of its own screw step, then
+    shifted so the repeat centroid has z = 0. The mean of those seven clouds
+    is the envelope used for clash. It is not a molecular surface: side chains
+    are not in the coordinate table.
+    """
+    table = load_deposited_coordinates()
+    clouds: list[np.ndarray] = []
+    for entry in table["entries"]:
+        repeats = [np.asarray(block, dtype=float) for block in entry["ca_A"]]
+        for index in range(len(repeats) - 1):
+            rotation, translation = _kabsch(repeats[index], repeats[index + 1])
+            _angle, _rise, axis, origin = _screw(rotation, translation)
+            clouds.append(_axis_frame(repeats[index], origin, axis))
+    if len(clouds) < 2:
+        raise RuntimeError("deposited CTPR table has fewer than two repeats")
+    return np.mean(np.stack(clouds, axis=0), axis=0)
+
+
+def placed_ca_cloud(
+    n_repeats: int,
+    rise_A: float,
+    rotation_rad: float,
+) -> np.ndarray:
+    """Place one consensus repeat on every step of the runtime screw.
+
+    Returns an (n_repeats * 34, 3) array in Å. Repeat i is the consensus
+    cloud rotated by i * rotation about z and translated by i * rise.
+    """
+    if n_repeats < 1:
+        raise ValueError("n_repeats must be >= 1")
+    cloud = consensus_repeat_ca()
+    pieces: list[np.ndarray] = []
+    for index in range(n_repeats):
+        cosine = float(np.cos(index * rotation_rad))
+        sine = float(np.sin(index * rotation_rad))
+        x = cloud[:, 0]
+        y = cloud[:, 1]
+        placed = np.column_stack(
+            [
+                cosine * x - sine * y,
+                sine * x + cosine * y,
+                cloud[:, 2] + index * rise_A,
+            ]
+        )
+        pieces.append(placed)
+    return np.concatenate(pieces, axis=0)
+
+
+def _axis_frame(block: np.ndarray, origin: np.ndarray, axis: np.ndarray) -> np.ndarray:
+    """Cα coordinates with +x through the repeat centroid and z along the screw."""
+    centroid = block.mean(axis=0)
+    relative = centroid - origin
+    radial = relative - float(np.dot(relative, axis)) * axis
+    norm = float(np.linalg.norm(radial))
+    if norm < 1e-8:
+        raise ValueError("repeat centroid lies on the screw axis")
+    radial = radial / norm
+    tangential = np.cross(axis, radial)
+    tangential = tangential / np.linalg.norm(tangential)
+    basis = np.column_stack([radial, tangential, axis])
+    local = (block - origin) @ basis
+    local = np.array(local, copy=True)
+    local[:, 2] -= float(local[:, 2].mean())
+    return local
 
 
 def _span(values: list[float]) -> dict[str, float]:

@@ -1,7 +1,10 @@
-"""Probabilistic steric clashes for spherical payloads on an uncertain scaffold.
+"""Probabilistic steric clashes for tethered payloads on a C-alpha trace.
 
-P(overlap) uses the delta method on ||x_i - x_j|| given Gaussian positional
-covariance from the helical-parameter Jacobian. Optional Monte Carlo check.
+Each payload is a sphere whose center sits one linker RMS outward of the
+inter-repeat junction. The scaffold is the deposited repeat C-alpha cloud
+placed on the runtime screw, not a cylinder and not a sphere. P(overlap)
+uses the delta method on that distance given Gaussian positional covariance
+from the helical-parameter Jacobian. Optional Monte Carlo check.
 """
 
 from __future__ import annotations
@@ -11,19 +14,25 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.stats import norm
 
+from origami.physical.deposited import placed_ca_cloud
 from origami.physical.geometry import CtprGeometry, DockingSite
-from origami.priors import CTPR_SCAFFOLD_RADIUS_A
+from origami.priors import LINKER_SIGMA_A
 
 
-def payload_center(site: DockingSite, payload_radius_A: float) -> np.ndarray:
-    """Enzyme body sits *outward* of the fusion point, not on top of the solenoid."""
+def payload_center(site: DockingSite, standoff_A: float) -> np.ndarray:
+    """Center sits radially outward of the junction by ``standoff_A``.
+
+    For a tethered sphere, that distance is the linker RMS plus the payload
+    radius: the linker ends at the surface, and the center is one radius
+    farther out.
+    """
     xy = site.xyz_A[:2]
     nrm = float(np.linalg.norm(xy))
     if nrm < 1e-9:
         direction = np.array([1.0, 0.0, 0.0])
     else:
         direction = np.array([xy[0] / nrm, xy[1] / nrm, 0.0])
-    return site.xyz_A + payload_radius_A * direction
+    return site.xyz_A + standoff_A * direction
 
 
 def clash_probability(
@@ -32,14 +41,20 @@ def clash_probability(
     radius_a_A: float,
     radius_b_A: float,
     cross_covariance: np.ndarray | None = None,
+    standoff_a_A: float | None = None,
+    standoff_b_A: float | None = None,
 ) -> float:
     """P(||X_a - X_b|| < R_a + R_b) under local Gaussian uncertainty.
 
     If cross_covariance is Cov(X_a, X_b), distance variance uses
     Σ_a + Σ_b − Σ_ab − Σ_abᵀ. Omitting it treats the sites as independent
     and overstates distance noise when they share helical-parameter error.
+    The default standoff equals the payload radius, which keeps a sphere
+    tangent to the junction. ``steric_report`` passes the linker RMS instead.
     """
-    ca, cb = payload_center(a, radius_a_A), payload_center(b, radius_b_A)
+    off_a = radius_a_A if standoff_a_A is None else standoff_a_A
+    off_b = radius_b_A if standoff_b_A is None else standoff_b_A
+    ca, cb = payload_center(a, off_a), payload_center(b, off_b)
     delta = ca - cb
     dist = float(np.linalg.norm(delta))
     sigma = a.covariance_A2 + b.covariance_A2
@@ -76,16 +91,27 @@ def clash_probability_mc(
 def scaffold_overlap_probability(
     site: DockingSite,
     payload_radius_A: float,
-    scaffold_radius_A: float | None = None,
+    cloud_A: np.ndarray,
+    standoff_A: float | None = None,
 ) -> float:
-    """Payload sphere vs cylindrical scaffold (axis = z)."""
-    r_scaf = CTPR_SCAFFOLD_RADIUS_A.value if scaffold_radius_A is None else scaffold_radius_A
-    centre = payload_center(site, payload_radius_A)
-    radial = float(np.linalg.norm(centre[:2]))
-    # clash if the sphere reaches the cylinder: radial < r_scaf + payload_radius
-    var_xy = float(np.trace(site.covariance_A2[:2, :2]) / 2.0)
-    std = np.sqrt(max(var_xy, 1e-12))
-    return float(norm.cdf((r_scaf + payload_radius_A - radial) / std))
+    """P(a deposited Cα lies inside the payload sphere).
+
+    ``cloud_A`` is the placed consensus repeat, in Å. The comparison is
+    the distance from the payload center to the nearest Cα. Side chains
+    are not in the cloud, so this understates the excluded volume.
+    """
+    offset = payload_radius_A if standoff_A is None else standoff_A
+    centre = payload_center(site, offset)
+    distances = np.linalg.norm(cloud_A - centre, axis=1)
+    nearest = int(np.argmin(distances))
+    dist = float(distances[nearest])
+    if dist < 1e-9:
+        return 1.0
+    direction = centre - cloud_A[nearest]
+    unit = direction / dist
+    variance = float(unit @ site.covariance_A2 @ unit)
+    std = np.sqrt(max(variance, 1e-12))
+    return float(norm.cdf((payload_radius_A - dist) / std))
 
 
 @dataclass
@@ -103,7 +129,7 @@ class StericReport:
     p_any_payload_clash: float
     p_scaffold_clash: list[float]
     p_any_instability: float
-    method: str = "delta_method_gaussian"
+    method: str = "delta_method_ca_envelope"
     provenance: str = "literature_placeholder"
 
 
@@ -111,17 +137,26 @@ def steric_report(
     geom: CtprGeometry,
     indices: list[int],
     radii_A: list[float],
+    standoff_A: list[float] | None = None,
 ) -> StericReport:
     if len(indices) != len(radii_A):
         raise ValueError("indices and radii must match")
+    if standoff_A is None:
+        standoffs = [LINKER_SIGMA_A.value] * len(indices)
+    else:
+        if len(standoff_A) != len(indices):
+            raise ValueError("standoffs and indices must match")
+        standoffs = [float(value) for value in standoff_A]
     sites = [geom.site(i) for i in indices]
+    cloud = placed_ca_cloud(geom.n_repeats, geom.rise_A, geom.rotation_rad)
     pairs: list[PairClash] = []
     p_survive = 1.0
     for a in range(len(sites)):
         for b in range(a + 1, len(sites)):
             dist = float(
                 np.linalg.norm(
-                    payload_center(sites[a], radii_A[a]) - payload_center(sites[b], radii_A[b])
+                    payload_center(sites[a], standoffs[a] + radii_A[a])
+                    - payload_center(sites[b], standoffs[b] + radii_A[b])
                 )
             )
             contact = radii_A[a] + radii_A[b]
@@ -131,6 +166,8 @@ def steric_report(
                 radii_A[a],
                 radii_A[b],
                 cross_covariance=geom.cross_covariance(indices[a], indices[b]),
+                standoff_a_A=standoffs[a] + radii_A[a],
+                standoff_b_A=standoffs[b] + radii_A[b],
             )
             pairs.append(
                 PairClash(
@@ -143,8 +180,10 @@ def steric_report(
             )
             p_survive *= 1.0 - p
     p_scaf = [
-        scaffold_overlap_probability(site, radius)
-        for site, radius in zip(sites, radii_A)
+        scaffold_overlap_probability(
+            site, radius, cloud, standoff_A=offset + radius
+        )
+        for site, radius, offset in zip(sites, radii_A, standoffs)
     ]
     for p in p_scaf:
         p_survive *= 1.0 - p

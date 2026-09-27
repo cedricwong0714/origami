@@ -3,9 +3,14 @@ ORIGAMI Core: Linker Ensemble & Effective Concentration Engine
 Models flexible linker reach using Gaussian chain approximation (MVP).
 Calculates effective local concentration (C_eff) for proximity-dependent binding.
 
-Key Invariants (CLASP Docs):
-- (GGGGS)n contour length: ~0.36 nm/residue
-- Kuhn length for GGGGS: ~0.7 nm
+Key Invariants:
+- Residue length 0.38 nm (3.8 Å) and G4S2 persistence length 0.37 nm,
+  van Rosmalen, Krom, and Merkx, Biochemistry 2017,
+  DOI 10.1021/acs.biochem.7b00902.
+- Kuhn length = 2 × persistence length = 0.74 nm, the long-chain
+  relation stated in that paper (lp = C∞ × b0 / 2).
+- (GGGGS) is not the G4S2 repeat. The persistence length is the nearest
+  measured Gly/Ser series, not an interpolation.
 - C_eff drives NanoBiT complementation and SpyTag/Catcher reaction rates
 """
 
@@ -14,8 +19,19 @@ import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional
 
-KUHNN_LENGTH_NM = 0.7       # Kuhn length for (GGGGS)n linkers
-RESIDUE_CONTOUR_NM = 0.36   # Contour length per residue
+# Parameter: G4S2 persistence length
+# Value: 0.37
+# Units: nm
+# Source: van Rosmalen, Krom, Merkx (2017) Biochemistry 56:6565-6574,
+#   DOI: 10.1021/acs.biochem.7b00902
+# Notes: 3.7 Å. Kuhn length below is 2 × this value.
+G4S2_PERSISTENCE_LENGTH_NM = 0.37
+KUHNN_LENGTH_NM = 0.74  # 2 × 0.37 nm
+# Parameter: virtual residue length
+# Value: 0.38
+# Units: nm
+# Source: same paper, b0 = 3.8 Å
+RESIDUE_CONTOUR_NM = 0.38
 AVOGADRO = 6.022e23
 
 
@@ -60,11 +76,11 @@ def compute_effective_concentration(
     C_eff = (3/(2π⟨r²⟩))^(3/2) × exp(-3d²/(2⟨r²⟩)) × V_capture
     Converted to mM for direct comparison with Kd values.
     """
-    n_kuhn = linker.contour_length_nm / linker.kuhn_length_nm
-    if n_kuhn < 1:
-        n_kuhn = 1.0
-
-    mean_sq_end_to_end = n_kuhn * linker.kuhn_length_nm ** 2
+    # Kratky-Porod. Long-chain limit is contour × Kuhn length = 2 × lp × lc.
+    contour = linker.contour_length_nm
+    persistence = linker.kuhn_length_nm / 2.0
+    ratio = persistence / contour
+    mean_sq_end_to_end = 2.0 * persistence * contour * (1.0 - ratio * (1.0 - np.exp(-1.0 / ratio)))
     rms = np.sqrt(mean_sq_end_to_end)
 
     # Gaussian probability density at distance d

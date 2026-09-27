@@ -15,7 +15,12 @@ import numpy as np
 from origami.physical.geometry import CtprGeometry, build_ctpr
 from origami.physical.linkers import EffectiveConcentration, gaussian_chain_ceff
 from origami.physical.steric import StericReport, payload_center, steric_report
-from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, N_REPEATS_MAX, N_REPEATS_MIN
+from origami.priors import (
+    DEFAULT_PAYLOAD_RADIUS_A,
+    LINKER_SIGMA_A,
+    N_REPEATS_MAX,
+    N_REPEATS_MIN,
+)
 
 
 _C_REF_M = 1e-3  # 1 mM reference for a dimensionless log term, not a measured Km
@@ -57,14 +62,18 @@ def physics_report(
     for a in range(len(payload_indices)):
         for b in range(a + 1, len(payload_indices)):
             i, j = payload_indices[a], payload_indices[b]
+            left = LINKER_SIGMA_A.value + radii_A[a]
+            right = LINKER_SIGMA_A.value + radii_A[b]
             r = float(
                 np.linalg.norm(
-                    payload_center(geom.site(i), radii_A[a])
-                    - payload_center(geom.site(j), radii_A[b])
+                    payload_center(geom.site(i), left)
+                    - payload_center(geom.site(j), right)
                 )
             )
             distances[(i, j)] = r
-            ce = gaussian_chain_ceff(r)
+            # Two independent tethers. Variances add. Neither width is invented.
+            tether = LINKER_SIGMA_A.value
+            ce = gaussian_chain_ceff(r, sigma_A=float(math.hypot(tether, tether)))
             ceffs[(i, j)] = ce
             ceff_terms.append(ce.C_eff_M)
     mean_ceff = float(sum(ceff_terms) / max(len(ceff_terms), 1)) if ceff_terms else 0.0

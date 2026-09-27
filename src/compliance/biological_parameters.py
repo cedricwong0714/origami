@@ -130,21 +130,32 @@ ORIGAMI_PARAMETER_LIBRARY: dict[str, BiologicalParameter] = {
         name="Scaffold cylinder radius",
         value=SCAFFOLD_CYLINDER_RADIUS_NM,
         units="nm",
-        lower_bound=1.5,
-        upper_bound=2.0,
-        source="CLASP Docs §2.4; steric_checker",
-        system="CTPR backbone cylinder",
+        lower_bound=1.1591045194229974,
+        upper_bound=1.2964728739854154,
+        source=(
+            "Mean repeat-centroid radius, PDB 2AVP/2HYZ/2FO7, "
+            "DOI: 10.1107/S0907444907024353"
+        ),
+        system="CTPR repeat centroid",
         confidence="medium",
+        notes="Bounds are the minimum and maximum of the seven deposited centroids.",
     ),
     "DOCKING_LOOP_OFFSET_NM": BiologicalParameter(
-        name="Docking loop radial offset",
+        name="Junction minus centroid radius",
         value=DOCKING_LOOP_OFFSET_NM,
         units="nm",
-        lower_bound=0.2,
-        upper_bound=0.5,
-        source="CLASP Docs geometry model",
-        system="CTPR docking loop",
+        lower_bound=-0.05556034952235027,
+        upper_bound=0.11053686691178353,
+        source=(
+            "Difference of deposited junction and centroid radii, "
+            "DOI: 10.1107/S0907444907024353"
+        ),
+        system="CTPR inter-repeat junction",
         confidence="medium",
+        notes=(
+            "Bounds are the minimum and maximum of the seven per-step "
+            "differences, in nm. The value is the difference of the means."
+        ),
     ),
     "CAM_M13_KD_CA_SAT_M": BiologicalParameter(
         name="CaM–M13 Kd (Ca²⁺ saturated)",
@@ -212,9 +223,13 @@ ORIGAMI_PARAMETER_LIBRARY: dict[str, BiologicalParameter] = {
         units="nm/residue",
         lower_bound=0.3,
         upper_bound=0.4,
-        source="CLASP Docs linker ensemble",
-        system="(GGGGS)n linker",
+        source=(
+            "van Rosmalen, Krom, Merkx (2017) Biochemistry 56:6565-6574, "
+            "DOI: 10.1021/acs.biochem.7b00902. b0 = 3.8 Å."
+        ),
+        system="Gly/Ser peptide linker",
         confidence="medium",
+        notes="(GGGGS) is not the G4S2 repeat measured in that paper.",
     ),
     "GGGGS_KUHN_NM": BiologicalParameter(
         name="(GGGGS)n Kuhn length",
@@ -222,9 +237,13 @@ ORIGAMI_PARAMETER_LIBRARY: dict[str, BiologicalParameter] = {
         units="nm",
         lower_bound=0.5,
         upper_bound=0.9,
-        source="CLASP Docs linker ensemble",
-        system="(GGGGS)n linker",
+        source=(
+            "2 × G4S2 persistence length 3.7 Å from van Rosmalen et al. 2017, "
+            "DOI: 10.1021/acs.biochem.7b00902"
+        ),
+        system="Gly/Ser peptide linker",
         confidence="medium",
+        notes="Kuhn length = 2 × lp from the long-chain relation in that paper.",
     ),
     "CLASP_K_ON": BiologicalParameter(
         name="CaM–M13 association rate",

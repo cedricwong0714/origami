@@ -537,7 +537,7 @@ def _check_structure(value: object) -> dict[str, Any] | None:
         raise ValueError("structure.contour_definition is not the screw contour")
     if (
         value["uncertainty_model"]
-        != "delta_method_deposited_rise_twist_sample_std_and_engineering_radius_width"
+        != "delta_method_deposited_rise_twist_and_junction_radius_sample_std"
     ):
         raise ValueError("structure.uncertainty_model is not the deposited Jacobian")
     if type(value["rigid_screw"]) is not bool:
@@ -636,8 +636,13 @@ def _check_deposited(value: object) -> dict[str, Any]:
         "twist_min_deg",
         "twist_max_deg",
         "centroid_radius_mean_A",
+        "centroid_radius_sample_std_A",
         "centroid_radius_min_A",
         "centroid_radius_max_A",
+        "junction_radius_mean_A",
+        "junction_radius_sample_std_A",
+        "junction_radius_min_A",
+        "junction_radius_max_A",
         "outer_ca_radius_mean_A",
         "outer_ca_radius_min_A",
         "outer_ca_radius_max_A",
@@ -647,7 +652,12 @@ def _check_deposited(value: object) -> dict[str, Any]:
         "runtime_docking_radius_A",
     ):
         copied[name] = _json_number(f"structure.deposited.{name}", value[name])
-    if copied["rise_sample_std_A"] <= 0.0 or copied["twist_sample_std_deg"] <= 0.0:
+    if (
+        copied["rise_sample_std_A"] <= 0.0
+        or copied["twist_sample_std_deg"] <= 0.0
+        or copied["centroid_radius_sample_std_A"] <= 0.0
+        or copied["junction_radius_sample_std_A"] <= 0.0
+    ):
         raise ValueError("deposited sample standard deviations must be > 0")
     if not (copied["rise_min_A"] <= copied["rise_mean_A"] <= copied["rise_max_A"]):
         raise ValueError("deposited rise mean is outside its own range")

@@ -280,9 +280,12 @@ def _notes(
             "and it is not trained toward 14."
         ),
         (
-            "Effective concentration comes from physics_report, so it uses "
-            "LINKER_SIGMA_A. A payload linker_sigma_A on the design is not "
-            "substituted. Separations long compared with that width score near zero."
+            "Effective concentration comes from physics_report. Each payload "
+            "stands off by one (GGGGS)3 RMS, and the pair width is the "
+            "hypotenuse of two of those widths. A payload linker_sigma_A on "
+            "the design is not substituted. "
+            "The residual GP stays unfitted: the retrieved literature has "
+            "geometry and linker mechanics, not an assay y for this score."
         ),
     ]
     if one_turn_n is not None:

@@ -8,9 +8,8 @@ still inside the rigid-rod persistence length.
 Every length on the screw comes from ``CtprGeometry``. The deposited
 block compares that screw with the C-alpha fit in
 ``origami.physical.deposited``. Distance intervals propagate the
-Jacobian: rise and twist sigmas are the deposited sample standard
-deviations, and the docking-radius sigma is still the engineering width.
-They are not a calibrated experimental error.
+Jacobian: rise, twist, and docking-radius sigmas are the deposited
+sample standard deviations. They are not a calibrated experimental error.
 """
 
 from __future__ import annotations
@@ -34,7 +33,7 @@ _NM_TO_A = 10.0
 
 _CONTOUR_DEFINITION = "n_repeats * rise_per_repeat"
 _UNCERTAINTY_MODEL = (
-    "delta_method_deposited_rise_twist_sample_std_and_engineering_radius_width"
+    "delta_method_deposited_rise_twist_and_junction_radius_sample_std"
 )
 
 STRUCTURE_KEYS = frozenset(

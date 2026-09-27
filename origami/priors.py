@@ -11,6 +11,7 @@ import math
 from dataclasses import dataclass
 from typing import Literal
 
+from origami.linker_prior import ggggs_linker_rms_A
 from src.core.ctpr_geometry import (
     CTPR_RADIUS_NM,
     CTPR_RISE_NM,
@@ -95,53 +96,56 @@ CTPR_ROTATION_RAD = Parameter(
     calibrated=False,
 )
 
+# Sample standard deviations of the seven deposited steps (divisor n-1).
+# Locked to origami.physical.deposited by tests. Not recomputed here, so
+# this module does not import the physical package.
+_JUNCTION_RADIUS_SAMPLE_STD_A = 0.7344357597832961
+_CENTROID_RADIUS_SAMPLE_STD_A = 0.5696084155839191
+
+
 CTPR_RADIUS_A = Parameter(
     name="ctpr_docking_radius",
     value=(CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) * _NM_TO_A,
     units="Å",
-    sigma=5.0,
+    sigma=_JUNCTION_RADIUS_SAMPLE_STD_A,
     source=(
-        "Scaffold cylinder: CLASP Docs §2.4 / steric_checker scaffold cylinder "
-        "(CTPR_RADIUS_NM = 1.8 nm). "
-        "Docking-loop radial offset: CLASP geometry prior "
-        "(loop graft extension beyond cylinder) "
-        "(DOCKING_LOOP_OFFSET_NM = 0.35 nm)."
+        "Junction of consecutive 34-residue blocks in PDB 2AVP, 2HYZ, and 2FO7. "
+        "Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800-811, "
+        "DOI: 10.1107/S0907444907024353. "
+        "The junction is the midpoint of C-alpha 34 and C-alpha 1 of the next block."
     ),
-    system="CTPR scaffold docking-site placement",
-    method="Docking radius = scaffold cylinder radius + docking-loop offset",
+    system="Consensus TPR asymmetric-unit chains",
+    method="Mean radial distance of seven inter-repeat junctions",
     notes=(
-        "Stored in Å after explicit conversion: 1 nm = 10 Å. "
-        "(CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) × 10 "
-        "= (1.8 + 0.35) × 10 = 21.5 Å. "
-        "sigma is the existing Jacobian engineering width, not a standard "
-        "deviation quoted from the source above."
+        "Stored in Å: (CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) × 10. "
+        "That sum is the deposited junction radius. "
+        "The previous docking radius was (1.8 + 0.35) nm = 21.5 Å. "
+        "sigma is the sample standard deviation of the seven junction radii "
+        "(divisor n-1), not a printed standard error."
     ),
     provenance="literature_placeholder",
     calibrated=False,
 )
 
-# Scaffold excluded-volume cylinder.
-# src.core.ctpr_geometry.CTPR_RADIUS_NM is 1.8 nm (repeat-center radial distance).
-# 1 nm = 10 Å, so the value stored here is 1.8 nm × 10 = 18.0 Å.
-# Source text is copied from the CTPR_RADIUS_NM comment in src/core/ctpr_geometry.py.
-# That module does not define a numeric sigma for CTPR_RADIUS_NM, so sigma stays
-# the existing Jacobian width already stored on this Parameter.
+# Repeat-centroid radius. Clash does not use this as a cylinder.
+# 1 nm = 10 Å. sigma is the sample standard deviation of the seven centroids.
 CTPR_SCAFFOLD_RADIUS_A = Parameter(
     name="ctpr_scaffold_radius",
-    value=CTPR_RADIUS_NM * _NM_TO_A,  # 1.8 nm × 10 = 18.0 Å; 1 nm = 10 Å
+    value=CTPR_RADIUS_NM * _NM_TO_A,
     units="Å",
-    sigma=3.0,
-    source="CLASP Docs §2.4 / steric_checker scaffold cylinder",
-    system="Consensus TPR (CTPR) scaffold cylinder",
-    method="Cylinder approximation of the scaffold excluded volume",
+    sigma=_CENTROID_RADIUS_SAMPLE_STD_A,
+    source=(
+        "Repeat-centroid radius of PDB 2AVP, 2HYZ, and 2FO7. "
+        "Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800-811, "
+        "DOI: 10.1107/S0907444907024353."
+    ),
+    system="Consensus TPR asymmetric-unit chains",
+    method="Mean radial distance of the 34-residue C-alpha centroid",
     notes=(
-        "Excluded-volume radius of the scaffold cylinder, from CTPR_RADIUS_NM "
-        "(repeat-center radial distance). 1 nm = 10 Å, so 1.8 nm × 10 = 18.0 Å. "
-        "Docking-site coordinates use CTPR_RADIUS_A, which adds DOCKING_LOOP_OFFSET_NM "
-        "before the same nm-to-Å conversion. "
-        "sigma is the existing Jacobian engineering width on this Parameter. "
-        "src.core.ctpr_geometry does not define a numeric sigma for CTPR_RADIUS_NM. "
-        "The steric model uses a cylinder, not molecular surfaces."
+        "Backbone helix radius, from CTPR_RADIUS_NM. 1 nm = 10 Å. "
+        "The previous cylinder prior was 1.8 nm (18.0 Å). "
+        "sigma is the sample standard deviation of the seven centroids. "
+        "Payload overlap uses the placed C-alpha trace, not this radius."
     ),
     provenance="literature_placeholder",
     calibrated=False,
@@ -159,17 +163,27 @@ DEFAULT_PAYLOAD_RADIUS_A = Parameter(
     notes="Per-payload radii should replace this when structures exist.",
 )
 
-# Gaussian chain uses σ² = <R²> = N b² (mean-square end-to-end), not the
-# per-axis variance Nb²/3. See linkers.py.
+# σ = sqrt(<R²>) of one (GGGGS)3 chain. See origami.linker_prior.
+# No standard error was printed for the persistence length, so sigma is 0.
+_LINKER_RMS_A = ggggs_linker_rms_A()
 LINKER_SIGMA_A = Parameter(
     name="gaussian_chain_linker_sigma",
-    value=18.0,
+    value=_LINKER_RMS_A,
     units="Å",
-    sigma=6.0,
-    source="Flexible-fusion Gaussian-chain engineering prior (not a measured persistence length)",
-    system="Unspecified peptide linker between fusion terminus and functional site",
-    method="Gaussian-chain C_eff; worm-like chain not yet used",
-    notes="σ is sqrt(<R^2>), RMS end-to-end. Not a measured persistence length.",
+    sigma=0.0,
+    source=(
+        "van Rosmalen, Krom, Merkx (2017) Biochemistry 56:6565-6574, "
+        "DOI: 10.1021/acs.biochem.7b00902. "
+        "b0 = 3.8 Å. G4S2 persistence length = 3.7 Å."
+    ),
+    system="(GGGGS)3 tether, using the nearest measured G4S2 persistence length",
+    method="Kratky-Porod RMS end-to-end of 15 residues",
+    notes=(
+        "σ is sqrt(<R^2>) for one chain, not the previous 18 Å engineering prior. "
+        "(GGGGS) is 80% glycine and G4S2 (GGGGSS) is 67% glycine. "
+        "The value was not interpolated. sigma is 0 because the paper does not "
+        "print a standard error for 3.7 Å. A pair of tethers adds the variances."
+    ),
 )
 
 # Kd only. Association rate is not in this paper; do not invent kon.

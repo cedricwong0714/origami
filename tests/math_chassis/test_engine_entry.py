@@ -37,9 +37,9 @@ def test_default_payloads_are_the_two_end_repeats(monkeypatch):
     seen: list[tuple[list[int], list[float]]] = []
     real = steric_report
 
-    def wrapper(geom, indices, radii):
+    def wrapper(geom, indices, radii, standoff_A=None):
         seen.append((list(indices), list(radii)))
-        return real(geom, indices, radii)
+        return real(geom, indices, radii, standoff_A=standoff_A)
 
     monkeypatch.setattr("origami.engine.steric_report", wrapper)
     run_design("ends", 8)
@@ -152,9 +152,9 @@ def test_payload_repeat_indices_are_used(monkeypatch):
     seen: list[tuple[list[int], list[float]]] = []
     real = steric_report
 
-    def wrapper(geom, indices, radii):
+    def wrapper(geom, indices, radii, standoff_A=None):
         seen.append((list(indices), list(radii)))
-        return real(geom, indices, radii)
+        return real(geom, indices, radii, standoff_A=standoff_A)
 
     monkeypatch.setattr("origami.engine.steric_report", wrapper)
     # Radii and linker widths are fixtures, not measured payload sizes.
