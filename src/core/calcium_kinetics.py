@@ -4,7 +4,9 @@ Models Ca2+-dependent CaM-M13 binding kinetics.
 Universal recruitment switch for all CLASP mechanism profiles.
 
 Key Invariants (CLASP Docs):
-- CaM-M13 Kd ≈ 10^-7 M (with saturating Ca2+)
+- CaM-M13 Kd = 0.19e-9 M when Ca2+-saturated
+  (Biochemistry 2006, 45(41):12547-12559, DOI 10.1021/bi060857u;
+  same citation as origami.priors.CAM_M13_KD_M)
 - Resting cytoplasmic [Ca2+] ≈ 100 nM
 - Hill coefficient n ≈ 4 (four Ca2+ binding sites on CaM)
 - EC50 for activation ≈ 1-5 µM free Ca2+
@@ -15,8 +17,15 @@ import numpy as np
 from pydantic import BaseModel, Field
 from typing import Optional
 
-# Calibrated Constants (Ikura 1992; CLASP Docs §2.1)
-CAM_M13_KD_CA_SAT_M = 1e-7      # Kd when CaM is fully Ca2+-bound
+# Parameter: CaM–M13 Kd at saturating Ca2+
+# Value: 0.19e-9
+# Units: M
+# Source: Biochemistry 2006, 45(41):12547-12559, DOI 10.1021/bi060857u.
+#   WT CaM + WT M13, fluorescence competition, Kd = 0.19 ± 0.09 nM.
+#   Same citation already recorded on origami.priors.CAM_M13_KD_M.
+# Notes: Peptide Kd. Not a CLASP fusion. Occupancy uses this value.
+CAM_M13_KD_CA_SAT_M = 0.19e-9
+# Hill n, EC50, and resting calcium (Ikura 1992; CLASP Docs §2.1). Unchanged.
 CAM_CA_HILL_N = 4.0             # Cooperativity of Ca2+ binding to CaM
 CAM_CA_EC50_M = 2e-6            # Free [Ca2+] for half-maximal CaM activation
 RESTING_CA_M = 1e-7             # Basal cytoplasmic [Ca2+]

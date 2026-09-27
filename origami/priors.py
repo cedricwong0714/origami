@@ -7,8 +7,19 @@ explicit placeholders with uncertainty, to be replaced when assays exist.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Literal
+
+from src.core.ctpr_geometry import (
+    CTPR_RADIUS_NM,
+    CTPR_RISE_NM,
+    CTPR_TWIST_DEG,
+    DOCKING_LOOP_OFFSET_NM,
+)
+
+# 1 nm = 10 Å. src.core.ctpr_geometry is in nanometres; values below are ångströms.
+_NM_TO_A = 10.0
 
 Provenance = Literal["literature_placeholder", "wet_lab", "user_entered"]
 
@@ -30,52 +41,104 @@ class Parameter:
         return (self.value - 1.96 * self.sigma, self.value + 1.96 * self.sigma)
 
 
-# Superhelical CTPR geometry is taken as an engineering prior consistent with
-# designed CTPR crystal structures (CTPR8/CTPR20 superhelices; PDB 2AVP, 2HYZ,
-# 2FO7; Kajander et al., 2007, Acta Cryst. D 63:800–811). Exact rise/rotation
-# were not re-fitted from coordinates in this repository; wide sigma reflects that.
+# Canonical screw geometry from src.core.ctpr_geometry, stored in Å and radians.
+# 1 nm = 10 Å. Twist is converted from degrees to radians (45° = π/4).
+# calibrated stays False: these are literature geometry constants, not a
+# wet-lab fit from this project. sigma is the existing Jacobian width, not a
+# standard deviation quoted in the sources below.
 CTPR_RISE_A = Parameter(
     name="ctpr_rise_per_repeat",
-    value=9.0,
+    value=CTPR_RISE_NM * _NM_TO_A,  # 1.1 nm × 10 Å/nm = 11.0 Å
     units="Å",
     sigma=2.0,
-    source="Kajander et al. (2007) Acta Cryst. D 63:800–811; PDB 2AVP/2HYZ (engineering prior, not refit)",
-    system="Designed consensus TPR (CTPR) superhelix",
-    method="Literature-informed rigid superhelix; not measured in this project",
-    notes="Replace with a fit to project crystal/MD or lab-calibrated geometry.",
+    source="CLASP Docs (nanometer precision claim); Dueber et al. 2009; SCABs 2024",
+    system="Consensus TPR (CTPR) scaffold",
+    method="Structural / design documentation for CLASP geometry",
+    notes=(
+        "Axial advance of the superhelix axis; dry-lab PDF used 0.95 nm — "
+        "do not silent-switch without human review + CHANGELOG. "
+        "Stored in Å after explicit conversion at this boundary: "
+        "1 nm = 10 Å, so CTPR_RISE_NM 1.1 nm × 10 = 11.0 Å. "
+        "sigma is the existing Jacobian engineering width, not a standard "
+        "deviation quoted from the source above."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
 )
 
 CTPR_ROTATION_RAD = Parameter(
     name="ctpr_rotation_per_repeat",
-    value=0.42,  # ~24°, typical TPR solenoid twist; 8 repeats is protein length not pitch
+    value=math.radians(CTPR_TWIST_DEG),  # 45 deg = π/4 rad
     units="rad",
     sigma=0.12,
-    source="Engineering prior informed by designed CTPR superhelices (Kajander et al., 2007)",
-    system="CTPR solenoid",
-    method="Rigid-body helical repeat; not fitted to this project's structures",
-    notes="Uncertainty is intentionally large until a structure-derived twist is stored.",
+    source=(
+        "Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800–811, "
+        "DOI: 10.1107/S0907444907024353, PMID: 17582171 "
+        "(CTPR8: eight tandem repeats complete one superhelical turn → 360°/8 = 45°). "
+        "Bismut et al. (2025) Protein Science 34:e70150, DOI: 10.1002/pro.70150"
+    ),
+    system="Designed consensus TPR arrays (CTPR8 / CTPR20), crystal lattice",
+    method="X-ray crystallography of CTPR superhelices (PDB 2AVP / 2FO7 / 2HYZ)",
+    notes=(
+        "Superhelical twist between successive repeats, not ~24° A/B tilt. "
+        "Stored in radians: CTPR_TWIST_DEG 45 degrees = π/4 rad. "
+        "sigma is the existing Jacobian engineering width, not a standard "
+        "deviation quoted from the source above."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
 )
 
 CTPR_RADIUS_A = Parameter(
     name="ctpr_docking_radius",
-    value=22.0,
+    value=(CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) * _NM_TO_A,
     units="Å",
     sigma=5.0,
-    source="Engineering prior: TPR concave/convex face offset on the order of a TPR domain radius",
+    source=(
+        "Scaffold cylinder: CLASP Docs §2.4 / steric_checker scaffold cylinder "
+        "(CTPR_RADIUS_NM = 1.8 nm). "
+        "Docking-loop radial offset: CLASP geometry prior "
+        "(loop graft extension beyond cylinder) "
+        "(DOCKING_LOOP_OFFSET_NM = 0.35 nm)."
+    ),
     system="CTPR scaffold docking-site placement",
-    method="Spherical offset from superhelical axis; not payload-specific",
-    notes="Does not encode a real fusion terminus until payload structures are reviewed.",
+    method="Docking radius = scaffold cylinder radius + docking-loop offset",
+    notes=(
+        "Stored in Å after explicit conversion: 1 nm = 10 Å. "
+        "(CTPR_RADIUS_NM + DOCKING_LOOP_OFFSET_NM) × 10 "
+        "= (1.8 + 0.35) × 10 = 21.5 Å. "
+        "sigma is the existing Jacobian engineering width, not a standard "
+        "deviation quoted from the source above."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
 )
 
+# Scaffold excluded-volume cylinder.
+# src.core.ctpr_geometry.CTPR_RADIUS_NM is 1.8 nm (repeat-center radial distance).
+# 1 nm = 10 Å, so the value stored here is 1.8 nm × 10 = 18.0 Å.
+# Source text is copied from the CTPR_RADIUS_NM comment in src/core/ctpr_geometry.py.
+# That module does not define a numeric sigma for CTPR_RADIUS_NM, so sigma stays
+# the existing Jacobian width already stored on this Parameter.
 CTPR_SCAFFOLD_RADIUS_A = Parameter(
     name="ctpr_scaffold_radius",
-    value=12.0,
+    value=CTPR_RADIUS_NM * _NM_TO_A,  # 1.8 nm × 10 = 18.0 Å; 1 nm = 10 Å
     units="Å",
     sigma=3.0,
-    source="Engineering prior for a helical repeat bundle excluded volume",
-    system="CTPR scaffold body",
-    method="Cylinder approximation",
-    notes="MVP steric model uses a cylinder, not molecular surfaces.",
+    source="CLASP Docs §2.4 / steric_checker scaffold cylinder",
+    system="Consensus TPR (CTPR) scaffold cylinder",
+    method="Cylinder approximation of the scaffold excluded volume",
+    notes=(
+        "Excluded-volume radius of the scaffold cylinder, from CTPR_RADIUS_NM "
+        "(repeat-center radial distance). 1 nm = 10 Å, so 1.8 nm × 10 = 18.0 Å. "
+        "Docking-site coordinates use CTPR_RADIUS_A, which adds DOCKING_LOOP_OFFSET_NM "
+        "before the same nm-to-Å conversion. "
+        "sigma is the existing Jacobian engineering width on this Parameter. "
+        "src.core.ctpr_geometry does not define a numeric sigma for CTPR_RADIUS_NM. "
+        "The steric model uses a cylinder, not molecular surfaces."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
 )
 
 # Globular-protein size scale, not a measured OtsA/OtsB radius.

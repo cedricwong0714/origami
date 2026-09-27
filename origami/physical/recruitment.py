@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.integrate import solve_ivp
 
+from origami.io.signal_pairs import SignalPair
 from origami.priors import CAM_M13_KD_M
 
 
@@ -124,4 +125,75 @@ def recruitment_occupancy(
         theta_t=theta_t,
         assumptions=assumptions,
         warnings=warnings,
+    )
+
+
+def occupancy_for_pair(
+    pair: SignalPair,
+    c_free_M: float,
+    signal_on: bool = True,
+    t_end_s: float | None = None,
+) -> OccupancyResult:
+    """Occupancy for one signal pair at a free signal concentration.
+
+    Forwards ``pair.kd_M``, ``pair.kon_per_M_s``, and ``pair.kd_sigma_M`` to
+    ``recruitment_occupancy``. The steady state is the Langmuir isotherm
+
+        θ_ss = C_free / (C_free + K_d)
+
+    with K_d = ``pair.kd_M``. If ``kon_per_M_s`` is None, the result is
+    steady state only (``time_s`` and ``theta_t`` are None). kon is not
+    filled in.
+
+    ``recruitment_occupancy`` treats a missing sigma as
+    ``CAM_M13_KD_M.sigma``. This wrapper does not. When ``pair.kd_sigma_M``
+    is None, the call passes ``kd_sigma_M=0`` so the occupancy interval is
+    exactly ``(theta_ss, theta_ss)``, and a warning states that this Kd has
+    no reported uncertainty. A supplied sigma, including the CaM–M13 prior
+    on ``default_cam_m13_pair``, is passed through unchanged.
+    """
+    # None would be replaced inside recruitment_occupancy by the CaM–M13
+    # sigma. Zero width is the explicit "no reported uncertainty" interval.
+    sigma_for_call = 0.0 if pair.kd_sigma_M is None else pair.kd_sigma_M
+    result = recruitment_occupancy(
+        c_free_M=c_free_M,
+        kon_per_M_s=pair.kon_per_M_s,
+        kd_M=pair.kd_M,
+        kd_sigma_M=sigma_for_call,
+        t_end_s=t_end_s,
+        signal_on=signal_on,
+    )
+    if pair.kd_sigma_M is None:
+        result.warnings.append(
+            "Kd has no reported uncertainty. The occupancy interval is the "
+            "point estimate (theta_ss, theta_ss) and does not use "
+            "CAM_M13_KD_M.sigma."
+        )
+        result.assumptions = [
+            item
+            for item in result.assumptions
+            if "published peptide Kd" not in item
+        ]
+        result.assumptions.append(
+            "No Kd sigma was supplied for this pair, so the occupancy "
+            "interval has zero width."
+        )
+    elif not _uses_published_cam_m13_uncertainty(pair):
+        result.assumptions = [
+            item
+            for item in result.assumptions
+            if "published peptide Kd" not in item
+        ]
+        result.assumptions.append(
+            "Kd interval uses the sigma supplied on this signal pair, "
+            "not CAM_M13_KD_M.sigma."
+        )
+    return result
+
+
+def _uses_published_cam_m13_uncertainty(pair: SignalPair) -> bool:
+    return (
+        pair.kd_M == CAM_M13_KD_M.value
+        and pair.kd_sigma_M == CAM_M13_KD_M.sigma
+        and pair.kd_source == CAM_M13_KD_M.source
     )

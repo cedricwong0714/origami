@@ -6,7 +6,7 @@ Fact-check of what is implemented. A passing test is not calibration.
 
 | Model | Formula status | Biological status |
 |---|---|---|
-| CTPR SE(3) helix | Correct rigid-body composition | Rise 9 Å, twist 0.42 rad, radius 22 Å are **engineering priors**, not a refit of PDB 2AVP/2HYZ |
+| CTPR helix | Coordinates from `src.core.ctpr_geometry` (`screw_point_nm`), converted at the boundary as 1 nm = 10 Å | Canonical values are rise **11.0 Å** (1.1 nm), twist **45°** (π/4 rad), docking radius **21.5 Å** (1.8 + 0.35 nm), scaffold cylinder **18.0 Å**. Chosen by the team over the earlier 9 Å / 0.42 rad origami prior. Not a new PDB refit. Jacobian sigmas in `origami/priors.py` are still the previous engineering widths, not `DEFAULT_RISE_STD_NM` / `DEFAULT_TWIST_STD_DEG` |
 | Jacobian covariance | Correct first-order error propagation | σ on twist is large (~30% of the mean), so the linearization is approximate |
 | Steric P(clash) | Gaussian delta method on sphere–sphere distance | Spheres, not molecular surfaces. `steric_report` now includes site–site covariance. Calling `clash_probability` without `cross_covariance` treats sites as independent and **overstates** distance noise |
 | Joint failure probability | Product of (1−p) | Assumes independent clash events. Approximate |
