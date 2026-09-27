@@ -173,6 +173,9 @@ class DesignReport:
     - stability_state: pass, fail, extrapolated, or omitted
     - stability_tier: omitted, literature_prior, or extrapolated
     - stability_omitted: names of thermal inputs that were not used
+    - delta_g*: unfolding free energy already looked up for this design's n
+    - highest_cited_delta_g_*: the feasible length with the largest printed
+      unfolding ΔG in that same column. Not a second recommendation.
     """
 
     design_id: str
@@ -202,6 +205,10 @@ class DesignReport:
     delta_g: float | None = None
     delta_g_units: str | None = None
     delta_g_uncertainty: float | None = None
+    highest_cited_delta_g_n: int | None = None
+    highest_cited_delta_g: float | None = None
+    highest_cited_delta_g_units: str | None = None
+    highest_cited_delta_g_uncertainty: float | None = None
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -260,6 +267,23 @@ class DesignReport:
         else:
             if not isinstance(self.delta_g_units, str) or self.delta_g_units.strip() == "":
                 raise ValueError("delta_g_units is required when delta_g is set")
+        self.highest_cited_delta_g_n = _optional_repeat_count(
+            "highest_cited_delta_g_n", self.highest_cited_delta_g_n
+        )
+        self.highest_cited_delta_g = _optional_float(
+            "highest_cited_delta_g", self.highest_cited_delta_g
+        )
+        self.highest_cited_delta_g_uncertainty = _optional_float(
+            "highest_cited_delta_g_uncertainty", self.highest_cited_delta_g_uncertainty
+        )
+        _check_highest_cited_delta_g(
+            self.highest_cited_delta_g_n,
+            self.highest_cited_delta_g,
+            self.highest_cited_delta_g_units,
+            self.highest_cited_delta_g_uncertainty,
+        )
+        if self.highest_cited_delta_g is None:
+            self.highest_cited_delta_g_units = None
         _check_stability(
             self.stability_state,
             self.stability_tier,
@@ -316,6 +340,20 @@ class DesignReport:
             "delta_g_units": self.delta_g_units,
             "delta_g_uncertainty": (
                 None if self.delta_g_uncertainty is None else float(self.delta_g_uncertainty)
+            ),
+            "highest_cited_delta_g_n": (
+                None
+                if self.highest_cited_delta_g_n is None
+                else int(self.highest_cited_delta_g_n)
+            ),
+            "highest_cited_delta_g": (
+                None if self.highest_cited_delta_g is None else float(self.highest_cited_delta_g)
+            ),
+            "highest_cited_delta_g_units": self.highest_cited_delta_g_units,
+            "highest_cited_delta_g_uncertainty": (
+                None
+                if self.highest_cited_delta_g_uncertainty is None
+                else float(self.highest_cited_delta_g_uncertainty)
             ),
             "stability_state": self.stability_state,
             "stability_tier": self.stability_tier,
@@ -401,6 +439,48 @@ def _check_stability(
         raise ValueError("tm_C lies outside the supplied interval")
 
 
+def _optional_repeat_count(name: str, value: object) -> int | None:
+    if value is None:
+        return None
+    count = _as_int(name, value)
+    if count < 1:
+        raise ValueError(f"{name} must be >= 1")
+    return count
+
+
+def _check_highest_cited_delta_g(
+    n_repeats: int | None,
+    value: float | None,
+    units: str | None,
+    uncertainty: float | None,
+) -> None:
+    """The ranked length, its value, and its units travel together.
+
+    A missing rank stores none of them. A present rank needs the repeat
+    count, the printed value, and the units from that row. Uncertainty
+    may stay empty when the source row has none.
+    """
+    if value is None:
+        if n_repeats is not None:
+            raise ValueError(
+                "highest_cited_delta_g_n must be empty when highest_cited_delta_g is None"
+            )
+        if units not in (None, ""):
+            raise ValueError(
+                "highest_cited_delta_g_units must be empty when highest_cited_delta_g is None"
+            )
+        if uncertainty is not None:
+            raise ValueError(
+                "highest_cited_delta_g_uncertainty must be None when "
+                "highest_cited_delta_g is None"
+            )
+        return
+    if n_repeats is None:
+        raise ValueError("highest_cited_delta_g_n is required when highest_cited_delta_g is set")
+    if not isinstance(units, str) or units.strip() == "":
+        raise ValueError("highest_cited_delta_g_units is required when highest_cited_delta_g is set")
+
+
 def assemble_report(
     *,
     design_id: str,
@@ -431,6 +511,10 @@ def assemble_report(
     delta_g: float | None = None,
     delta_g_units: str | None = None,
     delta_g_uncertainty: float | None = None,
+    highest_cited_delta_g_n: int | None = None,
+    highest_cited_delta_g: float | None = None,
+    highest_cited_delta_g_units: str | None = None,
+    highest_cited_delta_g_uncertainty: float | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -487,5 +571,9 @@ def assemble_report(
         delta_g=delta_g,
         delta_g_units=delta_g_units,
         delta_g_uncertainty=delta_g_uncertainty,
+        highest_cited_delta_g_n=highest_cited_delta_g_n,
+        highest_cited_delta_g=highest_cited_delta_g,
+        highest_cited_delta_g_units=highest_cited_delta_g_units,
+        highest_cited_delta_g_uncertainty=highest_cited_delta_g_uncertainty,
         calibration_claim=claim,
     )

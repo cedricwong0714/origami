@@ -7,18 +7,22 @@ embed melting temperatures or other biological constants.
 from origami.stability.series import (
     CORTAJARENA_2011_CTPRA_DSC,
     PHILLIPS_2012_CTPRA_DSC,
+    CitedDeltaGRank,
     delta_g_at_n,
-    load_named_series,
     literature_table_path,
+    load_named_series,
+    rank_companion_delta_g,
 )
 from origami.stability.table import ThermalObservation, load_thermal_table
 
 __all__ = [
     "CORTAJARENA_2011_CTPRA_DSC",
     "PHILLIPS_2012_CTPRA_DSC",
+    "CitedDeltaGRank",
     "ThermalObservation",
     "delta_g_at_n",
     "literature_table_path",
     "load_named_series",
     "load_thermal_table",
+    "rank_companion_delta_g",
 ]

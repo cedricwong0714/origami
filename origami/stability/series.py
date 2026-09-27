@@ -12,8 +12,10 @@ families. ``CTPR2a`` keeps the letter because it is not a bare count.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from origami.stability.table import ThermalObservation, load_thermal_table
 
@@ -68,8 +70,12 @@ _NAMED_SERIES: dict[str, dict[str, object]] = {
     },
 }
 
-# Same Table I column as the default Tm series: Gibbs–Helmholtz unfolding
+# Same Table I column as the DSC Tm series: Gibbs–Helmholtz unfolding
 # ΔG at 10°C, positive as printed. Not a second pass/fail rule.
+# ``larger_printed_value_is_more_stable`` is true only because that column
+# is an unfolding free energy printed as a positive number. A larger
+# printed value is a larger unfolding ΔG in this table. The flag is not
+# a general rule for chemical-denaturation tables whose signs differ.
 _DELTA_G_COMPANION: dict[str, dict[str, object]] = {
     PHILLIPS_2012_CTPRA_DSC: {
         "doi": "10.1002/pro.2018",
@@ -78,7 +84,17 @@ _DELTA_G_COMPANION: dict[str, dict[str, object]] = {
         "buffer": "50 mM phosphate",
         "pH": 7.0,
         "construct_family": "CTPRa",
-    }
+        "larger_printed_value_is_more_stable": True,
+    },
+    PHILLIPS_2012_CTPR_DSC: {
+        "doi": "10.1002/pro.2018",
+        "observable": "delta_G",
+        "method": "DSC",
+        "buffer": "50 mM phosphate",
+        "pH": 7.0,
+        "construct_family": "CTPR",
+        "larger_printed_value_is_more_stable": True,
+    },
 }
 
 
@@ -217,6 +233,34 @@ def load_named_series(
     )
 
 
+def _companion_rows(
+    series_id: str,
+    path: Path | None = None,
+) -> list[ThermalObservation]:
+    """ΔG rows for one named companion. An unknown or absent series is empty.
+
+    An empty match does not raise. A custom table that has melting
+    temperatures and no ΔG column stays a Tm table.
+    """
+    spec = _DELTA_G_COMPANION.get(series_id)
+    if spec is None:
+        return []
+    table_path = literature_table_path() if path is None else Path(path)
+    rows = load_thermal_table(table_path, allow_synthetic=False)
+    pH = spec["pH"]
+    if pH is not None and not isinstance(pH, (int, float)):
+        raise RuntimeError("named series pH must be numeric or null")
+    wanted = ThermalSeriesKey(
+        doi=str(spec["doi"]),
+        observable=str(spec["observable"]),
+        method=str(spec["method"]),
+        buffer=str(spec["buffer"]),
+        pH=None if pH is None else float(pH),
+        construct_family=str(spec["construct_family"]),
+    )
+    return [row for row in rows if series_key(row) == wanted]
+
+
 def delta_g_at_n(
     series_id: str,
     n_repeats: int,
@@ -224,27 +268,86 @@ def delta_g_at_n(
 ) -> ThermalObservation | None:
     """Unfolding ΔG from the same table as ``series_id``, if that column exists.
 
-    Only the Phillips 2012 CTPRa DSC series has a companion ΔG column, and
-    those values are positive as printed (Gibbs–Helmholtz, 10°C). This does
-    not flip signs from other papers and does not decide pass or fail.
-    A repeat count with no ΔG row returns None.
+    The Phillips 2012 CTPRa DSC series and the Phillips 2012 CTPR DSC series
+    have companion ΔG columns. Those values are positive as printed
+    (Gibbs–Helmholtz, 10°C). This does not flip signs from other papers
+    and does not decide pass or fail. A repeat count with no single ΔG
+    row returns None.
     """
-    spec = _DELTA_G_COMPANION.get(series_id)
-    if spec is None:
-        return None
-    table_path = literature_table_path() if path is None else Path(path)
-    rows = load_thermal_table(table_path, allow_synthetic=False)
-    pH = spec["pH"]
-    matched = select_thermal_series(
-        rows,
-        doi=str(spec["doi"]),
-        observable=str(spec["observable"]),
-        method=str(spec["method"]),
-        buffer=str(spec["buffer"]),
-        pH=None if pH is None else float(pH),
-        construct_family_name=str(spec["construct_family"]),
-    )
-    at_n = [row for row in matched if row.n_repeats == n_repeats]
+    at_n = [row for row in _companion_rows(series_id, path) if row.n_repeats == n_repeats]
     if len(at_n) != 1:
         return None
     return at_n[0]
+
+
+@dataclass(frozen=True)
+class CitedDeltaGRank:
+    """Lookup of the largest printed unfolding ΔG among eligible lengths.
+
+    ``observation`` is set only when ``status`` is ``chosen``. A tie, a
+    units mismatch, or a missing row does not pick a length and does not
+    invent a value.
+    """
+
+    observation: ThermalObservation | None
+    status: Literal["chosen", "no_companion", "not_rankable", "no_row", "mixed_units", "tie"]
+
+
+def rank_printed_delta_g(
+    rows: Sequence[ThermalObservation],
+    eligible_n: Sequence[int],
+    *,
+    larger_printed_value_is_more_stable: bool,
+) -> CitedDeltaGRank:
+    """Largest printed ΔG among eligible lengths.
+
+    ``larger_printed_value_is_more_stable`` must already have been decided
+    by the caller from the source table. This function does not decide
+    that a negative table should be flipped. It does not interpolate, it
+    does not convert units, and it does not prefer a longer scaffold.
+    Two eligible lengths with the same largest value are a tie.
+    """
+    if not larger_printed_value_is_more_stable:
+        return CitedDeltaGRank(observation=None, status="not_rankable")
+    eligible = set(eligible_n)
+    by_n: dict[int, list[ThermalObservation]] = {}
+    for row in rows:
+        if row.observable != "delta_G":
+            continue
+        if row.n_repeats not in eligible:
+            continue
+        by_n.setdefault(row.n_repeats, []).append(row)
+    singles = [group[0] for group in by_n.values() if len(group) == 1]
+    if not singles:
+        return CitedDeltaGRank(observation=None, status="no_row")
+    units = {row.units for row in singles}
+    if len(units) != 1:
+        return CitedDeltaGRank(observation=None, status="mixed_units")
+    largest = max(row.value for row in singles)
+    winners = [row for row in singles if row.value == largest]
+    if len(winners) != 1:
+        return CitedDeltaGRank(observation=None, status="tie")
+    return CitedDeltaGRank(observation=winners[0], status="chosen")
+
+
+def rank_companion_delta_g(
+    series_id: str,
+    eligible_n: Sequence[int],
+    path: Path | None = None,
+) -> CitedDeltaGRank:
+    """Largest printed unfolding ΔG among ``eligible_n`` for one companion.
+
+    This is a lookup in the same column ``delta_g_at_n`` reads. If two
+    eligible lengths share the largest printed value, the status is
+    ``tie`` and no length is chosen. Chemical-denaturation series are
+    not companions here.
+    """
+    spec = _DELTA_G_COMPANION.get(series_id)
+    if spec is None:
+        return CitedDeltaGRank(observation=None, status="no_companion")
+    return rank_printed_delta_g(
+        _companion_rows(series_id, path),
+        eligible_n,
+        larger_printed_value_is_more_stable=spec.get("larger_printed_value_is_more_stable")
+        is True,
+    )

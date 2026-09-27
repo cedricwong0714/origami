@@ -8,6 +8,7 @@ refuses an unsupported calibration claim.
 import json
 
 import numpy as np
+import pytest
 
 from origami.report import DesignReport, assemble_report
 
@@ -233,11 +234,19 @@ def test_to_dict_round_trips_through_json():
         "delta_g",
         "delta_g_units",
         "delta_g_uncertainty",
+        "highest_cited_delta_g_n",
+        "highest_cited_delta_g",
+        "highest_cited_delta_g_units",
+        "highest_cited_delta_g_uncertainty",
     }
     assert payload["stability_state"] == "omitted"
     assert payload["stability_tier"] == "omitted"
     assert payload["tm_C"] is None
     assert payload["stability_omitted"] == []
+    assert payload["highest_cited_delta_g_n"] is None
+    assert payload["highest_cited_delta_g"] is None
+    assert payload["highest_cited_delta_g_units"] is None
+    assert payload["highest_cited_delta_g_uncertainty"] is None
 
     partial_kwargs = _full_report_kwargs()
     partial_kwargs.update(
@@ -260,3 +269,23 @@ def test_to_dict_round_trips_through_json():
     assert partial["next_n"] is None
     assert partial["omitted"] == ["k_capture"]
     assert "theta_t" not in partial
+
+
+def test_highest_cited_delta_g_round_trips_and_stays_grouped():
+    kwargs = _full_report_kwargs()
+    kwargs.update(
+        highest_cited_delta_g_n=10,
+        highest_cited_delta_g=1.5,
+        highest_cited_delta_g_units="kcal mol-1",
+        highest_cited_delta_g_uncertainty=0.2,
+    )
+    payload = _assert_json_round_trip(assemble_report(**kwargs))
+    assert payload["highest_cited_delta_g_n"] == 10
+    assert payload["highest_cited_delta_g"] == 1.5
+    assert payload["highest_cited_delta_g_units"] == "kcal mol-1"
+    assert payload["next_n"] == 12
+
+    broken = _full_report_kwargs()
+    broken["highest_cited_delta_g_units"] = "kcal mol-1"
+    with pytest.raises(ValueError, match="highest_cited_delta_g_units must be empty"):
+        assemble_report(**broken)

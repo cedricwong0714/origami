@@ -33,9 +33,11 @@ from origami.stability.gate import ThermalGateResult, ThermalRow, thermal_gate
 from origami.stability.series import (
     DEFAULT_OPERATING_TEMPERATURE_C,
     PHILLIPS_2012_CTPRA_DSC,
+    CitedDeltaGRank,
     assert_single_tm_series,
     delta_g_at_n,
     load_named_series,
+    rank_companion_delta_g,
 )
 from origami.stability.table import load_thermal_table
 from src.core.ctpr_geometry import CTPR_RISE_NM, PERSISTENCE_LENGTH_NM
@@ -426,6 +428,72 @@ def _recommend_thermally_feasible(
     return chosen, gates, warnings
 
 
+def _rank_feasible_delta_g(
+    series_id: str | None,
+    library: EngineResult,
+    path: Path | None,
+) -> CitedDeltaGRank | None:
+    """Look up the largest printed companion ΔG on the feasible subset.
+
+    Caller-supplied rows that are not a named series are not ranked.
+    The lookup does not change ``library.next_experiment``.
+    """
+    if series_id is None or library.thermal_by_n is None:
+        return None
+    return rank_companion_delta_g(series_id, feasible_repeat_counts(library), path)
+
+
+def _delta_g_rank_warnings(ranked: CitedDeltaGRank | None) -> list[str]:
+    """Say what the ΔG lookup did. It does not describe a new model."""
+    if ranked is None:
+        return []
+    if ranked.status == "chosen" and ranked.observation is not None:
+        chosen = ranked.observation
+        return [
+            (
+                "Among repeat counts that pass the steric gate and the Tm gate, "
+                f"the largest printed unfolding ΔG in {chosen.figure_or_table} "
+                f"({chosen.doi}, {chosen.units}) is at n={chosen.n_repeats}. "
+                "The comparison uses the sign printed in that table. "
+                "It does not change next_n and it is not a second model."
+            )
+        ]
+    if ranked.status == "tie":
+        return [
+            (
+                "More than one feasible repeat count shares the largest printed "
+                "unfolding ΔG. No single length was marked."
+            )
+        ]
+    if ranked.status == "mixed_units":
+        return [
+            (
+                "Feasible unfolding ΔG rows do not share one units label. "
+                "They were not compared."
+            )
+        ]
+    return []
+
+
+def feasible_repeat_counts(result: EngineResult) -> list[int]:
+    """Lengths that pass the steric refusal limit and the thermal gate.
+
+    This is the subset acquisition ranks. Unfolding ΔG is not consulted.
+    No thermal table means an empty list, not every sterically allowed length.
+    """
+    if result.thermal_by_n is None:
+        return []
+    found: list[int] = []
+    for n_repeats in sorted(result.thermal_by_n):
+        gate = result.thermal_by_n[n_repeats]
+        if gate.state != "pass":
+            continue
+        if result.reports[n_repeats].steric.p_any_instability >= _STERIC_CLASH_LIMIT:
+            continue
+        found.append(n_repeats)
+    return found
+
+
 def _stability_from_gate(gate: ThermalGateResult | None) -> dict[str, Any]:
     """Map one gate result onto DesignReport stability fields.
 
@@ -744,6 +812,11 @@ def run_design(
     path is loaded with ``allow_synthetic=False``. Feasible lengths are
     those that pass the steric refusal threshold and whose thermal state
     is ``pass``. If none do, ``next_n`` is None.
+
+    When the active series has a same-table unfolding ΔG column whose
+    printed values are positive, the report also names the feasible
+    length with the largest printed value. That lookup does not change
+    ``next_n``.
     """
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
         raise ValueError("n_repeats must be an integer")
@@ -891,13 +964,17 @@ def run_design(
         thermal_table_path=thermal_table_path,
         thermal_prior=thermal_prior,
     )
-    dg_row = None if dg_series is None else delta_g_at_n(dg_series, n_repeats)
+    dg_path = None if thermal_table_path is None else Path(thermal_table_path)
+    dg_row = None if dg_series is None else delta_g_at_n(dg_series, n_repeats, dg_path)
     if dg_row is not None:
         warnings.append(
             "delta_G is the unfolding free energy from the same Table I as the "
             f"Tm series ({dg_row.doi}, {dg_row.figure_or_table}, {dg_row.units}). "
             "The sign is as printed. It is not the pass/fail rule."
         )
+    ranked = _rank_feasible_delta_g(dg_series, library, dg_path)
+    warnings.extend(_delta_g_rank_warnings(ranked))
+    ranked_row = None if ranked is None else ranked.observation
 
     return assemble_report(
         design_id=design_id,
@@ -929,5 +1006,13 @@ def run_design(
         delta_g_units=None if dg_row is None else dg_row.units,
         delta_g_uncertainty=(
             None if dg_row is None or dg_row.uncertainty is None else float(dg_row.uncertainty)
+        ),
+        highest_cited_delta_g_n=None if ranked_row is None else int(ranked_row.n_repeats),
+        highest_cited_delta_g=None if ranked_row is None else float(ranked_row.value),
+        highest_cited_delta_g_units=None if ranked_row is None else ranked_row.units,
+        highest_cited_delta_g_uncertainty=(
+            None
+            if ranked_row is None or ranked_row.uncertainty is None
+            else float(ranked_row.uncertainty)
         ),
     )
