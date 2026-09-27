@@ -74,6 +74,8 @@ streamlit run sandbox/app.py --server.port 48621 --server.address 0.0.0.0
 
 This form calls the math chassis. It does not invent sequences or mark the report calibrated.
 
+Teammates: a **temporary** static checkpoint (saved n=8 tables, not a live host) is in [`web/checkpoint/`](web/checkpoint/). How to deploy that snapshot and how to run the real models is in [`TEAMMATES.md`](TEAMMATES.md). Vercel cannot execute the Python chassis.
+
 ### Streamlit UI (Explore / Design / Learn)
 
 ```bash

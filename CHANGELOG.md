@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-09-27 (teammate checkpoint)
+
+### Added
+- Saved n=8 dry-lab JSON/CSV after the chassis/sandbox-related pytest pass, plus a static viewer in `web/checkpoint/` for a temporary Vercel drop. The page does not run the models. `calibrated` stays false.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27 (dry-lab measurements)
 
 ### Added
