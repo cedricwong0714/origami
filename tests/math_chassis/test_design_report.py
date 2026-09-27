@@ -230,6 +230,9 @@ def test_to_dict_round_trips_through_json():
         "stability_state",
         "stability_tier",
         "stability_omitted",
+        "delta_g",
+        "delta_g_units",
+        "delta_g_uncertainty",
     }
     assert payload["stability_state"] == "omitted"
     assert payload["stability_tier"] == "omitted"

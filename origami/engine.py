@@ -34,6 +34,7 @@ from origami.stability.series import (
     DEFAULT_OPERATING_TEMPERATURE_C,
     PHILLIPS_2012_CTPRA_DSC,
     assert_single_tm_series,
+    delta_g_at_n,
     load_named_series,
 )
 from origami.stability.table import load_thermal_table
@@ -677,6 +678,27 @@ def _evaluate_occupancy(
     return occupancy, kon, notes
 
 
+def _delta_g_series_id(
+    *,
+    thermal_series: str | None,
+    thermal_rows: Sequence[object] | None,
+    thermal_table_path: str | Path | None,
+    thermal_prior: bool,
+) -> str | None:
+    """Which named Tm series, if any, may contribute a same-table ΔG.
+
+    Caller-supplied rows and raw table paths are not mapped onto a ΔG
+    column. Only a named series, or the default Phillips prior, is.
+    """
+    if thermal_rows is not None or thermal_table_path is not None:
+        return thermal_series
+    if thermal_series is not None:
+        return thermal_series
+    if thermal_prior:
+        return PHILLIPS_2012_CTPRA_DSC
+    return None
+
+
 def run_design(
     design_id: str,
     n_repeats: int,
@@ -863,6 +885,20 @@ def run_design(
             )
         stability = _stability_from_gate(design_gate)
 
+    dg_series = _delta_g_series_id(
+        thermal_series=thermal_series,
+        thermal_rows=thermal_rows,
+        thermal_table_path=thermal_table_path,
+        thermal_prior=thermal_prior,
+    )
+    dg_row = None if dg_series is None else delta_g_at_n(dg_series, n_repeats)
+    if dg_row is not None:
+        warnings.append(
+            "delta_G is the unfolding free energy from the same Table I as the "
+            f"Tm series ({dg_row.doi}, {dg_row.figure_or_table}, {dg_row.units}). "
+            "The sign is as printed. It is not the pass/fail rule."
+        )
+
     return assemble_report(
         design_id=design_id,
         prior_geometry_id=geom.provenance,
@@ -889,4 +925,9 @@ def run_design(
         stability_state=stability["stability_state"],
         stability_tier=stability["stability_tier"],
         stability_omitted=stability["stability_omitted"],
+        delta_g=None if dg_row is None else float(dg_row.value),
+        delta_g_units=None if dg_row is None else dg_row.units,
+        delta_g_uncertainty=(
+            None if dg_row is None or dg_row.uncertainty is None else float(dg_row.uncertainty)
+        ),
     )

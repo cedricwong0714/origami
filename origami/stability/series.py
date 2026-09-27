@@ -22,6 +22,9 @@ from origami.stability.table import ThermalObservation, load_thermal_table
 # same table are a different construct family and are not included.
 # Citation text matches data/stability/ctpr_thermal_literature.json.
 PHILLIPS_2012_CTPRA_DSC = "phillips2012_ctpra_dsc"
+CORTAJARENA_2011_CTPRA_DSC = "cortajarena2011_ctpra_dsc"
+PHILLIPS_2012_CTPRA_CD = "phillips2012_ctpra_cd"
+PHILLIPS_2012_CTPR_DSC = "phillips2012_ctpr_dsc"
 
 # Operating temperature for the design screen when the caller does not
 # supply one. Phillips et al. 2012 Table I reports melting temperatures,
@@ -34,6 +37,43 @@ _NAMED_SERIES: dict[str, dict[str, object]] = {
     PHILLIPS_2012_CTPRA_DSC: {
         "doi": "10.1002/pro.2018",
         "observable": "Tm_C",
+        "method": "DSC",
+        "buffer": "50 mM phosphate",
+        "pH": 7.0,
+        "construct_family": "CTPRa",
+    },
+    CORTAJARENA_2011_CTPRA_DSC: {
+        "doi": "10.1002/pro.564",
+        "observable": "Tm_C",
+        "method": "DSC",
+        "buffer": "150 mM NaCl, 50 mM phosphate",
+        "pH": 6.8,
+        "construct_family": "CTPRa",
+    },
+    PHILLIPS_2012_CTPRA_CD: {
+        "doi": "10.1002/pro.2018",
+        "observable": "Tm_C",
+        "method": "CD",
+        "buffer": "50 mM phosphate",
+        "pH": 7.0,
+        "construct_family": "CTPRa",
+    },
+    PHILLIPS_2012_CTPR_DSC: {
+        "doi": "10.1002/pro.2018",
+        "observable": "Tm_C",
+        "method": "DSC",
+        "buffer": "50 mM phosphate",
+        "pH": 7.0,
+        "construct_family": "CTPR",
+    },
+}
+
+# Same Table I column as the default Tm series: Gibbs–Helmholtz unfolding
+# ΔG at 10°C, positive as printed. Not a second pass/fail rule.
+_DELTA_G_COMPANION: dict[str, dict[str, object]] = {
+    PHILLIPS_2012_CTPRA_DSC: {
+        "doi": "10.1002/pro.2018",
+        "observable": "delta_G",
         "method": "DSC",
         "buffer": "50 mM phosphate",
         "pH": 7.0,
@@ -151,10 +191,11 @@ def load_named_series(
     series_id: str,
     path: Path | None = None,
 ) -> list[ThermalObservation]:
-    """Load one named series from the literature table.
+    """Load one named Tm series from the literature table.
 
-    The only built-in id is ``phillips2012_ctpra_dsc``. Other series stay
-    in the file and are selected by ``select_thermal_series``.
+    Built-in ids are the Phillips 2012 CTPRa DSC default, the Cortajarena
+    2011 CTPRa DSC series, the Phillips 2012 CTPRa CD series, and the
+    Phillips 2012 CTPR DSC series. They are not averaged together.
     """
     spec = _NAMED_SERIES.get(series_id)
     if spec is None:
@@ -174,3 +215,36 @@ def load_named_series(
         pH=None if pH is None else float(pH),
         construct_family_name=str(spec["construct_family"]),
     )
+
+
+def delta_g_at_n(
+    series_id: str,
+    n_repeats: int,
+    path: Path | None = None,
+) -> ThermalObservation | None:
+    """Unfolding ΔG from the same table as ``series_id``, if that column exists.
+
+    Only the Phillips 2012 CTPRa DSC series has a companion ΔG column, and
+    those values are positive as printed (Gibbs–Helmholtz, 10°C). This does
+    not flip signs from other papers and does not decide pass or fail.
+    A repeat count with no ΔG row returns None.
+    """
+    spec = _DELTA_G_COMPANION.get(series_id)
+    if spec is None:
+        return None
+    table_path = literature_table_path() if path is None else Path(path)
+    rows = load_thermal_table(table_path, allow_synthetic=False)
+    pH = spec["pH"]
+    matched = select_thermal_series(
+        rows,
+        doi=str(spec["doi"]),
+        observable=str(spec["observable"]),
+        method=str(spec["method"]),
+        buffer=str(spec["buffer"]),
+        pH=None if pH is None else float(pH),
+        construct_family_name=str(spec["construct_family"]),
+    )
+    at_n = [row for row in matched if row.n_repeats == n_repeats]
+    if len(at_n) != 1:
+        return None
+    return at_n[0]

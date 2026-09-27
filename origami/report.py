@@ -199,6 +199,9 @@ class DesignReport:
     stability_state: str = "omitted"
     stability_tier: str = "omitted"
     stability_omitted: list[str] = field(default_factory=list)
+    delta_g: float | None = None
+    delta_g_units: str | None = None
+    delta_g_uncertainty: float | None = None
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -244,6 +247,19 @@ class DesignReport:
             "stability_tier", self.stability_tier, _STABILITY_TIERS
         )
         self.stability_omitted = _string_list("stability_omitted", self.stability_omitted)
+        self.delta_g = _optional_float("delta_g", self.delta_g)
+        self.delta_g_uncertainty = _optional_float(
+            "delta_g_uncertainty", self.delta_g_uncertainty
+        )
+        if self.delta_g is None:
+            if self.delta_g_units not in (None, ""):
+                raise ValueError("delta_g_units must be empty when delta_g is None")
+            if self.delta_g_uncertainty is not None:
+                raise ValueError("delta_g_uncertainty must be None when delta_g is None")
+            self.delta_g_units = None
+        else:
+            if not isinstance(self.delta_g_units, str) or self.delta_g_units.strip() == "":
+                raise ValueError("delta_g_units is required when delta_g is set")
         _check_stability(
             self.stability_state,
             self.stability_tier,
@@ -295,6 +311,11 @@ class DesignReport:
             ),
             "tm_interval_high": (
                 None if self.tm_interval_high is None else float(self.tm_interval_high)
+            ),
+            "delta_g": None if self.delta_g is None else float(self.delta_g),
+            "delta_g_units": self.delta_g_units,
+            "delta_g_uncertainty": (
+                None if self.delta_g_uncertainty is None else float(self.delta_g_uncertainty)
             ),
             "stability_state": self.stability_state,
             "stability_tier": self.stability_tier,
@@ -407,6 +428,9 @@ def assemble_report(
     stability_state: str = "omitted",
     stability_tier: str = "omitted",
     stability_omitted: Sequence[str] | None = None,
+    delta_g: float | None = None,
+    delta_g_units: str | None = None,
+    delta_g_uncertainty: float | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -460,5 +484,8 @@ def assemble_report(
         stability_state=stability_state,
         stability_tier=stability_tier,
         stability_omitted=[] if stability_omitted is None else list(stability_omitted),
+        delta_g=delta_g,
+        delta_g_units=delta_g_units,
+        delta_g_uncertainty=delta_g_uncertainty,
         calibration_claim=claim,
     )
