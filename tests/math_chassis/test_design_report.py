@@ -240,6 +240,7 @@ def test_to_dict_round_trips_through_json():
         "highest_cited_delta_g_uncertainty",
         "structure",
         "registers",
+        "separation",
     }
     assert payload["stability_state"] == "omitted"
     assert payload["stability_tier"] == "omitted"
@@ -251,6 +252,7 @@ def test_to_dict_round_trips_through_json():
     assert payload["highest_cited_delta_g_uncertainty"] is None
     assert payload["structure"] is None
     assert payload["registers"] is None
+    assert payload["separation"] is None
 
     partial_kwargs = _full_report_kwargs()
     partial_kwargs.update(

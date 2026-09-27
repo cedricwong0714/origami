@@ -21,6 +21,7 @@ from origami.physical.linkers import gaussian_chain_ceff
 from origami.physical.recruitment import occupancy_for_pair, recruitment_occupancy
 from origami.physical.registers import use_case_register
 from origami.physical.score import PhysicsReport, physics_report
+from origami.physical.separation import separation_library
 from origami.physical.steric import payload_center, steric_report
 from origami.physical.structure import structural_report
 from origami.priors import (
@@ -520,6 +521,35 @@ def _use_case_register(library: EngineResult, repeats_per_turn: float, next_n: i
     )
 
 
+def _separation_for_design(
+    n_repeats: int,
+    indices: list[int],
+    radii: list[float],
+    thermal_state: str,
+) -> dict[str, object] | None:
+    """Δi scan for this design. Repeat-count observations are not forwarded.
+
+    The anchor is the first payload index. The two radii are the first
+    two payload radii. ``design_delta_i`` is recorded only when the
+    design itself has exactly two payloads.
+    """
+    if len(indices) < 2 or len(radii) < 2:
+        return None
+    design_delta_i = None
+    if len(indices) == 2:
+        gap = abs(indices[1] - indices[0])
+        if gap >= 1:
+            design_delta_i = gap
+    return separation_library(
+        n_repeats,
+        anchor_index=indices[0],
+        radius_anchor_A=radii[0],
+        radius_partner_A=radii[1],
+        thermal_state=thermal_state,
+        design_delta_i=design_delta_i,
+    )
+
+
 def feasible_repeat_counts(result: EngineResult) -> list[int]:
     """Lengths that pass the steric refusal limit and the thermal gate.
 
@@ -869,6 +899,12 @@ def run_design(
 
     ``registers`` records the team lengths n=2, n=3, n=14, and n=20
     next to this scan. It does not train the acquisition toward them.
+
+    ``separation`` scans payload spacing Δi on this scaffold. The
+    structural fields are computed first. A new unfitted residual GP
+    and ``recommend`` then rank those scores. Observations of total
+    repeat count are not passed into that GP. If this scaffold's
+    thermal state is not ``pass``, ``next_delta_i`` is None.
     """
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
         raise ValueError("n_repeats must be an integer")
@@ -1011,6 +1047,23 @@ def run_design(
         thermal_prior=thermal_prior,
     )
     dg_path = None if thermal_table_path is None else Path(thermal_table_path)
+    if library.thermal_by_n is None:
+        separation_thermal = "not_scored"
+    else:
+        separation_thermal = library.thermal_by_n[n_repeats].state
+    separation = _separation_for_design(
+        n_repeats,
+        indices,
+        radii,
+        separation_thermal,
+    )
+    if separation is None:
+        warnings.append(
+            "Separation scan needs two payload radii. It was not run."
+        )
+    else:
+        warnings.extend(str(note) for note in separation["notes"])
+
     dg_row = None if dg_series is None else delta_g_at_n(dg_series, n_repeats, dg_path)
     if dg_row is not None:
         warnings.append(
@@ -1063,4 +1116,5 @@ def run_design(
         ),
         structure=structure.to_dict(),
         registers=_use_case_register(library, structure.repeats_per_turn, next_n),
+        separation=separation,
     )

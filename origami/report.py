@@ -25,6 +25,7 @@ from origami.physical.registers import (
     TEAM_LOWER_N,
     TEAM_UPPER_N,
 )
+from origami.physical.separation import SEPARATION_CANDIDATE_KEYS, SEPARATION_KEYS
 from origami.physical.structure import PAIR_STRUCTURE_KEYS, STRUCTURE_KEYS
 
 _WET_LAB = "wet_lab"
@@ -188,6 +189,8 @@ class DesignReport:
       when that report was not computed. calibrated inside it stays false.
     - registers: team lengths 2, 3, 14, and 20 checked against this scan.
       They stay labeled as team choices. calibrated inside it stays false.
+    - separation: Δi scan on this scaffold, ranked by the unfitted residual
+      GP. calibrated and gp_fitted inside it stay false.
     """
 
     design_id: str
@@ -223,6 +226,7 @@ class DesignReport:
     highest_cited_delta_g_uncertainty: float | None = None
     structure: dict[str, Any] | None = None
     registers: dict[str, Any] | None = None
+    separation: dict[str, Any] | None = None
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -300,6 +304,7 @@ class DesignReport:
             self.highest_cited_delta_g_units = None
         self.structure = _check_structure(self.structure)
         self.registers = _check_registers(self.registers)
+        self.separation = _check_separation(self.separation)
         _check_stability(
             self.stability_state,
             self.stability_tier,
@@ -373,6 +378,7 @@ class DesignReport:
             ),
             "structure": self.structure,
             "registers": self.registers,
+            "separation": self.separation,
             "stability_state": self.stability_state,
             "stability_tier": self.stability_tier,
             "stability_omitted": list(self.stability_omitted),
@@ -680,6 +686,146 @@ def _check_registers(value: object) -> dict[str, Any] | None:
     return copied
 
 
+def _check_separation(value: object) -> dict[str, Any] | None:
+    """Keep a Δi scan uncalibrated and unfitted.
+
+    None means the separation scan was not computed. A dict must be the
+    key set from ``separation_library``. This checker does not rescore
+    the screw. It does require the stored posterior mean to equal the
+    stored physics score, which is the unfitted residual GP.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError("separation must be a dict or None")
+    if set(value) != SEPARATION_KEYS:
+        missing = sorted(SEPARATION_KEYS - set(value))
+        extra = sorted(set(value) - SEPARATION_KEYS)
+        raise ValueError(f"separation keys mismatch. missing={missing} extra={extra}")
+    if value["calibrated"] is not False:
+        raise ValueError("separation.calibrated must be false")
+    if value["gp_fitted"] is not False:
+        raise ValueError("separation.gp_fitted must be false")
+    if value["active_process"] != "unfitted_residual_gp_plus_recommend":
+        raise ValueError("separation.active_process is not the unfitted residual GP")
+    copied: dict[str, Any] = dict(value)
+    copied["n_repeats"] = _as_int("separation.n_repeats", value["n_repeats"])
+    copied["anchor_index"] = _as_int("separation.anchor_index", value["anchor_index"])
+    if copied["anchor_index"] < 0 or copied["anchor_index"] >= copied["n_repeats"]:
+        raise ValueError("separation.anchor_index is outside the scaffold")
+    copied["radius_anchor_A"] = _json_number(
+        "separation.radius_anchor_A", value["radius_anchor_A"]
+    )
+    copied["radius_partner_A"] = _json_number(
+        "separation.radius_partner_A", value["radius_partner_A"]
+    )
+    if copied["radius_anchor_A"] <= 0.0 or copied["radius_partner_A"] <= 0.0:
+        raise ValueError("separation radii must be > 0")
+    if value["design_delta_i"] is None:
+        copied["design_delta_i"] = None
+    else:
+        copied["design_delta_i"] = _as_int(
+            "separation.design_delta_i", value["design_delta_i"]
+        )
+        if copied["design_delta_i"] < 1:
+            raise ValueError("separation.design_delta_i must be >= 1 when set")
+    thermal_state = value["thermal_state"]
+    if not isinstance(thermal_state, str) or thermal_state not in {
+        "pass",
+        "fail",
+        "extrapolated",
+        "omitted",
+        "not_scored",
+    }:
+        raise ValueError("separation.thermal_state is not a known state")
+    copied["thermal_state"] = thermal_state
+    if value["one_turn_n"] is None:
+        copied["one_turn_n"] = None
+    else:
+        copied["one_turn_n"] = _as_int("separation.one_turn_n", value["one_turn_n"])
+        if copied["one_turn_n"] < 1:
+            raise ValueError("separation.one_turn_n must be >= 1 when set")
+    if not isinstance(value["acquisition_name"], str) or value["acquisition_name"].strip() == "":
+        raise ValueError("separation.acquisition_name must be a non-empty string")
+    candidates = value["candidates"]
+    if not isinstance(candidates, list):
+        raise TypeError("separation.candidates must be a list")
+    copied_rows = [_check_separation_candidate(index, row) for index, row in enumerate(candidates)]
+    deltas = [row["delta_i"] for row in copied_rows]
+    if deltas != list(range(1, len(deltas) + 1)):
+        raise ValueError("separation candidates must be delta_i = 1, 2, ... in order")
+    for row in copied_rows:
+        if row["partner_index"] != copied["anchor_index"] + row["delta_i"]:
+            raise ValueError("separation partner_index must be anchor_index + delta_i")
+        if row["partner_index"] >= copied["n_repeats"]:
+            raise ValueError("separation partner_index is outside the scaffold")
+        turn = copied["one_turn_n"]
+        expected_turn = turn is not None and row["delta_i"] % turn == 0
+        if row["on_integer_turn"] is not expected_turn:
+            raise ValueError("separation.on_integer_turn does not match one_turn_n")
+        if abs(row["posterior_mean"] - row["physics_score"]) > 1e-9:
+            raise ValueError("unfitted separation posterior must equal the physics score")
+    if copied_rows:
+        std0 = copied_rows[0]["posterior_std"]
+        if any(abs(row["posterior_std"] - std0) > 1e-9 for row in copied_rows):
+            raise ValueError("unfitted separation posterior std must be flat")
+    if value["next_delta_i"] is None:
+        copied["next_delta_i"] = None
+    else:
+        copied["next_delta_i"] = _as_int("separation.next_delta_i", value["next_delta_i"])
+        if copied["next_delta_i"] not in deltas:
+            raise ValueError("separation.next_delta_i is not one of the candidates")
+    rankable = thermal_state in {"pass", "not_scored"}
+    if rankable and copied_rows and copied["next_delta_i"] is None:
+        raise ValueError("a rankable separation scan must name next_delta_i")
+    if (not rankable or not copied_rows) and copied["next_delta_i"] is not None:
+        raise ValueError("next_delta_i must be empty when the scaffold is not rankable")
+    copied["candidates"] = copied_rows
+    copied["notes"] = _string_list("separation.notes", value["notes"])
+    copied["calibrated"] = False
+    copied["gp_fitted"] = False
+    return copied
+
+
+def _check_separation_candidate(index: int, row: object) -> dict[str, Any]:
+    if not isinstance(row, dict) or set(row) != SEPARATION_CANDIDATE_KEYS:
+        raise ValueError(f"separation.candidates[{index}] keys do not match the scan")
+    if type(row["on_integer_turn"]) is not bool:
+        raise TypeError(f"separation.candidates[{index}].on_integer_turn must be a bool")
+    copied = {
+        "delta_i": _as_int(f"separation.candidates[{index}].delta_i", row["delta_i"]),
+        "partner_index": _as_int(
+            f"separation.candidates[{index}].partner_index", row["partner_index"]
+        ),
+        "on_integer_turn": row["on_integer_turn"],
+    }
+    for name in (
+        "phase_rad",
+        "facing_cosine",
+        "chord_A",
+        "chord_sigma_A",
+        "axial_A",
+        "p_clash",
+        "p_instability",
+        "c_eff_M",
+        "physics_score",
+        "posterior_mean",
+        "posterior_std",
+    ):
+        copied[name] = _json_number(f"separation.candidates[{index}].{name}", row[name])
+    if copied["delta_i"] < 1:
+        raise ValueError(f"separation.candidates[{index}].delta_i must be >= 1")
+    if copied["p_clash"] < 0.0 or copied["p_clash"] > 1.0:
+        raise ValueError(f"separation.candidates[{index}].p_clash is outside [0, 1]")
+    if copied["p_instability"] < 0.0 or copied["p_instability"] > 1.0:
+        raise ValueError(f"separation.candidates[{index}].p_instability is outside [0, 1]")
+    if copied["chord_sigma_A"] < 0.0 or copied["posterior_std"] < 0.0:
+        raise ValueError(f"separation.candidates[{index}] has a negative width")
+    if copied["c_eff_M"] < 0.0 or copied["chord_A"] < 0.0:
+        raise ValueError(f"separation.candidates[{index}] has a negative length or concentration")
+    return copied
+
+
 def assemble_report(
     *,
     design_id: str,
@@ -716,6 +862,7 @@ def assemble_report(
     highest_cited_delta_g_uncertainty: float | None = None,
     structure: dict[str, Any] | None = None,
     registers: dict[str, Any] | None = None,
+    separation: dict[str, Any] | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -778,5 +925,6 @@ def assemble_report(
         highest_cited_delta_g_uncertainty=highest_cited_delta_g_uncertainty,
         structure=structure,
         registers=registers,
+        separation=separation,
         calibration_claim=claim,
     )
