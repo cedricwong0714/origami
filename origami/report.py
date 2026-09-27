@@ -18,6 +18,13 @@ from typing import Any
 
 import numpy as np
 
+from origami.physical.registers import (
+    REGISTER_KEYS,
+    TEAM_BIOMARKER_N,
+    TEAM_CHANNELING_N,
+    TEAM_LOWER_N,
+    TEAM_UPPER_N,
+)
 from origami.physical.structure import PAIR_STRUCTURE_KEYS, STRUCTURE_KEYS
 
 _WET_LAB = "wet_lab"
@@ -179,6 +186,8 @@ class DesignReport:
       unfolding ΔG in that same column. Not a second recommendation.
     - structure: screw invariants from origami.physical.structure, or None
       when that report was not computed. calibrated inside it stays false.
+    - registers: team lengths 2, 3, 14, and 20 checked against this scan.
+      They stay labeled as team choices. calibrated inside it stays false.
     """
 
     design_id: str
@@ -213,6 +222,7 @@ class DesignReport:
     highest_cited_delta_g_units: str | None = None
     highest_cited_delta_g_uncertainty: float | None = None
     structure: dict[str, Any] | None = None
+    registers: dict[str, Any] | None = None
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -289,6 +299,7 @@ class DesignReport:
         if self.highest_cited_delta_g is None:
             self.highest_cited_delta_g_units = None
         self.structure = _check_structure(self.structure)
+        self.registers = _check_registers(self.registers)
         _check_stability(
             self.stability_state,
             self.stability_tier,
@@ -361,6 +372,7 @@ class DesignReport:
                 else float(self.highest_cited_delta_g_uncertainty)
             ),
             "structure": self.structure,
+            "registers": self.registers,
             "stability_state": self.stability_state,
             "stability_tier": self.stability_tier,
             "stability_omitted": list(self.stability_omitted),
@@ -580,6 +592,94 @@ def _check_structure(value: object) -> dict[str, Any] | None:
     return copied
 
 
+def _check_registers(value: object) -> dict[str, Any] | None:
+    """Keep the team-length register uncalibrated and internally consistent.
+
+    The four lengths are the team choices. ``channeling_candidate_is_steric_minimum``
+    must match ``shortest_end_pair_n``. This checker does not rescore clash.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError("registers must be a dict or None")
+    if set(value) != REGISTER_KEYS:
+        missing = sorted(REGISTER_KEYS - set(value))
+        extra = sorted(set(value) - REGISTER_KEYS)
+        raise ValueError(f"registers keys mismatch. missing={missing} extra={extra}")
+    if value["calibrated"] is not False:
+        raise ValueError("registers.calibrated must be false")
+    copied: dict[str, Any] = dict(value)
+    expected_n = {
+        "lower_extrema_n": TEAM_LOWER_N,
+        "upper_extrema_n": TEAM_UPPER_N,
+        "biomarker_n": TEAM_BIOMARKER_N,
+        "channeling_candidate_n": TEAM_CHANNELING_N,
+    }
+    for name, expected in expected_n.items():
+        found = _as_int(f"registers.{name}", value[name])
+        if found != expected:
+            raise ValueError(f"registers.{name} must stay {expected}")
+        copied[name] = found
+    if value["one_turn_n"] is None:
+        copied["one_turn_n"] = None
+    else:
+        copied["one_turn_n"] = _as_int("registers.one_turn_n", value["one_turn_n"])
+    for name in (
+        "lower_bound_in_phillips2012_ctpra_dsc",
+        "upper_bound_in_phillips2012_ctpra_dsc",
+        "channeling_candidate_in_phillips2012_ctpra_dsc",
+        "biomarker_n_is_library_minimum",
+        "channeling_candidate_is_steric_minimum",
+    ):
+        if type(value[name]) is not bool:
+            raise TypeError(f"registers.{name} must be a bool")
+    if value["shortest_end_pair_n"] is None:
+        copied["shortest_end_pair_n"] = None
+    else:
+        copied["shortest_end_pair_n"] = _as_int(
+            "registers.shortest_end_pair_n", value["shortest_end_pair_n"]
+        )
+    if value["active_learner_next_n"] is None:
+        copied["active_learner_next_n"] = None
+    else:
+        copied["active_learner_next_n"] = _as_int(
+            "registers.active_learner_next_n", value["active_learner_next_n"]
+        )
+    flag = copied["channeling_candidate_is_steric_minimum"]
+    if flag != (copied["shortest_end_pair_n"] == TEAM_CHANNELING_N):
+        raise ValueError(
+            "channeling_candidate_is_steric_minimum must match shortest_end_pair_n"
+        )
+    copied["notes"] = _string_list("registers.notes", value["notes"])
+    pairs = value["end_pairs"]
+    if not isinstance(pairs, list):
+        raise TypeError("registers.end_pairs must be a list")
+    copied_pairs: list[dict[str, Any]] = []
+    for index, pair in enumerate(pairs):
+        if not isinstance(pair, dict):
+            raise TypeError(f"registers.end_pairs[{index}] must be an object")
+        copied_pairs.append(
+            {
+                "n": _as_int(f"registers.end_pairs[{index}].n", pair["n"]),
+                "end_pair_p_clash": _json_number(
+                    f"registers.end_pairs[{index}].end_pair_p_clash",
+                    pair["end_pair_p_clash"],
+                ),
+                "p_instability": _json_number(
+                    f"registers.end_pairs[{index}].p_instability",
+                    pair["p_instability"],
+                ),
+                "thermal_state": _identifier(
+                    f"registers.end_pairs[{index}].thermal_state",
+                    pair["thermal_state"],
+                ),
+            }
+        )
+    copied["end_pairs"] = copied_pairs
+    copied["calibrated"] = False
+    return copied
+
+
 def assemble_report(
     *,
     design_id: str,
@@ -615,6 +715,7 @@ def assemble_report(
     highest_cited_delta_g_units: str | None = None,
     highest_cited_delta_g_uncertainty: float | None = None,
     structure: dict[str, Any] | None = None,
+    registers: dict[str, Any] | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -676,5 +777,6 @@ def assemble_report(
         highest_cited_delta_g_units=highest_cited_delta_g_units,
         highest_cited_delta_g_uncertainty=highest_cited_delta_g_uncertainty,
         structure=structure,
+        registers=registers,
         calibration_claim=claim,
     )

@@ -14,7 +14,8 @@ Fact-check of what is implemented. A passing test is not calibration.
 | Gaussian-chain C_eff | Standard ideal-chain contact density with σ² = ⟨R²⟩ | σ = 18 Å is **not** a measured persistence length. This is not a GP |
 | Physics score | Defined scalar, not a law of nature | 1 mM reference inside the log is a unit choice, not a K_m |
 | Matérn-5/2 GP | Standard kernel + Cholesky posterior. Affine (α, β) is **ridge-regularized toward (1, 0)** and not fit from fewer than 3 points | Learns residuals of S(n). Not trained on wet lab. Unregularized 2-point least squares was non-identifiable and produced ~10^7 means; that is a software bug, not biology | |
-| BO (UCB, EI, entropy) | Standard discrete acquisition | Entropy is Gaussian differential entropy, not a full experimental Fisher design |
+| BO (UCB, EI, entropy) | Standard discrete acquisition | Entropy is Gaussian differential entropy, not a full experimental Fisher design. Team lengths n=2, n=3, n=14, and n=20 are recorded beside the scan and are not training targets. n=14 is outside the default Phillips CTPRa DSC range, so the thermal mask does not rank it |
+| Repeat-count register | Comparison only. No new score | n=2 and n=20 are team bounds. n=3 is the biomarker measurement length. n=14 is the channeling candidate. `channeling_candidate_is_steric_minimum` is true only when the end-pair clash scan first clears the existing clash limit at n=14. The untrained acquisition is reported as `active_learner_next_n` and is not fitted to these lengths |
 | Recruitment ODE | Langmuir mass action; θ_ss = C/(C+Kd) | Kd = 0.19 ± 0.09 nM is the **peptide** value from Biochemistry 2006, 45:12547–12559, DOI 10.1021/bi060857u. Not a CLASP fusion. **No k_on in that paper** |
 | Damköhler ODE | Da = k_capture/k_escape; P = Da/(1+Da); ODE matches that steady state | k_escape, k_cat/K_m, and v_prod are **caller inputs**. No enzyme constants are stored |
 

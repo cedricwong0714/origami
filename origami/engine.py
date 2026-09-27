@@ -19,6 +19,7 @@ from origami.mechanisms.intermediate_transfer import simulate_from_ceff
 from origami.physical.geometry import CANONICAL_GEOMETRY_PRIOR_ID, build_ctpr
 from origami.physical.linkers import gaussian_chain_ceff
 from origami.physical.recruitment import occupancy_for_pair, recruitment_occupancy
+from origami.physical.registers import use_case_register
 from origami.physical.score import PhysicsReport, physics_report
 from origami.physical.steric import payload_center, steric_report
 from origami.physical.structure import structural_report
@@ -475,6 +476,50 @@ def _delta_g_rank_warnings(ranked: CitedDeltaGRank | None) -> list[str]:
     return []
 
 
+def _end_pair_p_clash(report: PhysicsReport, n_repeats: int) -> float:
+    """Clash probability for the payload pair on the two end repeats."""
+    for pair in report.steric.pairs:
+        if {pair.i, pair.j} == {0, n_repeats - 1}:
+            return float(pair.p_clash)
+    if len(report.steric.pairs) == 1:
+        return float(report.steric.pairs[0].p_clash)
+    raise RuntimeError(f"no end-pair clash was scored at n={n_repeats}")
+
+
+def _one_turn_n(repeats_per_turn: float) -> int | None:
+    nearest = round(repeats_per_turn)
+    if nearest < 1 or abs(repeats_per_turn - nearest) > 1e-6:
+        return None
+    return int(nearest)
+
+
+def _use_case_register(library: EngineResult, repeats_per_turn: float, next_n: int | None):
+    """Team lengths beside this scan. Does not add an observation."""
+    rows: list[dict[str, object]] = []
+    for n_repeats, report in library.reports.items():
+        if library.thermal_by_n is None:
+            thermal_state = "not_scored"
+        else:
+            thermal_state = library.thermal_by_n[n_repeats].state
+        rows.append(
+            {
+                "n": n_repeats,
+                "end_pair_p_clash": _end_pair_p_clash(report, n_repeats),
+                "p_instability": float(report.steric.p_any_instability),
+                "thermal_state": thermal_state,
+            }
+        )
+    measured_n = {row.n_repeats for row in load_named_series(PHILLIPS_2012_CTPRA_DSC)}
+    return use_case_register(
+        rows,
+        active_next_n=next_n,
+        clash_limit=_STERIC_CLASH_LIMIT,
+        measured_n=measured_n,
+        library_min=library.candidates[0] if library.candidates else N_REPEATS_MIN,
+        one_turn_n=_one_turn_n(repeats_per_turn),
+    )
+
+
 def feasible_repeat_counts(result: EngineResult) -> list[int]:
     """Lengths that pass the steric refusal limit and the thermal gate.
 
@@ -821,6 +866,9 @@ def run_design(
     ``structure`` is the screw report: pitch, phase, curvature, and the
     worm-like-chain comparison with the existing persistence length.
     It does not add a folding model, and its ``calibrated`` flag is false.
+
+    ``registers`` records the team lengths n=2, n=3, n=14, and n=20
+    next to this scan. It does not train the acquisition toward them.
     """
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
         raise ValueError("n_repeats must be an integer")
@@ -1014,4 +1062,5 @@ def run_design(
             else float(ranked_row.uncertainty)
         ),
         structure=structure.to_dict(),
+        registers=_use_case_register(library, structure.repeats_per_turn, next_n),
     )
