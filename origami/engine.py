@@ -21,6 +21,7 @@ from origami.physical.linkers import gaussian_chain_ceff
 from origami.physical.recruitment import occupancy_for_pair, recruitment_occupancy
 from origami.physical.score import PhysicsReport, physics_report
 from origami.physical.steric import payload_center, steric_report
+from origami.physical.structure import structural_report
 from origami.priors import (
     CAM_M13_KD_M,
     DEFAULT_PAYLOAD_RADIUS_A,
@@ -40,7 +41,6 @@ from origami.stability.series import (
     rank_companion_delta_g,
 )
 from origami.stability.table import load_thermal_table
-from src.core.ctpr_geometry import CTPR_RISE_NM, PERSISTENCE_LENGTH_NM
 
 # Id of the peptide Kd in origami.priors.CAM_M13_KD_M. Not a fusion measurement.
 _PRIOR_KD_ID = "cam_m13_peptide_0.19nM"
@@ -817,22 +817,20 @@ def run_design(
     printed values are positive, the report also names the feasible
     length with the largest printed value. That lookup does not change
     ``next_n``.
+
+    ``structure`` is the screw report: pitch, phase, curvature, and the
+    worm-like-chain comparison with the existing persistence length.
+    It does not add a folding model, and its ``calibrated`` flag is false.
     """
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
         raise ValueError("n_repeats must be an integer")
     warnings: list[str] = []
     indices, radii, sigmas = _resolve_payloads(n_repeats, payloads)
-    contour_nm = n_repeats * CTPR_RISE_NM
-    if contour_nm > PERSISTENCE_LENGTH_NM:
-        warnings.append(
-            f"Scaffold contour {contour_nm:.2f} nm exceeds persistence length "
-            f"{PERSISTENCE_LENGTH_NM} nm from src.core.ctpr_geometry. "
-            "Rigid screw coordinates are an approximation."
-        )
-
     geom = build_ctpr(n_repeats)
     if geom.provenance != CANONICAL_GEOMETRY_PRIOR_ID:
         raise RuntimeError("scaffold geometry was not built from the canonical prior")
+    structure = structural_report(geom, indices)
+    warnings.extend(structure.warnings)
     steric = steric_report(geom, indices, radii)
     if steric.p_any_instability < 0:
         raise RuntimeError("clash probability cannot be negative")
@@ -1015,4 +1013,5 @@ def run_design(
             if ranked_row is None or ranked_row.uncertainty is None
             else float(ranked_row.uncertainty)
         ),
+        structure=structure.to_dict(),
     )

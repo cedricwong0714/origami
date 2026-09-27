@@ -3,13 +3,15 @@ from origami.physical.linkers import gaussian_chain_ceff
 from origami.physical.recruitment import recruitment_occupancy
 from origami.physical.score import physics_report
 from origami.physical.steric import clash_probability, steric_report
+from origami.physical.structure import structural_report
 
 __all__ = [
     "CtprGeometry",
     "DockingSite",
-    "gaussian_chain_ceff",
-    "recruitment_occupancy",
-    "physics_report",
     "clash_probability",
+    "gaussian_chain_ceff",
+    "physics_report",
+    "recruitment_occupancy",
     "steric_report",
+    "structural_report",
 ]

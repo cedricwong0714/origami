@@ -18,6 +18,7 @@ from typing import Any
 
 import numpy as np
 
+from origami.physical.structure import PAIR_STRUCTURE_KEYS, STRUCTURE_KEYS
 
 _WET_LAB = "wet_lab"
 
@@ -176,6 +177,8 @@ class DesignReport:
     - delta_g*: unfolding free energy already looked up for this design's n
     - highest_cited_delta_g_*: the feasible length with the largest printed
       unfolding ΔG in that same column. Not a second recommendation.
+    - structure: screw invariants from origami.physical.structure, or None
+      when that report was not computed. calibrated inside it stays false.
     """
 
     design_id: str
@@ -209,6 +212,7 @@ class DesignReport:
     highest_cited_delta_g: float | None = None
     highest_cited_delta_g_units: str | None = None
     highest_cited_delta_g_uncertainty: float | None = None
+    structure: dict[str, Any] | None = None
     calibration_claim: InitVar[object | None] = None
 
     def __post_init__(self, calibration_claim: object | None) -> None:
@@ -284,6 +288,7 @@ class DesignReport:
         )
         if self.highest_cited_delta_g is None:
             self.highest_cited_delta_g_units = None
+        self.structure = _check_structure(self.structure)
         _check_stability(
             self.stability_state,
             self.stability_tier,
@@ -355,6 +360,7 @@ class DesignReport:
                 if self.highest_cited_delta_g_uncertainty is None
                 else float(self.highest_cited_delta_g_uncertainty)
             ),
+            "structure": self.structure,
             "stability_state": self.stability_state,
             "stability_tier": self.stability_tier,
             "stability_omitted": list(self.stability_omitted),
@@ -481,6 +487,99 @@ def _check_highest_cited_delta_g(
         raise ValueError("highest_cited_delta_g_units is required when highest_cited_delta_g is set")
 
 
+def _json_number(name: str, value: object) -> float:
+    number = _as_float(name, value)
+    if not math.isfinite(number):
+        raise ValueError(f"{name} must be finite")
+    return number
+
+
+def _check_structure(value: object) -> dict[str, Any] | None:
+    """Keep a structural report JSON-shaped and uncalibrated.
+
+    None means the screw report was not computed. A dict must be the
+    key set produced by ``StructuralReport.to_dict``. ``calibrated``
+    inside that dict must be false. This checker does not recompute
+    pitch, phase, or the worm-like chain.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise TypeError("structure must be a dict or None")
+    if set(value) != STRUCTURE_KEYS:
+        missing = sorted(STRUCTURE_KEYS - set(value))
+        extra = sorted(set(value) - STRUCTURE_KEYS)
+        raise ValueError(f"structure keys mismatch. missing={missing} extra={extra}")
+    if value["calibrated"] is not False:
+        raise ValueError("structure.calibrated must be false")
+    if not isinstance(value["provenance"], str) or value["provenance"].strip() == "":
+        raise ValueError("structure.provenance must be a non-empty string")
+    if value["contour_definition"] != "n_repeats * rise_per_repeat":
+        raise ValueError("structure.contour_definition is not the screw contour")
+    if value["uncertainty_model"] != "delta_method_on_jacobian_engineering_widths":
+        raise ValueError("structure.uncertainty_model is not the Jacobian delta method")
+    if type(value["rigid_screw"]) is not bool:
+        raise TypeError("structure.rigid_screw must be a bool")
+    copied: dict[str, Any] = dict(value)
+    for name in (
+        "n_repeats",
+        "rise_A",
+        "twist_rad",
+        "docking_radius_A",
+        "scaffold_radius_A",
+        "pitch_A",
+        "repeats_per_turn",
+        "axial_span_A",
+        "contour_A",
+        "contour_nm",
+        "persistence_length_nm",
+        "persistence_length_A",
+        "wlc_end_to_end_rms_A",
+        "wlc_end_to_end_rms_nm",
+        "docking_curvature_per_A",
+        "docking_torsion_per_A",
+        "backbone_curvature_per_A",
+        "backbone_torsion_per_A",
+    ):
+        copied[name] = _json_number(f"structure.{name}", value[name])
+    n_repeats = _as_int("structure.n_repeats", value["n_repeats"])
+    if n_repeats < 1:
+        raise ValueError("structure.n_repeats must be >= 1")
+    copied["n_repeats"] = n_repeats
+    copied["warnings"] = _string_list("structure.warnings", value["warnings"])
+    pairs = value["pairs"]
+    if not isinstance(pairs, list):
+        raise TypeError("structure.pairs must be a list")
+    copied_pairs: list[dict[str, Any]] = []
+    for index, pair in enumerate(pairs):
+        if not isinstance(pair, dict) or set(pair) != PAIR_STRUCTURE_KEYS:
+            raise ValueError(f"structure.pairs[{index}] keys do not match the pair report")
+        if type(pair["linearization_crosses_zero"]) is not bool:
+            raise TypeError(f"structure.pairs[{index}].linearization_crosses_zero must be a bool")
+        row = {
+            "i": _as_int(f"structure.pairs[{index}].i", pair["i"]),
+            "j": _as_int(f"structure.pairs[{index}].j", pair["j"]),
+            "delta_repeats": _as_int(
+                f"structure.pairs[{index}].delta_repeats", pair["delta_repeats"]
+            ),
+            "linearization_crosses_zero": pair["linearization_crosses_zero"],
+        }
+        for name in (
+            "phase_rad",
+            "facing_cosine",
+            "chord_A",
+            "axial_A",
+            "chord_sigma_A",
+            "chord_95_low_A",
+            "chord_95_high_A",
+        ):
+            row[name] = _json_number(f"structure.pairs[{index}].{name}", pair[name])
+        copied_pairs.append(row)
+    copied["pairs"] = copied_pairs
+    copied["calibrated"] = False
+    return copied
+
+
 def assemble_report(
     *,
     design_id: str,
@@ -515,6 +614,7 @@ def assemble_report(
     highest_cited_delta_g: float | None = None,
     highest_cited_delta_g_units: str | None = None,
     highest_cited_delta_g_uncertainty: float | None = None,
+    structure: dict[str, Any] | None = None,
 ) -> DesignReport:
     """Package an already-computed design summary.
 
@@ -575,5 +675,6 @@ def assemble_report(
         highest_cited_delta_g=highest_cited_delta_g,
         highest_cited_delta_g_units=highest_cited_delta_g_units,
         highest_cited_delta_g_uncertainty=highest_cited_delta_g_uncertainty,
+        structure=structure,
         calibration_claim=claim,
     )
