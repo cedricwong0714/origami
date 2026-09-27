@@ -214,11 +214,12 @@ m5.metric("stability", report["stability_state"])
 if report["calibrated"]:
     st.error("calibrated is true. That should not happen from this sandbox.")
 
-tab_sum, tab_size, tab_confirm, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
+tab_sum, tab_size, tab_confirm, tab_dry, tab_n, tab_sep, tab_struct, tab_reg, tab_warn, tab_json = st.tabs(
     [
         "This scaffold",
         "Sequence / MW",
         "Structure + stability",
+        "Dry lab data",
         "n library",
         "Δi scan",
         "Cα scene",
@@ -319,6 +320,52 @@ with tab_confirm:
             file_name=f"{report['design_id']}_confirmation.csv",
             mime="text/csv",
         )
+
+with tab_dry:
+    dry = bundle.get("drylab") or {}
+    learning = dry.get("active_learning") or {}
+    st.caption(
+        "These rows are measurements of the models. next_n and next_delta_i are the "
+        "next coordinates to measure. They are not use-case optima. calibrated is false. "
+        "The residual GP is not fit on these scores."
+    )
+    d1, d2, d3 = st.columns(3)
+    d1.metric("next_n to measure", "None" if learning.get("next_n") is None else str(learning["next_n"]))
+    d2.metric(
+        "next_delta_i to measure",
+        "None" if learning.get("next_delta_i") is None else str(learning["next_delta_i"]),
+    )
+    d3.metric("gp_fitted", str(dry.get("gp_fitted")))
+    for note in learning.get("notes") or []:
+        st.caption(note)
+    meas = pd.DataFrame(dry.get("measurements") or [])
+    panel = pd.DataFrame(dry.get("stability_panel") or [])
+    if not meas.empty:
+        st.subheader("Structural measurements")
+        st.dataframe(meas, hide_index=True)
+        st.download_button(
+            "Download structural measurements CSV",
+            data=meas.to_csv(index=False),
+            file_name=f"{report['design_id']}_structure_measurements.csv",
+            mime="text/csv",
+        )
+    if not panel.empty:
+        st.subheader("Stability panel (series kept separate)")
+        st.dataframe(panel, hide_index=True)
+        st.download_button(
+            "Download stability panel CSV",
+            data=panel.to_csv(index=False),
+            file_name=f"{report['design_id']}_stability_panel.csv",
+            mime="text/csv",
+            key="stability_csv",
+        )
+    st.download_button(
+        "Download dry-lab JSON",
+        data=json.dumps(dry, indent=2),
+        file_name=f"{report['design_id']}_drylab.json",
+        mime="application/json",
+        key="drylab_json",
+    )
 
 with tab_n:
     n_df = pd.DataFrame(

@@ -26,8 +26,9 @@ This module does not introduce a new biological constant.
 
 `run_sandbox` returns `input`, `process`, `result` (`DesignReport.to_dict()`),
 the n-library posterior arrays, a `confirmation` table (structure + thermal
-gate + physics for n = 3..24), and a `scene` of the placed Cα cloud.
-`calibrated` is false.
+gate + physics for n = 3..24), a `scene` of the placed Cα cloud, and a `drylab` measurement set
+(structure rows, an unmixed stability panel, and the next n and Δi to measure).
+`calibrated` is false. The residual GP is not fit on the dry-lab scores.
 
 ## Assumptions
 

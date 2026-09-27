@@ -22,6 +22,10 @@ def test_default_probe_stays_uncalibrated() -> None:
     assert bundle["confirmation"]["calibrated"] is False
     assert len(bundle["confirmation"]["rows"]) == 22
     assert bundle["scene"]["ca_count"] == 8 * 34
+    assert bundle["drylab"]["calibrated"] is False
+    assert bundle["drylab"]["gp_fitted"] is False
+    assert bundle["drylab"]["active_learning"]["gp_fitted"] is False
+    assert len(bundle["drylab"]["stability_panel"]) == 4 * 22
 
 
 def test_rejects_empty_design_id() -> None:

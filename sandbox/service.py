@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 from origami.confirmations import confirm_library, geometry_scene
+from origami.drylab import drylab_dataset
 from origami.engine import Observation, run_design
 from origami.io.payloads import PayloadRecord, load_payloads
 from origami.physical.erickson_size import payload_size_note
@@ -137,6 +138,15 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
         scene_radii = [record.radius_A for record in payloads]
         scene_standoffs = [record.linker_sigma_A for record in payloads]
     scene = geometry_scene(n_repeats, scene_indices, scene_radii, scene_standoffs)
+    assay_for_panel = (
+        float(DEFAULT_OPERATING_TEMPERATURE_C) if t_assay is None else float(t_assay)
+    )
+    drylab = drylab_dataset(
+        payload,
+        confirmation,
+        scene,
+        t_assay_C=assay_for_panel,
+    )
     return {
         "input": {
             "design_id": design_id.strip(),
@@ -170,6 +180,7 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
         "payload_size": size_notes,
         "confirmation": confirmation,
         "scene": scene,
+        "drylab": drylab,
         "library": {
             "n_repeats": library_n,
             "gp_mean": payload["gp_mean"],

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-27 (dry-lab measurements)
+
+### Added
+- `stability_panel` reports Phillips 2012 CTPRa DSC, Phillips 2012 CTPRa CD, Phillips 2012 CTPR DSC, and Cortajarena 2011 CTPRa DSC separately. They are not averaged. Missing n stays extrapolated.
+- `drylab_dataset` stores structural measurements (contour, chord, facing, clash, C_eff, Cα radial extent, Δi scan) and the next measurement coordinates. `next_n` and `next_delta_i` are coordinates to measure, not use-case optima. The residual GP is not fit on these scores. `calibrated` stays false.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27 (sandbox confirmations)
 
 ### Added
