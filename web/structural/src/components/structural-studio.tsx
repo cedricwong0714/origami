@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Check,
@@ -94,6 +94,29 @@ export function StructuralStudio() {
     const set = new Set(selectedN);
     return Array.from(set).sort((a, b) => a - b);
   }, [selectedN]);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    fetchPrediction(PRESET)
+      .then((payload) => {
+        if (!alive) return;
+        setData(payload);
+        setFocus(PRESET[0]);
+        const row = payload.constructs.find((item) => item.n_repeats === PRESET[0]);
+        setSite(row?.m13_graft?.repeat_index ?? 0);
+      })
+      .catch((err: unknown) => {
+        if (!alive) return;
+        setError(err instanceof Error ? err.message : "Prediction failed.");
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function run() {
     setLoading(true);
@@ -320,6 +343,99 @@ export function StructuralStudio() {
             <Metric label="Twist" value={`${fmt(Number(data.screw.twist_deg), 1)}°`} />
             <Metric label="Pitch" value={`${fmt(Number(data.screw.pitch_A), 3)} Å`} />
             <Metric label="Junction radius" value={`${fmt(Number(data.screw.junction_radius_A), 3)} Å`} />
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="border-[#E3D9CC] bg-white shadow-none">
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">Inputs for n = {construct.n_repeats}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">CTPR repeat number</dt>
+                    <dd>{construct.n_repeats}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Docking-site positions</dt>
+                    <dd>Repeats 0 through {construct.n_repeats - 1}. Index 0 is the SpyCatcher side.</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Scaffold orientation</dt>
+                    <dd>
+                      {fmt(Number(data.screw.twist_deg), 1)}° per repeat. End screw phase {fmt(construct.end_junction.phase_deg, 1)}°. Facing cosine {fmt(construct.end_junction.facing_cosine, 3)}.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Fusion termini</dt>
+                    <dd>{data.n_to_c.join(" — ")}. SpyCatcher is on the N-side of the CTPR. LgBiT follows flx ×3 on the C-side.</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Linker length and type</dt>
+                    <dd>
+                      (GGGGS)₃. RMS {reading ? fmt(reading.reach.linker_rms_A, 2) : "—"} Å. Comparison window {reading ? fmt(reading.reach.comparison_window_A, 2) : "—"} Å, twice that RMS.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Functional-site location</dt>
+                    <dd>
+                      {construct.m13_graft
+                        ? `m13 graft on repeat ${construct.m13_graft.repeat_1based} of ${construct.n_repeats} (index ${construct.m13_graft.repeat_index}).`
+                        : "No graft was named for this n."}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Sensor and reporter arrangement</dt>
+                    <dd>SpyCatcher abuts the N-end junction. LgBiT is after three flexible linkers off the C-end. Those parts have no lengths in this screw.</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Payload dimensions</dt>
+                    <dd>Omitted. A radius is a docking input, not a structural measurement.</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
+            <Card className="border-[#E3D9CC] bg-white shadow-none">
+              <CardHeader>
+                <CardTitle className="font-heading text-2xl">Outputs for n = {construct.n_repeats}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D scaffold coordinates</dt>
+                    <dd>{construct.ca_count} Cα atoms and {construct.n_repeats} docking sites, in ångströms. Drag the view. Double-click resets it.</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Distance between docking sites</dt>
+                    <dd>
+                      End chord {fmt(construct.end_junction.chord_A)} Å. Axial span {fmt(construct.axial_span_A)} Å. Bow {fmt(construct.end_junction.chord_A - construct.axial_span_A)} Å.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Distance between functional site and the ends</dt>
+                    <dd>
+                      {construct.m13_graft
+                        ? `Graft to N-end ${fmt(construct.m13_graft.to_n_end.chord_A)} Å. Graft to C-end ${fmt(construct.m13_graft.to_c_end.chord_A)} Å. Junction to junction, not SpyCatcher to LgBiT.`
+                        : "Unset until a graft repeat is named."}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Structural uncertainty</dt>
+                    <dd>
+                      End chord 95% {fmt(construct.end_junction.chord_95_low_A, 1)}–{fmt(construct.end_junction.chord_95_high_A, 1)} Å.
+                      {construct.m13_graft
+                        ? ` Graft to N ${fmt(construct.m13_graft.to_n_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_n_end.chord_95_high_A, 1)} Å. Graft to C ${fmt(construct.m13_graft.to_c_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_c_end.chord_95_high_A, 1)} Å.`
+                        : ""}
+                      {" "}Deposited screw scatter, not a wet-lab interval.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D visualization</dt>
+                    <dd>The canvas is a projection of those coordinates. Pixel distance is not ångströms. PDB files are in data/exports/ctpr_3d.</dd>
+                  </div>
+                </dl>
+              </CardContent>
+            </Card>
           </div>
 
           {reading ? (

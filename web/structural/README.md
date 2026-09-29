@@ -40,7 +40,8 @@ python scripts/export_ctpr_3d.py --n 3,8,14 --out data/exports/ctpr_3d
 ```
 
 Chain A is Cα. Chain B is the docking-site marker. The file is not a crystal
-of the fusion.
+of the fusion. On the Run page, drag the screw to rotate it. Double-click
+resets the view. Dashed lines are the m13 graft chords.
 
 ## Wiki figure
 

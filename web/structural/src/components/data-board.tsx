@@ -11,7 +11,7 @@ import { fetchPrediction, fmt, type PredictResponse } from "@/lib/sa";
 
 const N_LIST = [3, 8, 14];
 
-function csvEscape(value: string | number): string {
+function csvEscape(value: string | number | boolean): string {
   const text = String(value);
   return text.includes(",") ? `"${text}"` : text;
 }
