@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import { HelixCanvas } from "@/components/helix-canvas";
+import { StudioNav } from "@/components/studio-nav";
 import {
   fetchPrediction,
   fmt,
@@ -141,6 +142,7 @@ export function StructuralStudio() {
 
   return (
     <div className={wiki ? "wiki-figure mx-auto max-w-6xl px-4 py-8" : "mx-auto max-w-6xl px-4 py-8 md:px-8"}>
+      <StudioNav />
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">

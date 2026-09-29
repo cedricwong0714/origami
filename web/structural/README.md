@@ -28,7 +28,9 @@ python ../../scripts/export_sa_snapshot.py
 npm run dev -- --port 41733 --hostname 0.0.0.0
 ```
 
-Open the Next.js URL. `calibrated` stays false.
+Open the Next.js URL. **Run** is the prediction form. **Present** (`/present`)
+is the data board for n = 3, 8, and 14: comparison chart, table, readings,
+CSV, and a wiki caption. `calibrated` stays false.
 
 ## Wiki figure
 
