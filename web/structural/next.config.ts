@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "export",
   images: { unoptimized: true },
-  trailingSlash: true,
   basePath: process.env.NEXT_BASE_PATH || "",
   async rewrites() {
     return [
