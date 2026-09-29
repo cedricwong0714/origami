@@ -1,7 +1,8 @@
 {
   "calibrated": false,
   "payloads": false,
-  "m13_graft_repeat_index": null,
+  "m13_graft_repeat_index": 6,
+  "m13_graft_repeat_1based": 7,
   "n_repeats": 14,
   "units": "\u00c5",
   "residues_per_repeat": 34,
@@ -2474,6 +2475,8 @@
       "z_A": 109.41
     }
   ],
+  "graft_to_n_chord_A": 53.43806002185486,
+  "graft_to_c_chord_A": 59.66803958056842,
   "end_chord_A": 111.769237102993,
   "end_chord_95_low_A": 99.84030620532336,
   "end_chord_95_high_A": 123.69816800066265,

@@ -30,6 +30,10 @@ function comparisonCsv(data: PredictResponse): string {
     "facing_cosine",
     "bow_A",
     "near_both",
+    "m13_repeat_1based",
+    "m13_index",
+    "graft_to_n_A",
+    "graft_to_c_A",
   ];
   const lines = [header.join(",")];
   for (const row of data.constructs) {
@@ -49,6 +53,10 @@ function comparisonCsv(data: PredictResponse): string {
         row.end_junction.facing_cosine,
         bow,
         reading?.reach.repeats_near_both_ends.join(" ") || "",
+        row.m13_graft?.repeat_1based ?? "",
+        row.m13_graft?.repeat_index ?? "",
+        row.m13_graft?.to_n_end.chord_A ?? "",
+        row.m13_graft?.to_c_end.chord_A ?? "",
       ]
         .map(csvEscape)
         .join(",")
@@ -286,6 +294,8 @@ export function DataBoard() {
                   <TableHead>95% band</TableHead>
                   <TableHead>bow</TableHead>
                   <TableHead>facing</TableHead>
+                  <TableHead>m13</TableHead>
+                  <TableHead>graft to N / C</TableHead>
                   <TableHead>near both ends</TableHead>
                 </TableRow>
               </TableHeader>
@@ -305,6 +315,16 @@ export function DataBoard() {
                       </TableCell>
                       <TableCell>{fmt(bow, 2)} Å</TableCell>
                       <TableCell>{fmt(row.end_junction.facing_cosine, 3)}</TableCell>
+                      <TableCell>
+                        {row.m13_graft
+                          ? `repeat ${row.m13_graft.repeat_1based} (index ${row.m13_graft.repeat_index})`
+                          : "unset"}
+                      </TableCell>
+                      <TableCell>
+                        {row.m13_graft
+                          ? `${fmt(row.m13_graft.to_n_end.chord_A, 2)} / ${fmt(row.m13_graft.to_c_end.chord_A, 2)} Å`
+                          : "unset"}
+                      </TableCell>
                       <TableCell>{both.length ? both.join(", ") : "none"}</TableCell>
                     </TableRow>
                   );
@@ -322,7 +342,7 @@ export function DataBoard() {
                     <CardTitle className="font-heading text-2xl">n = {row.n_repeats}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
-                    {(reading?.reading ?? []).slice(0, 3).map((line) => (
+                    {(reading?.reading ?? []).slice(0, 4).map((line) => (
                       <p key={line}>{line}</p>
                     ))}
                   </CardContent>

@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-from origami.physical.backbone import backbone_constructs
+from origami.physical.backbone import backbone_constructs, m13_graft_index
 from origami.physical.deposited import placed_ca_cloud
 from origami.physical.geometry import build_ctpr
 from origami.priors import N_REPEATS_MAX, N_REPEATS_MIN
@@ -80,11 +80,18 @@ def scaffold_pdb(n_repeats: int) -> str:
         "REMARK   1 COMPUTATIONAL CTPR SCREW. NOT A DEPOSITED CRYSTAL.",
         "REMARK   1 calibrated = false. Side chains are absent.",
         "REMARK   1 Chain A: consensus C-alpha, residue name UNK (no sequence copied).",
-        "REMARK   1 Chain B: docking-site pseudoatoms, residue name DOC.",
-        "REMARK   1 DOC is not an amino acid. End chord is repeat 0 to n-1.",
-        "REMARK   1 SpyCatcher, flx, LgBiT, and the m13 graft are not in this file.",
+        "REMARK   1 Chain B: docking-site pseudoatoms. DOC is not an amino acid.",
+        "REMARK   1 Residue name M13 marks the team-supplied graft site.",
+        "REMARK   1 SpyCatcher, flx, and LgBiT lengths are not in this file.",
         f"REMARK   1 n_repeats = {n_repeats}",
     ]
+    graft_index = m13_graft_index(n_repeats)
+    if graft_index is None:
+        lines.append("REMARK   1 No m13 graft was named for this n.")
+    else:
+        lines.append(
+            f"REMARK   1 m13 graft is 1-based repeat {graft_index + 1}, index {graft_index}."
+        )
     serial = 1
     for index, xyz in enumerate(cloud):
         repeat = index // _RESIDUES_PER_REPEAT
@@ -94,12 +101,17 @@ def scaffold_pdb(n_repeats: int) -> str:
         serial += 1
     lines.append("TER")
     for site in geom.sites:
+        resname = (
+            "M13"
+            if graft_index is not None and int(site.index) == graft_index
+            else "DOC"
+        )
         lines.append(
             _atom_line(
                 "HETATM",
                 serial,
                 " CA ",
-                "DOC",
+                resname,
                 "B",
                 int(site.index) + 1,
                 site.xyz_A,
@@ -117,10 +129,16 @@ def scaffold_record(n_repeats: int, row: dict) -> dict:
     geom = build_ctpr(n_repeats)
     cloud = placed_ca_cloud(n_repeats, geom.rise_A, geom.rotation_rad)
     end = row["end_junction"]
+    graft = row.get("m13_graft")
     return {
         "calibrated": False,
         "payloads": False,
-        "m13_graft_repeat_index": None,
+        "m13_graft_repeat_index": None
+        if row.get("m13_graft") is None
+        else int(row["m13_graft"]["repeat_index"]),
+        "m13_graft_repeat_1based": None
+        if row.get("m13_graft") is None
+        else int(row["m13_graft"]["repeat_1based"]),
         "n_repeats": int(n_repeats),
         "units": "Å",
         "residues_per_repeat": _RESIDUES_PER_REPEAT,
@@ -135,6 +153,8 @@ def scaffold_record(n_repeats: int, row: dict) -> dict:
             }
             for site in geom.sites
         ],
+        "graft_to_n_chord_A": None if graft is None else float(graft["to_n_end"]["chord_A"]),
+        "graft_to_c_chord_A": None if graft is None else float(graft["to_c_end"]["chord_A"]),
         "end_chord_A": float(end["chord_A"]),
         "end_chord_95_low_A": float(end["chord_95_low_A"]),
         "end_chord_95_high_A": float(end["chord_95_high_A"]),

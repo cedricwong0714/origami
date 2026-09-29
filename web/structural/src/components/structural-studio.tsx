@@ -105,7 +105,8 @@ export function StructuralStudio() {
         ? focus
         : payload.constructs[0].n_repeats;
       setFocus(nextFocus);
-      setSite(0);
+      const focused = payload.constructs.find((row) => row.n_repeats === nextFocus);
+      setSite(focused?.m13_graft?.repeat_index ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Prediction failed.");
     } finally {
@@ -278,7 +279,7 @@ export function StructuralStudio() {
                 pressed={focus === row.n_repeats}
                 onPressedChange={() => {
                   setFocus(row.n_repeats);
-                  setSite(0);
+                  setSite(row.m13_graft?.repeat_index ?? 0);
                 }}
                 className="rounded-full data-[state=on]:bg-[#242220] data-[state=on]:text-white"
               >
@@ -304,6 +305,13 @@ export function StructuralStudio() {
               <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° screw phase, repeat 0 to ${construct.n_repeats - 1}`} />
               <Metric label="Contour" value={`${fmt(construct.contour_nm, 3)} nm`} hint={`WLC RMS ${fmt(construct.wlc_end_to_end_rms_nm, 3)} nm`} />
               <Metric label="Facing cosine" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 same face, −1 opposite" />
+              {construct.m13_graft ? (
+                <Metric
+                  label={`m13 repeat ${construct.m13_graft.repeat_1based}`}
+                  value={`${fmt(construct.m13_graft.to_n_end.chord_A)} Å to N`}
+                  hint={`${fmt(construct.m13_graft.to_c_end.chord_A)} Å to C · index ${construct.m13_graft.repeat_index}`}
+                />
+              ) : null}
             </div>
           </div>
 
@@ -362,7 +370,10 @@ export function StructuralStudio() {
                         onClick={() => setSite(row.repeat_index)}
                         data-state={site === row.repeat_index ? "selected" : undefined}
                       >
-                        <TableCell className="font-medium">{row.repeat_index}</TableCell>
+                        <TableCell className="font-medium">
+                          {row.repeat_index}
+                          {row.m13_graft ? " · m13" : ""}
+                        </TableCell>
                         <TableCell>{fmt(row.phase_mod_360_deg, 1)}°</TableCell>
                         <TableCell>{fmt(row.facing_cosine_vs_repeat_0, 3)}</TableCell>
                         <TableCell>

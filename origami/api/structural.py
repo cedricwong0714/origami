@@ -21,6 +21,7 @@ from origami.physical.backbone import (
     CONSTRUCT_N_VALUES,
     backbone_constructs,
     backbone_library,
+    m13_graft_index,
 )
 from origami.physical.deposited import placed_ca_cloud, screw_steps
 from origami.physical.geometry import build_ctpr
@@ -75,6 +76,7 @@ def _parse_n_list(raw: str | None) -> tuple[int, ...]:
 def _helix_trace(n_repeats: int) -> dict[str, Any]:
     geom = build_ctpr(n_repeats)
     cloud = placed_ca_cloud(n_repeats, geom.rise_A, geom.rotation_rad)
+    graft = m13_graft_index(n_repeats)
     stride = 2 if n_repeats <= 10 else 4
     ca = cloud[::stride]
     return {
@@ -85,6 +87,7 @@ def _helix_trace(n_repeats: int) -> dict[str, Any]:
                 "x_A": float(site.xyz_A[0]),
                 "y_A": float(site.xyz_A[1]),
                 "z_A": float(site.xyz_A[2]),
+                "m13_graft": graft == int(site.index),
             }
             for site in geom.sites
         ],
@@ -172,16 +175,35 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             f"{same_face}"
         ),
     ]
-    if reach["repeats_near_both_ends"]:
+    graft = construct.get("m13_graft")
+    if graft:
+        to_n = graft["to_n_end"]
+        to_c = graft["to_c_end"]
+        on_both = int(graft["repeat_index"]) in reach["repeats_near_both_ends"]
+        window = (
+            "That graft repeat is inside the (GGGGS)3 comparison window of both ends."
+            if on_both
+            else "That graft repeat is outside the (GGGGS)3 comparison window of at least one end."
+        )
+        lines.append(
+            f"The m13 graft is repeat {graft['repeat_1based']} of {n_repeats} "
+            f"(index {graft['repeat_index']}, counting 0 at the SpyCatcher side). "
+            f"Chord to the N-end junction is {to_n['chord_A']:.2f} Å "
+            f"(95% {to_n['chord_95_low_A']:.1f}–{to_n['chord_95_high_A']:.1f}). "
+            f"Chord to the C-end junction is {to_c['chord_A']:.2f} Å "
+            f"(95% {to_c['chord_95_low_A']:.1f}–{to_c['chord_95_high_A']:.1f}). "
+            "These are screw junctions, not SpyCatcher-to-graft or graft-to-LgBiT distances. "
+            f"{window}"
+        )
+    elif reach["repeats_near_both_ends"]:
         lines.append(
             "On this length, at least one repeat sits within the "
-            "(GGGGS)3 comparison window of both ends."
+            "(GGGGS)3 comparison window of both ends. No m13 graft was named for this n."
         )
     else:
         lines.append(
             "On this length, no repeat sits within the (GGGGS)3 comparison "
-            "window of both ends. One m13 graft cannot sit next to both stations "
-            "on that tether comparison."
+            "window of both ends. No m13 graft was named for this n."
         )
     lines.append(
         "Passing this prediction is not scientific validation. calibrated stays false."

@@ -1,10 +1,11 @@
 REMARK   1 COMPUTATIONAL CTPR SCREW. NOT A DEPOSITED CRYSTAL.
 REMARK   1 calibrated = false. Side chains are absent.
 REMARK   1 Chain A: consensus C-alpha, residue name UNK (no sequence copied).
-REMARK   1 Chain B: docking-site pseudoatoms, residue name DOC.
-REMARK   1 DOC is not an amino acid. End chord is repeat 0 to n-1.
-REMARK   1 SpyCatcher, flx, LgBiT, and the m13 graft are not in this file.
+REMARK   1 Chain B: docking-site pseudoatoms. DOC is not an amino acid.
+REMARK   1 Residue name M13 marks the team-supplied graft site.
+REMARK   1 SpyCatcher, flx, and LgBiT lengths are not in this file.
 REMARK   1 n_repeats = 3
+REMARK   1 m13 graft is 1-based repeat 2, index 1.
 ATOM      1  CA  UNK A   1      11.667   3.385  -7.851  1.00  0.00           C
 ATOM      2  CA  UNK A   2       8.367   1.526  -7.535  1.00  0.00           C
 ATOM      3  CA  UNK A   3      10.106  -1.829  -7.781  1.00  0.00           C
@@ -109,7 +110,7 @@ ATOM    101  CA  UNK A 101     -13.134   9.522  13.135  1.00  0.00           C
 ATOM    102  CA  UNK A 102     -10.013   7.587  14.063  1.00  0.00           C
 TER
 HETATM  103  CA  DOC B   1      12.363   0.000   0.000  1.00  0.00           C
-HETATM  104  CA  DOC B   2       8.742   8.742   8.416  1.00  0.00           C
+HETATM  104  CA  M13 B   2       8.742   8.742   8.416  1.00  0.00           C
 HETATM  105  CA  DOC B   3       0.000  12.363  16.832  1.00  0.00           C
 TER
 END

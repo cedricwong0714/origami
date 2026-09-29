@@ -109,6 +109,27 @@ CONSTRUCT_N_TO_C = (
 )
 CONSTRUCT_N_VALUES = (3, 8, 14)
 
+# Team-supplied m13 loop position, counted from the SpyCatcher-side end.
+# Repeat 1 is index 0. These are not a fit and not a sequence.
+# n=3: 2nd repeat. n=8: 3rd repeat. n=14: 7th repeat.
+M13_GRAFT_1BASED: dict[int, int] = {3: 2, 8: 3, 14: 7}
+
+
+def m13_graft_index(n_repeats: int) -> int | None:
+    """0-based graft index for a named fusion length, or None if unnamed."""
+    position = M13_GRAFT_1BASED.get(int(n_repeats))
+    if position is None:
+        return None
+    index = position - 1
+    if index < 0 or index >= n_repeats:
+        raise ValueError(f"m13 graft position {position} is outside n={n_repeats}")
+    return index
+
+
+def _pair_between(pairs: list[dict[str, Any]], left: int, right: int) -> dict[str, Any]:
+    i, j = (left, right) if left < right else (right, left)
+    return next(pair for pair in pairs if pair["i"] == i and pair["j"] == j)
+
 
 def backbone_constructs(
     n_values: tuple[int, ...] = CONSTRUCT_N_VALUES,
@@ -117,8 +138,9 @@ def backbone_constructs(
 
     The drawing is FL, two rigid spacers, FL, SpyCatcher, CTPR(n)
     with one m13 loop graft, three flexible linkers, then LgBiT.
-    Only the CTPR screw is measured. The graft repeat was not
-    supplied, so no repeat is marked as the graft.
+    Only the CTPR screw is measured. For n = 3, 8, and 14 the m13
+    graft repeat is the team-supplied position in ``M13_GRAFT_1BASED``.
+    Other lengths stay unmarked.
     """
     if not n_values:
         raise ValueError("n_values is empty")
@@ -143,6 +165,7 @@ def backbone_constructs(
             }
         cloud = placed_ca_cloud(n_repeats, geom.rise_A, geom.rotation_rad)
         radial = np.sqrt(cloud[:, 0] ** 2 + cloud[:, 1] ** 2)
+        graft_index = m13_graft_index(int(n_repeats))
         repeats = []
         for site in geom.sites:
             block = geom.coord_covariance[
@@ -156,12 +179,15 @@ def backbone_constructs(
                     "repeat_index": int(site.index),
                     "phase_deg": phase,
                     "phase_mod_360_deg": float(phase % 360.0),
-                    "facing_cosine_vs_repeat_0": float(np.cos(site.index * geom.rotation_rad)),
+                    "facing_cosine_vs_repeat_0": float(
+                        np.cos(site.index * geom.rotation_rad)
+                    ),
                     "x_A": float(site.xyz_A[0]),
                     "y_A": float(site.xyz_A[1]),
                     "z_A": float(site.xyz_A[2]),
                     "position_rms_A": rms,
-                    "m13_graft": False,
+                    "m13_graft": graft_index is not None
+                    and int(site.index) == graft_index,
                 }
             )
         pairs = []
@@ -180,10 +206,22 @@ def backbone_constructs(
                     "chord_95_high_A": float(pair.chord_95_high_A),
                 }
             )
-        end = next(pair for pair in pairs if pair["i"] == 0 and pair["j"] == n_repeats - 1)
+        end = next(
+            pair for pair in pairs if pair["i"] == 0 and pair["j"] == n_repeats - 1
+        )
+        graft = None
+        if graft_index is not None:
+            graft = {
+                "repeat_1based": int(M13_GRAFT_1BASED[int(n_repeats)]),
+                "repeat_index": int(graft_index),
+                "counting": "1-based from the SpyCatcher-side repeat",
+                "to_n_end": _pair_between(pairs, 0, graft_index),
+                "to_c_end": _pair_between(pairs, graft_index, n_repeats - 1),
+            }
         rows.append(
             {
                 "n_repeats": int(n_repeats),
+                "m13_graft": graft,
                 "axial_span_A": float(report.axial_span_A),
                 "contour_nm": float(report.contour_nm),
                 "wlc_end_to_end_rms_nm": float(report.wlc_end_to_end_rms_nm),
@@ -202,13 +240,17 @@ def backbone_constructs(
     return {
         "calibrated": False,
         "payloads": False,
-        "m13_graft_repeat_index": None,
+        "m13_graft_repeat_index_by_n": {
+            str(n_repeats): M13_GRAFT_1BASED[n_repeats] - 1
+            for n_repeats in M13_GRAFT_1BASED
+        },
         "n_to_c": list(CONSTRUCT_N_TO_C),
         "measured_block": "CTPR",
         "notes": [
             "Measured block is the CTPR screw only.",
             "FL, rigid spacers, SpyCatcher, flx, and LgBiT have no lengths in this run.",
-            "One m13 graft was requested. The repeat index was not supplied, so every m13_graft flag is false.",
+            "m13 graft positions were supplied for n=3 (2nd), n=8 (3rd), and n=14 (7th), counted from the SpyCatcher side.",
+            "Graft chords are junction-to-junction on the screw. They are not SpyCatcher-to-graft or graft-to-LgBiT distances.",
             "End-junction chord is repeat 0 to repeat n-1. It is not a SpyCatcher-to-LgBiT distance.",
         ],
         "screw": screw,

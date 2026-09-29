@@ -115,16 +115,22 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
       ctx.beginPath();
       ctx.arc(x, y, active ? 7 : 5, 0, Math.PI * 2);
       ctx.fillStyle = s.index === 0 ? "#266FB1" : s.index === scene.sites.length - 1 ? "#C45C12" : "#242220";
+      if (s.m13_graft) ctx.fillStyle = "#FF8000";
       if (active) ctx.fillStyle = "#FF8000";
       ctx.fill();
+      if (s.m13_graft) {
+        ctx.strokeStyle = "#242220";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
       ctx.fillStyle = "#5C564E";
       ctx.font = interCanvasFont(11);
-      ctx.fillText(String(s.index), x + 8, y - 6);
+      ctx.fillText(s.m13_graft ? `${s.index} m13` : String(s.index), x + 8, y - 6);
     });
 
     ctx.fillStyle = "#8A8175";
     ctx.font = interCanvasFont(11);
-    ctx.fillText("schematic projection · pixel distance is not Å · orange junctions · blue Cα · 0 is the SpyCatcher side", 16, height - 12);
+    ctx.fillText("schematic · pixel distance is not Å · orange is the m13 graft · 0 is the SpyCatcher side", 16, height - 12);
   }, [scene, selected]);
 
   return (

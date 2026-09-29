@@ -30,7 +30,7 @@ def test_construct_backbones_are_screw_only() -> None:
 
     bundle = backbone_constructs()
     assert bundle["payloads"] is False
-    assert bundle["m13_graft_repeat_index"] is None
+    assert bundle["m13_graft_repeat_index_by_n"] == {"3": 1, "8": 2, "14": 6}
     assert bundle["measured_block"] == "CTPR"
     assert [row["n_repeats"] for row in bundle["constructs"]] == [3, 8, 14]
     text = str(bundle)
@@ -42,4 +42,15 @@ def test_construct_backbones_are_screw_only() -> None:
     assert by_n[8]["end_junction"]["delta_i"] == 7
     assert by_n[14]["end_junction"]["delta_i"] == 13
     assert all(row["rigid_screw"] for row in bundle["constructs"])
-    assert all(not site["m13_graft"] for site in by_n[14]["repeats"])
+    assert by_n[3]["m13_graft"]["repeat_1based"] == 2
+    assert by_n[3]["m13_graft"]["repeat_index"] == 1
+    assert by_n[8]["m13_graft"]["repeat_index"] == 2
+    assert by_n[14]["m13_graft"]["repeat_1based"] == 7
+    assert by_n[14]["m13_graft"]["repeat_index"] == 6
+    for n_repeats, graft_index in ((3, 1), (8, 2), (14, 6)):
+        flags = [site["m13_graft"] for site in by_n[n_repeats]["repeats"]]
+        assert flags.count(True) == 1
+        assert flags.index(True) == graft_index
+        graft = by_n[n_repeats]["m13_graft"]
+        assert graft["to_n_end"]["delta_i"] == graft_index
+        assert graft["to_c_end"]["delta_i"] == n_repeats - 1 - graft_index

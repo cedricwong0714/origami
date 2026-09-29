@@ -23,8 +23,17 @@ export type RepeatSite = {
   m13_graft: boolean;
 };
 
+export type GraftStation = {
+  repeat_1based: number;
+  repeat_index: number;
+  counting: string;
+  to_n_end: Junction;
+  to_c_end: Junction;
+};
+
 export type ConstructRow = {
   n_repeats: number;
+  m13_graft: GraftStation | null;
   axial_span_A: number;
   contour_nm: number;
   wlc_end_to_end_rms_nm: number;
@@ -42,7 +51,7 @@ export type ConstructRow = {
 
 export type HelixScene = {
   n_repeats: number;
-  sites: { index: number; x_A: number; y_A: number; z_A: number }[];
+  sites: { index: number; x_A: number; y_A: number; z_A: number; m13_graft?: boolean }[];
   ca_stride: number;
   ca_A: number[][];
 };

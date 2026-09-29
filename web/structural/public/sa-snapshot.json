@@ -19,6 +19,35 @@
   "constructs": [
     {
       "n_repeats": 3,
+      "m13_graft": {
+        "repeat_1based": 2,
+        "repeat_index": 1,
+        "counting": "1-based from the SpyCatcher-side repeat",
+        "to_n_end": {
+          "i": 0,
+          "j": 1,
+          "delta_i": 1,
+          "phase_deg": 45.0,
+          "facing_cosine": 0.7071067811865476,
+          "chord_A": 12.663633698672633,
+          "axial_A": 8.416139416984938,
+          "chord_sigma_A": 0.6314560248512877,
+          "chord_95_low_A": 11.42597988996411,
+          "chord_95_high_A": 13.901287507381157
+        },
+        "to_c_end": {
+          "i": 1,
+          "j": 2,
+          "delta_i": 1,
+          "phase_deg": 45.0,
+          "facing_cosine": 0.7071067811865475,
+          "chord_A": 12.663633698672633,
+          "axial_A": 8.416139416984938,
+          "chord_sigma_A": 0.6314560229201196,
+          "chord_95_low_A": 11.425979893749199,
+          "chord_95_high_A": 13.901287503596068
+        }
+      },
       "axial_span_A": 16.832278833969877,
       "contour_nm": 2.524841825095481,
       "wlc_end_to_end_rms_nm": 2.4559536873375687,
@@ -62,7 +91,7 @@
           "y_A": 8.74207873161141,
           "z_A": 8.416139416984938,
           "position_rms_A": 0.5838104977724722,
-          "m13_graft": false
+          "m13_graft": true
         },
         {
           "repeat_index": 2,
@@ -117,6 +146,35 @@
     },
     {
       "n_repeats": 8,
+      "m13_graft": {
+        "repeat_1based": 3,
+        "repeat_index": 2,
+        "counting": "1-based from the SpyCatcher-side repeat",
+        "to_n_end": {
+          "i": 0,
+          "j": 2,
+          "delta_i": 2,
+          "phase_deg": 90.0,
+          "facing_cosine": 6.123233995736766e-17,
+          "chord_A": 24.269762523421623,
+          "axial_A": 16.832278833969877,
+          "chord_sigma_A": 1.1234505138917352,
+          "chord_95_low_A": 22.067799516193823,
+          "chord_95_high_A": 26.471725530649422
+        },
+        "to_c_end": {
+          "i": 2,
+          "j": 7,
+          "delta_i": 5,
+          "phase_deg": 225.0,
+          "facing_cosine": -0.7071067811865477,
+          "chord_A": 47.88152436778407,
+          "axial_A": 42.08069708492468,
+          "chord_sigma_A": 2.238063243695932,
+          "chord_95_low_A": 43.49492041014004,
+          "chord_95_high_A": 52.268128325428094
+        }
+      },
       "axial_span_A": 58.91297591889457,
       "contour_nm": 6.73291153358795,
       "wlc_end_to_end_rms_nm": 6.26474924663038,
@@ -171,7 +229,7 @@
           "y_A": 12.363166305578241,
           "z_A": 16.832278833969877,
           "position_rms_A": 0.9077130056126538,
-          "m13_graft": false
+          "m13_graft": true
         },
         {
           "repeat_index": 3,
@@ -570,6 +628,35 @@
     },
     {
       "n_repeats": 14,
+      "m13_graft": {
+        "repeat_1based": 7,
+        "repeat_index": 6,
+        "counting": "1-based from the SpyCatcher-side repeat",
+        "to_n_end": {
+          "i": 0,
+          "j": 6,
+          "delta_i": 6,
+          "phase_deg": 270.0,
+          "facing_cosine": -1.8369701987210297e-16,
+          "chord_A": 53.43806002185486,
+          "axial_A": 50.49683650190963,
+          "chord_sigma_A": 2.8097712164667707,
+          "chord_95_low_A": 47.93090843757999,
+          "chord_95_high_A": 58.94521160612973
+        },
+        "to_c_end": {
+          "i": 6,
+          "j": 13,
+          "delta_i": 7,
+          "phase_deg": 315.0,
+          "facing_cosine": 0.707106781186548,
+          "chord_A": 59.66803958056842,
+          "axial_A": 58.91297591889456,
+          "chord_sigma_A": 3.3321237416175196,
+          "chord_95_low_A": 53.13707704699808,
+          "chord_95_high_A": 66.19900211413875
+        }
+      },
       "axial_span_A": 109.4098124208042,
       "contour_nm": 11.782595183778913,
       "wlc_end_to_end_rms_nm": 10.422466993747252,
@@ -668,7 +755,7 @@
           "y_A": -12.363166305578241,
           "z_A": 50.49683650190963,
           "position_rms_A": 2.4448101663278297,
-          "m13_graft": false
+          "m13_graft": true
         },
         {
           "repeat_index": 7,
@@ -2013,19 +2100,22 @@
           "index": 0,
           "x_A": 12.363166305578241,
           "y_A": 0.0,
-          "z_A": 0.0
+          "z_A": 0.0,
+          "m13_graft": false
         },
         {
           "index": 1,
           "x_A": 8.74207873161141,
           "y_A": 8.74207873161141,
-          "z_A": 8.416139416984938
+          "z_A": 8.416139416984938,
+          "m13_graft": true
         },
         {
           "index": 2,
           "x_A": 7.570256021726401e-16,
           "y_A": 12.363166305578241,
-          "z_A": 16.832278833969877
+          "z_A": 16.832278833969877,
+          "m13_graft": false
         }
       ],
       "ca_stride": 2,
@@ -2294,49 +2384,57 @@
           "index": 0,
           "x_A": 12.363166305578241,
           "y_A": 0.0,
-          "z_A": 0.0
+          "z_A": 0.0,
+          "m13_graft": false
         },
         {
           "index": 1,
           "x_A": 8.74207873161141,
           "y_A": 8.74207873161141,
-          "z_A": 8.416139416984938
+          "z_A": 8.416139416984938,
+          "m13_graft": false
         },
         {
           "index": 2,
           "x_A": 7.570256021726401e-16,
           "y_A": 12.363166305578241,
-          "z_A": 16.832278833969877
+          "z_A": 16.832278833969877,
+          "m13_graft": true
         },
         {
           "index": 3,
           "x_A": -8.74207873161141,
           "y_A": 8.74207873161141,
-          "z_A": 25.248418250954813
+          "z_A": 25.248418250954813,
+          "m13_graft": false
         },
         {
           "index": 4,
           "x_A": -12.363166305578241,
           "y_A": 1.5140512043452802e-15,
-          "z_A": 33.664557667939754
+          "z_A": 33.664557667939754,
+          "m13_graft": false
         },
         {
           "index": 5,
           "x_A": -8.742078731611413,
           "y_A": -8.74207873161141,
-          "z_A": 42.080697084924694
+          "z_A": 42.080697084924694,
+          "m13_graft": false
         },
         {
           "index": 6,
           "x_A": -2.2710768065179202e-15,
           "y_A": -12.363166305578241,
-          "z_A": 50.49683650190963
+          "z_A": 50.49683650190963,
+          "m13_graft": false
         },
         {
           "index": 7,
           "x_A": 8.742078731611409,
           "y_A": -8.742078731611413,
-          "z_A": 58.91297591889456
+          "z_A": 58.91297591889456,
+          "m13_graft": false
         }
       ],
       "ca_stride": 2,
@@ -3030,85 +3128,99 @@
           "index": 0,
           "x_A": 12.363166305578241,
           "y_A": 0.0,
-          "z_A": 0.0
+          "z_A": 0.0,
+          "m13_graft": false
         },
         {
           "index": 1,
           "x_A": 8.74207873161141,
           "y_A": 8.74207873161141,
-          "z_A": 8.416139416984938
+          "z_A": 8.416139416984938,
+          "m13_graft": false
         },
         {
           "index": 2,
           "x_A": 7.570256021726401e-16,
           "y_A": 12.363166305578241,
-          "z_A": 16.832278833969877
+          "z_A": 16.832278833969877,
+          "m13_graft": false
         },
         {
           "index": 3,
           "x_A": -8.74207873161141,
           "y_A": 8.74207873161141,
-          "z_A": 25.248418250954813
+          "z_A": 25.248418250954813,
+          "m13_graft": false
         },
         {
           "index": 4,
           "x_A": -12.363166305578241,
           "y_A": 1.5140512043452802e-15,
-          "z_A": 33.664557667939754
+          "z_A": 33.664557667939754,
+          "m13_graft": false
         },
         {
           "index": 5,
           "x_A": -8.742078731611413,
           "y_A": -8.74207873161141,
-          "z_A": 42.080697084924694
+          "z_A": 42.080697084924694,
+          "m13_graft": false
         },
         {
           "index": 6,
           "x_A": -2.2710768065179202e-15,
           "y_A": -12.363166305578241,
-          "z_A": 50.49683650190963
+          "z_A": 50.49683650190963,
+          "m13_graft": true
         },
         {
           "index": 7,
           "x_A": 8.742078731611409,
           "y_A": -8.742078731611413,
-          "z_A": 58.91297591889456
+          "z_A": 58.91297591889456,
+          "m13_graft": false
         },
         {
           "index": 8,
           "x_A": 12.363166305578241,
           "y_A": -3.0281024086905603e-15,
-          "z_A": 67.32911533587951
+          "z_A": 67.32911533587951,
+          "m13_graft": false
         },
         {
           "index": 9,
           "x_A": 8.742078731611413,
           "y_A": 8.742078731611409,
-          "z_A": 75.74525475286444
+          "z_A": 75.74525475286444,
+          "m13_graft": false
         },
         {
           "index": 10,
           "x_A": 3.7851280108632004e-15,
           "y_A": 12.363166305578241,
-          "z_A": 84.16139416984939
+          "z_A": 84.16139416984939,
+          "m13_graft": false
         },
         {
           "index": 11,
           "x_A": -8.742078731611416,
           "y_A": 8.742078731611405,
-          "z_A": 92.57753358683432
+          "z_A": 92.57753358683432,
+          "m13_graft": false
         },
         {
           "index": 12,
           "x_A": -12.363166305578241,
           "y_A": 4.5421536130358405e-15,
-          "z_A": 100.99367300381925
+          "z_A": 100.99367300381925,
+          "m13_graft": false
         },
         {
           "index": 13,
           "x_A": -8.742078731611405,
           "y_A": -8.742078731611416,
-          "z_A": 109.40981242080419
+          "z_A": 109.40981242080419,
+          "m13_graft": false
         }
       ],
       "ca_stride": 4,
@@ -3744,7 +3856,7 @@
         "n = 3 is a rigid screw. Contour is 2.525 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 2) is 24.27 \u00c5 (95% band 22.1\u201326.5 \u00c5). The helical bow is 7.44 \u00c5 (30.6% of the chord).",
         "Screw phase from repeat 0 to repeat 2 is 90.0\u00b0 (90.0\u00b0 modulo 360). Facing cosine is 0.000, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is not on this scaffold.",
-        "On this length, at least one repeat sits within the (GGGGS)3 comparison window of both ends.",
+        "The m13 graft is repeat 2 of 3 (index 1, counting 0 at the SpyCatcher side). Chord to the N-end junction is 12.66 \u00c5 (95% 11.4\u201313.9). Chord to the C-end junction is 12.66 \u00c5 (95% 11.4\u201313.9). These are screw junctions, not SpyCatcher-to-graft or graft-to-LgBiT distances. That graft repeat is inside the (GGGGS)3 comparison window of both ends.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]
     },
@@ -3778,7 +3890,7 @@
         "n = 8 is a rigid screw. Contour is 6.733 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 7) is 59.67 \u00c5 (95% band 53.1\u201366.2 \u00c5). The helical bow is 0.76 \u00c5 (1.3% of the chord).",
         "Screw phase from repeat 0 to repeat 7 is 315.0\u00b0 (315.0\u00b0 modulo 360). Facing cosine is 0.707, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is not on this scaffold.",
-        "On this length, no repeat sits within the (GGGGS)3 comparison window of both ends. One m13 graft cannot sit next to both stations on that tether comparison.",
+        "The m13 graft is repeat 3 of 8 (index 2, counting 0 at the SpyCatcher side). Chord to the N-end junction is 24.27 \u00c5 (95% 22.1\u201326.5). Chord to the C-end junction is 47.88 \u00c5 (95% 43.5\u201352.3). These are screw junctions, not SpyCatcher-to-graft or graft-to-LgBiT distances. That graft repeat is outside the (GGGGS)3 comparison window of at least one end.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]
     },
@@ -3812,7 +3924,7 @@
         "n = 14 is a rigid screw. Contour is 11.783 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 13) is 111.77 \u00c5 (95% band 99.8\u2013123.7 \u00c5). The helical bow is 2.36 \u00c5 (2.1% of the chord).",
         "Screw phase from repeat 0 to repeat 13 is 585.0\u00b0 (225.0\u00b0 modulo 360). Facing cosine is -0.707, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is on this scaffold.",
-        "On this length, no repeat sits within the (GGGGS)3 comparison window of both ends. One m13 graft cannot sit next to both stations on that tether comparison.",
+        "The m13 graft is repeat 7 of 14 (index 6, counting 0 at the SpyCatcher side). Chord to the N-end junction is 53.44 \u00c5 (95% 47.9\u201358.9). Chord to the C-end junction is 59.67 \u00c5 (95% 53.1\u201366.2). These are screw junctions, not SpyCatcher-to-graft or graft-to-LgBiT distances. That graft repeat is outside the (GGGGS)3 comparison window of at least one end.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]
     }
@@ -3820,7 +3932,8 @@
   "notes": [
     "Measured block is the CTPR screw only.",
     "FL, rigid spacers, SpyCatcher, flx, and LgBiT have no lengths in this run.",
-    "One m13 graft was requested. The repeat index was not supplied, so every m13_graft flag is false.",
+    "m13 graft positions were supplied for n=3 (2nd), n=8 (3rd), and n=14 (7th), counted from the SpyCatcher side.",
+    "Graft chords are junction-to-junction on the screw. They are not SpyCatcher-to-graft or graft-to-LgBiT distances.",
     "End-junction chord is repeat 0 to repeat n-1. It is not a SpyCatcher-to-LgBiT distance.",
     "Wiki figures from this tool are computational screw measurements.",
     "Do not caption them as crystal structures of the fusion."
