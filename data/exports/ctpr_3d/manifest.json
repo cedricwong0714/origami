@@ -1,0 +1,27 @@
+{
+  "calibrated": false,
+  "source": "origami.physical backbone screw",
+  "files": [
+    {
+      "n_repeats": 3,
+      "pdb": "ctpr_n3.pdb",
+      "json": "ctpr_n3.json",
+      "end_chord_A": 24.269762523421623,
+      "calibrated": false
+    },
+    {
+      "n_repeats": 8,
+      "pdb": "ctpr_n8.pdb",
+      "json": "ctpr_n8.json",
+      "end_chord_A": 59.668039580568426,
+      "calibrated": false
+    },
+    {
+      "n_repeats": 14,
+      "pdb": "ctpr_n14.pdb",
+      "json": "ctpr_n14.json",
+      "end_chord_A": 111.769237102993,
+      "calibrated": false
+    }
+  ]
+}

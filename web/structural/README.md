@@ -32,6 +32,16 @@ Open the Next.js URL. **Run** is the prediction form. **Present** (`/present`)
 is the data board for n = 3, 8, and 14: comparison chart, table, readings,
 CSV, and a wiki caption. `calibrated` stays false.
 
+3D coordinates for PyMOL or ChimeraX come from the same screw. No API key
+and no language model:
+
+```bash
+python scripts/export_ctpr_3d.py --n 3,8,14 --out data/exports/ctpr_3d
+```
+
+Chain A is Cα. Chain B is the docking-site marker. The file is not a crystal
+of the fusion.
+
 ## Wiki figure
 
 Use **Wiki figure**, then print or screenshot. Caption is in the Caption tab.
