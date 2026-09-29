@@ -74,6 +74,17 @@ streamlit run sandbox/app.py --server.port 48621 --server.address 0.0.0.0
 
 This form calls the math chassis. It does not invent sequences or mark the report calibrated.
 
+### Structural analysis (wiki UI)
+
+```bash
+pip install -e ".[ui]"
+python host_sa.py
+# then, in another terminal:
+cd web/structural && npm install && npm run dev -- --port 41733 --hostname 0.0.0.0
+```
+
+Scaffold-only predictions for n = 3, 8, 14. `calibrated` stays false. Use **Wiki figure** for a caption-ready screenshot.
+
 Teammates: a **temporary** static checkpoint (saved n=8 tables, not a live host) is in [`web/checkpoint/`](web/checkpoint/). How to deploy that snapshot and how to run the real models is in [`TEAMMATES.md`](TEAMMATES.md). Vercel cannot execute the Python chassis.
 
 ### Streamlit UI (Explore / Design / Learn)

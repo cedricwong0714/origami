@@ -2,8 +2,7 @@
 
 Standalone HTML demos for ORIGAMI / CLASP.
 
-| File | Role |
-|------|------|
+| `structural/` | Structural analysis UI (Next.js). Needs the FastAPI chassis for live n. |
 | `index.html` | Landing page (GitLab Pages root) |
 | `ctpr_scaffold_optimizer.html` | CTPR docking-spacing optimizer UI (browser-only) |
 

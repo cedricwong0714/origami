@@ -24,6 +24,11 @@ report.xml
 .DS_Store
 Thumbs.db
 
+# Node / Next.js
+node_modules/
+web/structural/.next/
+web/structural/out/
+
 # ---- Heavy scientific artifacts (keep schemas, READMEs, small JSON) ----
 # Structure dumps
 models/structure_predictions/**/*.pdb
