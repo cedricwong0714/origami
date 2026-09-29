@@ -8,6 +8,12 @@ type HelixCanvasProps = {
   selected?: number | null;
 };
 
+function interCanvasFont(size: number): string {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--font-inter").trim();
+  const family = raw || "Inter, sans-serif";
+  return `${size}px ${family}`;
+}
+
 function project(x: number, y: number, z: number) {
   const yaw = Math.PI / 5;
   const pitch = 0.55;
@@ -43,7 +49,7 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
 
     if (!scene || scene.sites.length === 0) {
       ctx.fillStyle = "#8A8175";
-      ctx.font = "13px 'IBM Plex Sans', sans-serif";
+      ctx.font = interCanvasFont(13);
       ctx.fillText("Run a prediction to place the screw.", 24, height / 2);
       return;
     }
@@ -112,13 +118,13 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
       if (active) ctx.fillStyle = "#FF8000";
       ctx.fill();
       ctx.fillStyle = "#5C564E";
-      ctx.font = "11px 'IBM Plex Sans', sans-serif";
+      ctx.font = interCanvasFont(11);
       ctx.fillText(String(s.index), x + 8, y - 6);
     });
 
     ctx.fillStyle = "#8A8175";
-    ctx.font = "11px 'IBM Plex Sans', sans-serif";
-    ctx.fillText("orange: junctions · blue cloud: Cα · left: SpyCatcher-side 0", 16, height - 12);
+    ctx.font = interCanvasFont(11);
+    ctx.fillText("schematic projection · pixel distance is not Å · orange junctions · blue Cα · 0 is the SpyCatcher side", 16, height - 12);
   }, [scene, selected]);
 
   return (

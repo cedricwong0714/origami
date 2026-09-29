@@ -301,7 +301,7 @@ export function StructuralStudio() {
             </Card>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <Metric label="End chord" value={`${fmt(construct.end_junction.chord_A)} Å`} hint={`${fmt(construct.end_junction.chord_95_low_A, 1)}–${fmt(construct.end_junction.chord_95_high_A, 1)} Å 95% band`} />
-              <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° between ends`} />
+              <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° screw phase, repeat 0 to ${construct.n_repeats - 1}`} />
               <Metric label="Contour" value={`${fmt(construct.contour_nm, 3)} nm`} hint={`WLC RMS ${fmt(construct.wlc_end_to_end_rms_nm, 3)} nm`} />
               <Metric label="Facing cosine" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 same face, −1 opposite" />
             </div>

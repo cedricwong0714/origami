@@ -10,9 +10,11 @@ import math
 import numpy as np
 import pytest
 
+from origami.physical.backbone import backbone_constructs
 from origami.physical.deposited import deposited_summary, screw_steps
 from origami.physical.geometry import build_ctpr
 from origami.physical.structure import (
+    _NORMAL_97_5,
     chord_sigma_A,
     helix_curvature_torsion,
     structural_report,
@@ -193,3 +195,49 @@ def test_run_design_attaches_the_screw_report_without_claiming_calibration():
     payload = report.to_dict()
     assert payload["structure"]["n_repeats"] == 8
     assert report.calibrated is False
+
+
+def test_fusion_end_chords_match_the_screw_identity():
+    """End chord² = axial² + 2 R² (1 − cos Δθ), with Δθ = (n−1) × twist.
+
+    Scientific basis: a circular helix of constant rise and twist.
+    Failure mode: the wiki chart would plot a chord that is not the
+    straight-line distance between junction 0 and junction n−1.
+    """
+    assert _NORMAL_97_5 == 1.96
+    bundle = backbone_constructs((3, 8, 14, 18))
+    by_n = {row["n_repeats"]: row for row in bundle["constructs"]}
+    for n_repeats in (3, 8, 14, 18):
+        geom = build_ctpr(n_repeats)
+        row = by_n[n_repeats]
+        delta = n_repeats - 1
+        theta = delta * geom.rotation_rad
+        axial = delta * geom.rise_A
+        radius = geom.radius_A
+        chord = math.sqrt(axial**2 + 2.0 * radius**2 * (1.0 - math.cos(theta)))
+        end = row["end_junction"]
+        assert row["contour_nm"] * 10.0 == pytest.approx(n_repeats * geom.rise_A)
+        assert row["axial_span_A"] == pytest.approx(axial)
+        assert end["axial_A"] == pytest.approx(axial)
+        assert end["chord_A"] == pytest.approx(chord, abs=1e-6)
+        assert end["phase_deg"] == pytest.approx(math.degrees(theta))
+        assert end["facing_cosine"] == pytest.approx(math.cos(theta), abs=1e-8)
+        assert end["chord_95_low_A"] == pytest.approx(
+            end["chord_A"] - 1.96 * end["chord_sigma_A"]
+        )
+        assert end["chord_95_high_A"] == pytest.approx(
+            end["chord_A"] + 1.96 * end["chord_sigma_A"]
+        )
+        assert end["chord_95_low_A"] < end["chord_A"] < end["chord_95_high_A"]
+        assert end["chord_A"] > axial
+        wlc = math.sqrt(
+            wlc_mean_square_end_to_end(row["contour_nm"], PERSISTENCE_LENGTH_NM)
+        )
+        assert row["wlc_end_to_end_rms_nm"] == pytest.approx(wlc)
+        assert row["rigid_screw"] is (row["contour_nm"] <= PERSISTENCE_LENGTH_NM)
+        pitch = geom.rise_A * (2.0 * math.pi) / geom.rotation_rad
+        axial_per_rad = pitch / (2.0 * math.pi)
+        denom = radius**2 + axial_per_rad**2
+        report = structural_report(geom, [])
+        assert report.docking_curvature_per_A == pytest.approx(radius / denom)
+        assert report.docking_torsion_per_A == pytest.approx(axial_per_rad / denom)

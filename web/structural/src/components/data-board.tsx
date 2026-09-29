@@ -70,53 +70,112 @@ function captionFor(data: PredictResponse): string {
   ].join(" ");
 }
 
+const CHART_FONT = "var(--font-inter), Inter, sans-serif";
+
+/** Nice axis whose tick labels are the gridline values, and whose ceiling covers the data. */
+function axisScale(maxValue: number): { ceiling: number; step: number } {
+  const padded = Math.max(maxValue, 1) * 1.06;
+  const rough = padded / 4;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const fraction = rough / magnitude;
+  const nice = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
+  const step = nice * magnitude;
+  const ceiling = Math.ceil((padded - 1e-9) / step) * step;
+  return { ceiling, step };
+}
+
+function tickLabel(value: number): string {
+  if (Math.abs(value - Math.round(value)) < 1e-6) return String(Math.round(value));
+  return value.toFixed(1);
+}
+
 function ChordChart({ data }: { data: PredictResponse }) {
   const width = 640;
-  const height = 280;
-  const pad = { l: 48, r: 16, t: 24, b: 36 };
-  const max = Math.max(
-    ...data.constructs.map((row) => row.end_junction.chord_95_high_A),
+  const height = 320;
+  const pad = { l: 52, r: 16, t: 36, b: 56 };
+  const maxValue = Math.max(
+    ...data.constructs.flatMap((row) => [
+      row.end_junction.chord_95_high_A,
+      row.end_junction.chord_A,
+      row.axial_span_A,
+    ]),
     1
   );
+  const { ceiling, step } = axisScale(maxValue);
   const innerW = width - pad.l - pad.r;
   const innerH = height - pad.t - pad.b;
   const slot = innerW / data.constructs.length;
+  const yOf = (value: number) => pad.t + innerH * (1 - value / ceiling);
+  const baseline = yOf(0);
+  const ticks: number[] = [];
+  for (let value = 0; value <= ceiling + 1e-9; value += step) ticks.push(value);
+  const summary = data.constructs
+    .map(
+      (row) =>
+        `n=${row.n_repeats}: axial ${row.axial_span_A.toFixed(2)} Å, chord ${row.end_junction.chord_A.toFixed(2)} Å, 95% ${row.end_junction.chord_95_low_A.toFixed(2)}–${row.end_junction.chord_95_high_A.toFixed(2)} Å`
+    )
+    .join("; ");
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label="End chord comparison">
-      <text x={pad.l} y={16} fill="#8A8175" fontSize="11">
-        End chord (Å), 95% band
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      className="h-auto w-full"
+      role="img"
+      aria-label={`End separation in angstroms. ${summary}`}
+      style={{ fontFamily: CHART_FONT }}
+    >
+      <text x={pad.l} y={16} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+        Å, same scale for axial span and end chord
       </text>
-      {[0, 0.5, 1].map((frac) => {
-        const y = pad.t + innerH * (1 - frac);
+      {ticks.map((value) => {
+        const y = yOf(value);
         return (
-          <g key={frac}>
+          <g key={value}>
             <line x1={pad.l} x2={width - pad.r} y1={y} y2={y} stroke="#E3D9CC" />
-            <text x={8} y={y + 4} fill="#8A8175" fontSize="11">
-              {Math.round(max * frac)}
+            <text x={8} y={y + 4} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+              {tickLabel(value)}
             </text>
           </g>
         );
       })}
       {data.constructs.map((row, index) => {
         const end = row.end_junction;
-        const x = pad.l + slot * index + slot / 2;
-        const yChord = pad.t + innerH * (1 - end.chord_A / max);
-        const yLow = pad.t + innerH * (1 - end.chord_95_low_A / max);
-        const yHigh = pad.t + innerH * (1 - end.chord_95_high_A / max);
-        const yAxial = pad.t + innerH * (1 - row.axial_span_A / max);
+        const center = pad.l + slot * index + slot / 2;
+        const barW = Math.min(slot * 0.28, 36);
+        const gap = 8;
+        const axialX = center - gap / 2 - barW;
+        const chordX = center + gap / 2;
+        const yAxial = yOf(row.axial_span_A);
+        const yChord = yOf(end.chord_A);
+        const yLow = yOf(end.chord_95_low_A);
+        const yHigh = yOf(end.chord_95_high_A);
+        const whiskerX = chordX + barW / 2;
         return (
           <g key={row.n_repeats}>
-            <line x1={x} x2={x} y1={yHigh} y2={yLow} stroke="#266FB1" strokeWidth="2" />
-            <line x1={x - 8} x2={x + 8} y1={yHigh} y2={yHigh} stroke="#266FB1" strokeWidth="2" />
-            <line x1={x - 8} x2={x + 8} y1={yLow} y2={yLow} stroke="#266FB1" strokeWidth="2" />
-            <circle cx={x} cy={yChord} r="6" fill="#FF8000" />
-            <circle cx={x + 16} cy={yAxial} r="4" fill="#242220" />
-            <text x={x} y={height - 12} textAnchor="middle" fill="#242220" fontSize="13">
+            <rect x={axialX} y={yAxial} width={barW} height={baseline - yAxial} fill="#242220" />
+            <rect x={chordX} y={yChord} width={barW} height={baseline - yChord} fill="#FF8000" />
+            <line x1={whiskerX} x2={whiskerX} y1={yHigh} y2={yLow} stroke="#266FB1" strokeWidth="2" />
+            <line x1={whiskerX - 7} x2={whiskerX + 7} y1={yHigh} y2={yHigh} stroke="#266FB1" strokeWidth="2" />
+            <line x1={whiskerX - 7} x2={whiskerX + 7} y1={yLow} y2={yLow} stroke="#266FB1" strokeWidth="2" />
+            <text x={center} y={height - 28} textAnchor="middle" fill="#242220" fontSize="13" fontFamily={CHART_FONT}>
               n={row.n_repeats}
             </text>
           </g>
         );
       })}
+      <g fontFamily={CHART_FONT} fontSize="11" fill="#5C564E">
+        <rect x={pad.l} y={height - 16} width={10} height={10} fill="#242220" />
+        <text x={pad.l + 14} y={height - 7}>
+          axial span
+        </text>
+        <rect x={pad.l + 96} y={height - 16} width={10} height={10} fill="#FF8000" />
+        <text x={pad.l + 110} y={height - 7}>
+          end chord
+        </text>
+        <line x1={pad.l + 188} x2={pad.l + 188} y1={height - 16} y2={height - 6} stroke="#266FB1" strokeWidth="2" />
+        <text x={pad.l + 196} y={height - 7}>
+          95% chord band
+        </text>
+      </g>
     </svg>
   );
 }
@@ -175,8 +234,8 @@ export function DataBoard() {
             n = 3, 8, 14
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
-            The numbers the chassis already computed. Orange points are end chords.
-            Black points are axial span. Blue whiskers are the 95% chord band.
+            The numbers the chassis already computed. Ink bars are axial span.
+            Orange bars are the end chord on that same scale. Blue whiskers are the 95% chord band.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -211,7 +270,7 @@ export function DataBoard() {
             <CardContent>
               <ChordChart data={data} />
               <p className="mt-2 text-xs text-[#8A8175]">
-                Orange: straight-line junction chord. Black: axial span. The gap between them is the helical bow.
+                Bar height is linear in Å. The orange bar is taller than the ink bar by the helical bow (chord minus axial span). The whisker sits on the chord only.
               </p>
             </CardContent>
           </Card>

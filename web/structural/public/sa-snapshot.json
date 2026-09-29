@@ -3741,9 +3741,9 @@
         ]
       },
       "reading": [
-        "n = 3 is a rigid screw. Contour is 2.525 nm, under the 15 nm project cutoff.",
+        "n = 3 is a rigid screw. Contour is 2.525 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 2) is 24.27 \u00c5 (95% band 22.1\u201326.5 \u00c5). The helical bow is 7.44 \u00c5 (30.6% of the chord).",
-        "Ends sit 90.0\u00b0 apart on the cylinder (facing cosine 0.000). \u0394i = 8 would stack on the same face; that is not the last repeat of an 8-mer.",
+        "Screw phase from repeat 0 to repeat 2 is 90.0\u00b0 (90.0\u00b0 modulo 360). Facing cosine is 0.000, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is not on this scaffold.",
         "On this length, at least one repeat sits within the (GGGGS)3 comparison window of both ends.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]
@@ -3775,9 +3775,9 @@
         ]
       },
       "reading": [
-        "n = 8 is a rigid screw. Contour is 6.733 nm, under the 15 nm project cutoff.",
+        "n = 8 is a rigid screw. Contour is 6.733 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 7) is 59.67 \u00c5 (95% band 53.1\u201366.2 \u00c5). The helical bow is 0.76 \u00c5 (1.3% of the chord).",
-        "Ends sit 315.0\u00b0 apart on the cylinder (facing cosine 0.707). \u0394i = 8 would stack on the same face; that is not the last repeat of an 8-mer.",
+        "Screw phase from repeat 0 to repeat 7 is 315.0\u00b0 (315.0\u00b0 modulo 360). Facing cosine is 0.707, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is not on this scaffold.",
         "On this length, no repeat sits within the (GGGGS)3 comparison window of both ends. One m13 graft cannot sit next to both stations on that tether comparison.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]
@@ -3809,9 +3809,9 @@
         ]
       },
       "reading": [
-        "n = 14 is a rigid screw. Contour is 11.783 nm, under the 15 nm project cutoff.",
+        "n = 14 is a rigid screw. Contour is 11.783 nm, at or under the 15 nm project cutoff.",
         "The end chord (repeat 0 to 13) is 111.77 \u00c5 (95% band 99.8\u2013123.7 \u00c5). The helical bow is 2.36 \u00c5 (2.1% of the chord).",
-        "Ends sit 225.0\u00b0 apart on the cylinder (facing cosine -0.707). \u0394i = 8 would stack on the same face; that is not the last repeat of an 8-mer.",
+        "Screw phase from repeat 0 to repeat 13 is 585.0\u00b0 (225.0\u00b0 modulo 360). Facing cosine is -0.707, equal to cos of that phase. Repeat index 8 is the first same-face return (\u0394i = 8, 360\u00b0). That repeat is on this scaffold.",
         "On this length, no repeat sits within the (GGGGS)3 comparison window of both ends. One m13 graft cannot sit next to both stations on that tether comparison.",
         "Passing this prediction is not scientific validation. calibrated stays false."
       ]

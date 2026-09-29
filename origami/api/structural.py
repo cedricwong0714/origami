@@ -138,13 +138,26 @@ def _reach_notes(construct: dict[str, Any], linker_rms_A: float) -> dict[str, An
 def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
     n_repeats = int(construct["n_repeats"])
     end = construct["end_junction"]
-    phase = float(end["phase_deg"]) % 360.0
+    phase = float(end["phase_deg"])
+    phase_mod = phase % 360.0
     face = float(end["facing_cosine"])
-    lines = [
-        (
+    if bool(construct["rigid_screw"]):
+        regime = (
             f"n = {n_repeats} is a rigid screw. Contour is "
-            f"{construct['contour_nm']:.3f} nm, under the 15 nm project cutoff."
-        ),
+            f"{construct['contour_nm']:.3f} nm, at or under the 15 nm project cutoff."
+        )
+    else:
+        regime = (
+            f"n = {n_repeats} is past the 15 nm project cutoff. Contour is "
+            f"{construct['contour_nm']:.3f} nm. The worm-like-chain RMS is a "
+            "comparison; the rigid-screw chord is an approximation on this length."
+        )
+    if n_repeats > 8:
+        same_face = "Repeat index 8 is the first same-face return (Δi = 8, 360°). That repeat is on this scaffold."
+    else:
+        same_face = "Repeat index 8 is the first same-face return (Δi = 8, 360°). That repeat is not on this scaffold."
+    lines = [
+        regime,
         (
             f"The end chord (repeat 0 to {n_repeats - 1}) is "
             f"{end['chord_A']:.2f} Å "
@@ -153,9 +166,10 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             f"({100 * reach['end_bow_fraction_of_chord']:.1f}% of the chord)."
         ),
         (
-            f"Ends sit {phase:.1f}° apart on the cylinder "
-            f"(facing cosine {face:.3f}). "
-            "Δi = 8 would stack on the same face; that is not the last repeat of an 8-mer."
+            f"Screw phase from repeat 0 to repeat {n_repeats - 1} is {phase:.1f}° "
+            f"({phase_mod:.1f}° modulo 360). "
+            f"Facing cosine is {face:.3f}, equal to cos of that phase. "
+            f"{same_face}"
         ),
     ]
     if reach["repeats_near_both_ends"]:
