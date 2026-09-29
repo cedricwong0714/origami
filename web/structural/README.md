@@ -40,8 +40,9 @@ python scripts/export_ctpr_3d.py --n 3,8,14 --out data/exports/ctpr_3d
 ```
 
 Chain A is Cα. Chain B is the docking-site marker. The file is not a crystal
-of the fusion. On the Run page, drag the screw to rotate it. Double-click
-resets the view. Dashed lines are the m13 graft chords.
+of the fusion. On the Run page the same coordinates are an orbitable model:
+pale tube for the Cα trace, blue sphere at the N-end, orange at the m13 graft,
+brown at the C-end. Drag to orbit. Scroll to zoom. The model turns on its own.
 
 ## Wiki figure
 

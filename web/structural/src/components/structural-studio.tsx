@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
@@ -16,8 +17,16 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
-import { HelixCanvas } from "@/components/helix-canvas";
 import { StudioNav } from "@/components/studio-nav";
+
+const ScrewView = dynamic(() => import("@/components/screw-view").then((mod) => mod.ScrewView), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[560px] items-center justify-center rounded-xl bg-[#1c1a18] text-sm text-[#E7E0D6]">
+      Placing the screw…
+    </div>
+  ),
+});
 import {
   fetchPrediction,
   fmt,
@@ -83,7 +92,7 @@ export function StructuralStudio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PredictResponse | null>(null);
-  const [focus, setFocus] = useState<number>(PRESET[0]);
+  const [focus, setFocus] = useState<number>(8);
   const [site, setSite] = useState<number | null>(0);
 
   const construct = data?.constructs.find((row) => row.n_repeats === focus) ?? data?.constructs[0];
@@ -102,8 +111,8 @@ export function StructuralStudio() {
       .then((payload) => {
         if (!alive) return;
         setData(payload);
-        setFocus(PRESET[0]);
-        const row = payload.constructs.find((item) => item.n_repeats === PRESET[0]);
+        setFocus(8);
+        const row = payload.constructs.find((item) => item.n_repeats === 8);
         setSite(row?.m13_graft?.repeat_index ?? 0);
       })
       .catch((err: unknown) => {
@@ -196,6 +205,50 @@ export function StructuralStudio() {
         </div>
       </header>
 
+      <section className="mt-6" id="screw-model">
+        {!data && !loading ? (
+          <div className="flex h-[520px] items-center justify-center rounded-2xl border border-dashed border-[#D9CFC2] bg-[#1c1a18] text-center text-sm text-[#E7E0D6]">
+            Run the backbone model to place the CTPR screw.
+          </div>
+        ) : null}
+        {loading && !data ? (
+          <div className="flex h-[520px] items-center justify-center rounded-2xl bg-[#1c1a18] text-sm text-[#E7E0D6]">
+            Placing the deposited screw…
+          </div>
+        ) : null}
+        {data && construct ? (
+          <Card className="border-[#E3D9CC] bg-white shadow-none">
+            <CardHeader className="flex-row items-center justify-between gap-3">
+              <CardTitle className="font-heading text-2xl">
+                CTPR{construct.n_repeats} screw
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                {data.constructs.map((row) => (
+                  <Toggle
+                    key={row.n_repeats}
+                    pressed={focus === row.n_repeats}
+                    onPressedChange={() => {
+                      setFocus(row.n_repeats);
+                      setSite(row.m13_graft?.repeat_index ?? 0);
+                    }}
+                    className="rounded-full data-[state=on]:bg-[#242220] data-[state=on]:text-white"
+                  >
+                    n={row.n_repeats}
+                  </Toggle>
+                ))}
+                <span className="text-xs text-[#8A8175]">{construct.ca_count} Cα · drag to orbit</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ScrewView scene={scene} selected={site} />
+              <p className="text-xs text-[#6F675C]">
+                Pale tube: Cα trace. Blue sphere: SpyCatcher-side end. Orange sphere: m13 graft. Brown sphere: C-end. The model rotates on its own. Drag to orbit, scroll to zoom.
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
+      </section>
+
       <Card className="mt-8 border-[#E3D9CC] bg-[#FBF8F3]/80 shadow-none">
         <CardContent className="space-y-4 pt-6">
           <p className="text-[11px] tracking-[0.16em] text-[#8A8175] uppercase">
@@ -204,7 +257,7 @@ export function StructuralStudio() {
           <ConstructStrip labels={data?.n_to_c ?? ["FL", "rigid_spacer", "rigid_spacer", "FL", "SpyCatcher", "CTPR", "flx", "flx", "flx", "LgBiT"]} />
           <p className="text-sm text-[#6F675C]">
             Only the orange CTPR block is measured. SpyCatcher, flx×3, and LgBiT
-            stay labels until they have lengths. The m13 graft repeat is unassigned.
+            stay labels until they have lengths. The m13 graft is the 2nd repeat of n=3, the 3rd of n=8, and the 7th of n=14.
           </p>
         </CardContent>
       </Card>
@@ -277,53 +330,9 @@ export function StructuralStudio() {
         </Card>
       </section>
 
-      {!data && !loading ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-[#D9CFC2] bg-[#F7F1E8] px-6 py-16 text-center">
-          <p className="font-heading text-2xl text-[#242220]">No prediction yet</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-[#6F675C]">
-            Run the backbone model to place junctions for n = 3, 8, and 14.
-            Empty is a real state: the fusion drawing is not a structure.
-          </p>
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="mt-8 animate-pulse rounded-2xl border border-[#E3D9CC] bg-[#F7F1E8] px-6 py-24 text-center text-[#8A8175]">
-          Placing the deposited screw…
-        </div>
-      ) : null}
-
       {data && construct ? (
         <div className="mt-8 space-y-6">
-          <div className="flex flex-wrap gap-2">
-            {data.constructs.map((row) => (
-              <Toggle
-                key={row.n_repeats}
-                pressed={focus === row.n_repeats}
-                onPressedChange={() => {
-                  setFocus(row.n_repeats);
-                  setSite(row.m13_graft?.repeat_index ?? 0);
-                }}
-                className="rounded-full data-[state=on]:bg-[#242220] data-[state=on]:text-white"
-              >
-                n={row.n_repeats} · {row.rigid_screw ? "rigid" : "flexible"}
-              </Toggle>
-            ))}
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <Card className="border-[#E3D9CC] bg-white shadow-none">
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="font-heading text-2xl">
-                  CTPR{construct.n_repeats} screw
-                </CardTitle>
-                <span className="text-xs text-[#8A8175]">{construct.ca_count} Cα atoms</span>
-              </CardHeader>
-              <CardContent>
-                <HelixCanvas scene={scene} selected={site} />
-              </CardContent>
-            </Card>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Metric label="End chord" value={`${fmt(construct.end_junction.chord_A)} Å`} hint={`${fmt(construct.end_junction.chord_95_low_A, 1)}–${fmt(construct.end_junction.chord_95_high_A, 1)} Å 95% band`} />
               <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° screw phase, repeat 0 to ${construct.n_repeats - 1}`} />
               <Metric label="Contour" value={`${fmt(construct.contour_nm, 3)} nm`} hint={`WLC RMS ${fmt(construct.wlc_end_to_end_rms_nm, 3)} nm`} />
@@ -336,7 +345,6 @@ export function StructuralStudio() {
                 />
               ) : null}
             </div>
-          </div>
 
           <div className="grid gap-3 md:grid-cols-4">
             <Metric label="Rise" value={`${fmt(Number(data.screw.rise_A), 3)} Å`} />
@@ -403,7 +411,7 @@ export function StructuralStudio() {
                 <dl className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
                   <div>
                     <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D scaffold coordinates</dt>
-                    <dd>{construct.ca_count} Cα atoms and {construct.n_repeats} docking sites, in ångströms. Drag the view. Double-click resets it.</dd>
+                    <dd>{construct.ca_count} Cα atoms and {construct.n_repeats} docking sites, in ångströms. The orbit view above is those coordinates.</dd>
                   </div>
                   <div>
                     <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Distance between docking sites</dt>
@@ -431,7 +439,7 @@ export function StructuralStudio() {
                   </div>
                   <div>
                     <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D visualization</dt>
-                    <dd>The canvas is a projection of those coordinates. Pixel distance is not ångströms. PDB files are in data/exports/ctpr_3d.</dd>
+                    <dd>Shaded orbit view of the Cα trace and docking spheres. Distances in the tables are the measurements, in ångströms. PDB files are in data/exports/ctpr_3d.</dd>
                   </div>
                 </dl>
               </CardContent>
