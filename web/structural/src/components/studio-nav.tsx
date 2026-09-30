@@ -7,7 +7,7 @@ const LINKS = [
   { href: "/", label: "Run" },
   { href: "/present", label: "Present" },
   { href: "/stability", label: "Stability" },
-  { href: "/stability/calculator", label: "Calculator" },
+  { href: "/stability/calculator", label: "Estimate ΔG" },
 ];
 
 export function StudioNav() {
