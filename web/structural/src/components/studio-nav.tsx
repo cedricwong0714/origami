@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/present", label: "Present data" },
   { href: "/stability", label: "Stability check" },
   { href: "/stability/calculator", label: "Estimate ΔG" },
+  { href: "/kinetics", label: "Kinetics" },
 ];
 
 export function StudioNav() {

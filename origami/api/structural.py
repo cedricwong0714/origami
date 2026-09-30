@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
+from origami.api.kinetics import router as kinetics_router
 from origami.api.stability import router as stability_router
 from origami.linker_prior import ggggs_linker_rms_A
 from origami.physical.backbone import (
@@ -50,6 +51,7 @@ app.add_middleware(
 # Literature thermal lookup on this same app. The router only reads
 # stability_panel. It does not change scaffold prediction routes.
 app.include_router(stability_router)
+app.include_router(kinetics_router)
 
 
 def _parse_n_list(raw: str | None) -> tuple[int, ...]:
