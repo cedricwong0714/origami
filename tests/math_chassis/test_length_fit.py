@@ -170,18 +170,18 @@ def test_default_series_delta_g_shown_at_3_8_and_14_is_identifiable() -> None:
 
     body = literature_confirm(37.0)
     assert body["calibrated"] is False
-    rows = [
-        row
-        for row in body["rows"]
-        if row["series_id"] == PHILLIPS_2012_CTPRA_DSC
-    ]
+    rows = body["rows"]
+    assert len(rows) == 3
+    assert all(row["series_id"] == PHILLIPS_2012_CTPRA_DSC for row in rows)
     assert {row["n_repeats"] for row in rows} == {3, 8, 14}
     assert {row["tm_fit_form"] for row in rows} == {"saturating"}
     tm = fit_named_tm(PHILLIPS_2012_CTPRA_DSC)
     assert tm.form == "saturating"
     dg = fit_named_delta_g(PHILLIPS_2012_CTPRA_DSC)
     fits = body["series_fits"]
-    block = next(item for item in fits if item["series_id"] == PHILLIPS_2012_CTPRA_DSC)
+    assert len(fits) == 1
+    block = fits[0]
+    assert block["series_id"] == PHILLIPS_2012_CTPRA_DSC
     assert block["tm"]["form"] == "saturating"
     for n_repeats in (3, 8, 14):
         row = next(item for item in rows if item["n_repeats"] == n_repeats)

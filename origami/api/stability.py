@@ -19,7 +19,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from origami.drylab import STABILITY_SERIES, stability_panel
+from origami.drylab import stability_panel
 from origami.stability.length_fit import (
     MODEL_NAME,
     MODEL_VERSION,
@@ -49,6 +49,12 @@ router = APIRouter()
 # cited repeat count.
 _CONFIRM_N: tuple[int, ...] = (3, 8, 14)
 
+# User-facing stability confirmation uses one literature series only.
+_CANONICAL_SERIES = PHILLIPS_2012_CTPRA_DSC
+_CANONICAL_DOI = "10.1002/pro.2018"
+_CANONICAL_METHOD = "DSC"
+_CANONICAL_CONSTRUCT_FAMILY = "CTPRa"
+
 _ASSAY_DESCRIPTION = (
     "Assay comparison temperature in degrees Celsius. "
     "The default, 37, is an E. coli operating assumption "
@@ -71,12 +77,12 @@ _CONFIRM_NOTE = (
     "The comparison at the assay temperature uses the calculated melting temperature. "
     "A 95% band is value ± 1.96 sigma from the linearized fit covariance. "
     "It is a linear approximation, not a wet-lab confidence interval. "
-    "Series are not averaged. "
+    "Only the Phillips 2012 CTPRa DSC series is exposed on the confirmation screen. "
     "ΔHcal and ΔCp are not in the literature file and are not estimated here. "
     "calibrated stays false. A passing test is not scientific validation. "
     "The default comparison temperature 37 C is an E. coli operating "
     "assumption, not a temperature from Phillips et al. 2012. "
-    f"Default series id: {PHILLIPS_2012_CTPRA_DSC}."
+    f"Literature series id: {_CANONICAL_SERIES}."
 )
 
 
@@ -111,63 +117,55 @@ def literature_panel(t_assay_C: float) -> dict[str, Any]:
 
 
 def literature_confirm(t_assay_C: float) -> dict[str, Any]:
-    """One calculated row per series at n = 3, 8, and 14.
+    """Calculated rows for the canonical series at n = 3, 8, and 14.
 
-    Four named series and three lengths are twelve rows. Each series is
-    fit on its own rows. The displayed melting temperature is the model
-    at that n, and the pass/fail comparison uses that calculated value.
-    The literature lookup for the same cell is ``paper_tm_C`` when a
-    row exists. ``GET /api/stability/panel`` remains the raw lookup.
+    The team-facing confirmation screen uses Phillips 2012 CTPRa DSC only.
+    The displayed melting temperature is the length model at that n, and
+    the pass/fail comparison uses that calculated value. The literature
+    lookup for the same cell is ``paper_tm_C`` when a row exists.
+    ``GET /api/stability/panel`` remains the raw multi-series lookup.
     """
     panel = literature_panel(t_assay_C)
+    series_id = _CANONICAL_SERIES
     lookup = {
         (str(row["series_id"]), int(row["n_repeats"])): row for row in panel["rows"]
     }
-    rows: list[dict[str, Any]] = []
-    series_fits: list[dict[str, Any]] = []
-    for series_id in STABILITY_SERIES:
-        tm_fit = fit_named_tm(series_id)
-        dg_fit = fit_named_delta_g(series_id)
-        series_fits.append(
-            {
-                "series_id": series_id,
-                "tm": fit_public_dict(tm_fit),
-                "delta_g": fit_public_dict(dg_fit),
-            }
+    tm_fit = fit_named_tm(series_id)
+    dg_fit = fit_named_delta_g(series_id)
+    assay = float(panel["t_assay_C"])
+    rows = [
+        _confirm_row(
+            series_id,
+            n_repeats,
+            assay,
+            lookup.get((series_id, n_repeats)),
+            tm_fit,
+            dg_fit,
         )
-        for n_repeats in _CONFIRM_N:
-            rows.append(
-                _confirm_row(
-                    series_id,
-                    n_repeats,
-                    float(panel["t_assay_C"]),
-                    lookup.get((series_id, n_repeats)),
-                    tm_fit,
-                    dg_fit,
-                )
-            )
-    expected = len(STABILITY_SERIES) * len(_CONFIRM_N)
-    series_ids = [row["series_id"] for row in rows]
+        for n_repeats in _CONFIRM_N
+    ]
     keys = [(row["series_id"], int(row["n_repeats"])) for row in rows]
-    if len(rows) != expected or len(keys) != len(set(keys)):
+    if len(rows) != len(_CONFIRM_N) or len(keys) != len(set(keys)):
         raise HTTPException(
             status_code=500,
             detail=(
-                "stability confirmation must keep one row per series "
-                f"at n in {list(_CONFIRM_N)} "
-                f"({len(STABILITY_SERIES)} series, {expected} rows). "
+                "stability confirmation must keep one row per team length "
+                f"at n in {list(_CONFIRM_N)} for {_CANONICAL_SERIES}. "
                 f"Got {len(rows)} rows."
             ),
         )
-    if set(series_ids) != set(STABILITY_SERIES):
+    if any(row["series_id"] != series_id for row in rows):
         raise HTTPException(
             status_code=500,
-            detail="stability confirmation dropped or merged a series",
+            detail="stability confirmation merged or dropped the canonical series",
         )
     return {
         "calibrated": False,
-        "t_assay_C": panel["t_assay_C"],
-        "default_series_id": PHILLIPS_2012_CTPRA_DSC,
+        "t_assay_C": assay,
+        "literature_series_id": series_id,
+        "doi": _CANONICAL_DOI,
+        "method": _CANONICAL_METHOD,
+        "construct_family": _CANONICAL_CONSTRUCT_FAMILY,
         "comparison": "fit",
         "model_name": MODEL_NAME,
         "model_version": MODEL_VERSION,
@@ -176,7 +174,13 @@ def literature_confirm(t_assay_C: float) -> dict[str, Any]:
         "confidence_tier": "hypothesis_only",
         "human_review_required": True,
         "rows": rows,
-        "series_fits": series_fits,
+        "series_fits": [
+            {
+                "series_id": series_id,
+                "tm": fit_public_dict(tm_fit),
+                "delta_g": fit_public_dict(dg_fit),
+            }
+        ],
         "note": _CONFIRM_NOTE,
     }
 
@@ -297,7 +301,7 @@ def get_stability_confirm(
         description=_ASSAY_DESCRIPTION,
     ),
 ) -> dict[str, Any]:
-    """Calculated n = 3, 8, and 14, one row per series. The panel route stays the lookup."""
+    """Calculated n = 3, 8, and 14 for Phillips 2012 CTPRa DSC. The panel route stays the lookup."""
     return literature_confirm(t_assay_C)
 
 

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StudioNav } from "@/components/studio-nav";
-import { SERIES_COPY, TEAM_LENGTHS } from "@/lib/stability";
+import { CANONICAL_SERIES_ID, SERIES_COPY, TEAM_LENGTHS } from "@/lib/stability";
 import {
   CURVE_LABEL,
   CURVE_T_MAX_C,
@@ -17,7 +17,6 @@ import {
   postEffectiveEnthalpy,
   postThermoCurve,
   repeatCounts,
-  seriesTitle,
   type EffectiveEnthalpy,
   type EnergyUnits,
   type ThermoCurve,
@@ -25,7 +24,8 @@ import {
 } from "@/lib/thermo";
 
 const CHART_FONT = "var(--font-inter), Inter, sans-serif";
-const DEFAULT_SERIES_ID = SERIES_COPY.find((item) => item.isDefault)?.id ?? "phillips2012_ctpra_dsc";
+const CANONICAL_COPY =
+  SERIES_COPY.find((item) => item.id === CANONICAL_SERIES_ID) ?? SERIES_COPY[0];
 const CELSIUS_TO_KELVIN = 273.15;
 
 type LiteratureIndex = Awaited<ReturnType<typeof loadSnapshotIndex>>;
@@ -328,9 +328,7 @@ export function ThermoCalculator() {
   const [tmC, setTmC] = useState("");
   const [deltaH, setDeltaH] = useState("");
   const [deltaCp, setDeltaCp] = useState("");
-  const [seriesId, setSeriesId] = useState<string>(DEFAULT_SERIES_ID);
   const [nText, setNText] = useState("3");
-  const [seriesIds, setSeriesIds] = useState<string[]>(SERIES_COPY.map((item) => item.id));
   const [nOptions, setNOptions] = useState<number[]>([]);
   const [snapshot, setSnapshot] = useState<LiteratureIndex | null>(null);
   const [prefill, setPrefill] = useState<ThermoPrefill | null>(null);
@@ -347,7 +345,6 @@ export function ThermoCalculator() {
     let alive = true;
     loadSnapshotIndex().then((index) => {
       if (!alive) return;
-      setSeriesIds(index.seriesIds);
       setSnapshot(index);
     });
     return () => {
@@ -357,24 +354,16 @@ export function ThermoCalculator() {
 
   useEffect(() => {
     let alive = true;
-    if (!seriesId) {
-      setNOptions([]);
-      setPrefill(null);
-      return () => {
-        alive = false;
-      };
-    }
     const n = Number(nText);
     loadSnapshotIndex().then(async (index) => {
       if (!alive) return;
       setSnapshot(index);
-      setSeriesIds(index.seriesIds);
-      setNOptions(repeatCounts(index, seriesId));
+      setNOptions(repeatCounts(index, CANONICAL_SERIES_ID));
       if (!Number.isInteger(n) || n < 1) {
         setPrefill(null);
         return;
       }
-      const next = await loadThermoPrefill(seriesId, n, index);
+      const next = await loadThermoPrefill(CANONICAL_SERIES_ID, n, index);
       if (!alive) return;
       setPrefill(next);
       setTmC(next.tmC === null ? "" : String(next.tmC));
@@ -390,7 +379,7 @@ export function ThermoCalculator() {
     return () => {
       alive = false;
     };
-  }, [seriesId, nText]);
+  }, [nText]);
 
   useEffect(() => {
     let alive = true;
@@ -501,7 +490,7 @@ export function ThermoCalculator() {
   const showEstimate = Boolean(effective?.has_effective_enthalpy && effective.delta_h_eff !== null && effective.points.length > 0);
   const sigmas = identity ? citedSigmas(prefill, identity.tmC, anchorValue, anchorUnits) : null;
   const bothPrinted = sigmas !== null && sigmas.deltaGSigma !== null && sigmas.tmSigmaC !== null;
-  const printsColumn = seriesPrintsDeltaG(snapshot, seriesId);
+  const printsColumn = seriesPrintsDeltaG(snapshot, CANONICAL_SERIES_ID);
   const otherCounts = nOptions.filter((n) => !(TEAM_LENGTHS as readonly number[]).includes(n));
   const energy = energyUnitLabel(units, "energy");
   const entropy = energyUnitLabel(units, "entropy");
@@ -519,7 +508,7 @@ export function ThermoCalculator() {
             Estimate ΔG at other temperatures
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Use this page to explore how unfolding free energy might change with temperature. At the melting temperature, ΔG is 0 for a two-state melt. The paper&apos;s printed value is always shown on its own. Estimates here are not calibrated to wet-lab data (calibrated = false).
+            Table values and prefill come from Phillips et al. 2012 CTPRa DSC (DOI 10.1002/pro.2018). At the melting temperature, ΔG is 0 for a two-state melt. The paper&apos;s printed value is always shown on its own. Estimates here are not calibrated to wet-lab data (calibrated = false).
           </p>
         </div>
         <Badge
@@ -537,20 +526,9 @@ export function ThermoCalculator() {
             A cited melting temperature is filled in when the paper has one. ΔHcal and ΔCp stay empty until you type them.
           </p>
 
-          <div className="mt-8">
-            <h3 className="text-sm font-semibold text-[#242220]">Series</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">Phillips CTPRa DSC is the default series.</p>
-            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Series">
-              {seriesIds.map((id) => {
-                const known = SERIES_COPY.find((item) => item.id === id);
-                return (
-                  <ChoiceButton key={id} pressed={seriesId === id} onClick={() => setSeriesId(id)}>
-                    <span className="block">{seriesTitle(id)}</span>
-                    {known?.isDefault ? <span className="mt-0.5 block text-[11px] opacity-80">Default series</span> : null}
-                  </ChoiceButton>
-                );
-              })}
-            </div>
+          <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
+            <h3 className="text-sm font-semibold text-[#242220]">{CANONICAL_COPY.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{CANONICAL_COPY.detail}</p>
           </div>
 
           <div className="mt-8 border-t border-[#E3D9CC] pt-8">
@@ -711,7 +689,7 @@ export function ThermoCalculator() {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-[#5C564E]">
-                The paper’s number appears here when this series prints an unfolding ΔG. It is not calculated from the melting temperature.
+                The Phillips 2012 CTPRa DSC table prints unfolding ΔG at 10 °C when a cell exists. It is not calculated from the melting temperature.
               </p>
             )}
           </ResultBlock>

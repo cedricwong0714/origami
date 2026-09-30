@@ -275,10 +275,14 @@ def test_confirm_page_payload_evaluates_the_fit_at_n_14() -> None:
     assert body["calibrated"] is False
     assert body["comparison"] == "fit"
     assert body["confidence_tier"] == "hypothesis_only"
-    assert len(rows) == 12
-    assert {row["series_id"] for row in rows} == set(_SERIES)
+    assert body["literature_series_id"] == PHILLIPS_2012_CTPRA_DSC
+    assert body["doi"] == "10.1002/pro.2018"
+    assert body["method"] == "DSC"
+    assert len(rows) == 3
+    assert {row["series_id"] for row in rows} == {PHILLIPS_2012_CTPRA_DSC}
     pairs = {(row["series_id"], row["n_repeats"]) for row in rows}
-    assert pairs == {(series_id, n_repeats) for series_id in _SERIES for n_repeats in _LENGTHS}
+    assert pairs == {(PHILLIPS_2012_CTPRA_DSC, n_repeats) for n_repeats in _LENGTHS}
+    assert len(body["series_fits"]) == 1
     assert "no Tm(n) was fit" not in body["note"]
     assert "calculated" in body["note"].lower()
     assert "ΔHcal" in body["note"]
@@ -328,26 +332,28 @@ def test_confirm_page_payload_evaluates_the_fit_at_n_14() -> None:
     assert row_14["paper_delta_g"] is None
     assert row_3["paper_delta_g"] == 4.8
 
+
+def test_other_series_fits_stay_separate_from_phillips() -> None:
+    """Internal length fits for non-canonical series are not merged into confirm.
+
+    Failure mode: Cortajarena ΔG borrowed on the team payload, or CTPR DSC
+    line fit mixed with CTPRa saturating fit. A passing test is not
+    scientific validation.
+    """
+    from origami.stability.length_fit import fit_named_delta_g, fit_named_tm
+
     cortajarena_dg = fit_named_delta_g(CORTAJARENA_2011_CTPRA_DSC)
     assert cortajarena_dg.form == "not_fit"
     assert cortajarena_dg.n_points == 0
-    for n_repeats in _LENGTHS:
-        cortajarena = _panel_row(rows, CORTAJARENA_2011_CTPRA_DSC, n_repeats)
-        assert math.isfinite(cortajarena["tm_C"])
-        assert cortajarena["delta_g"] is None
-        assert cortajarena["delta_g_fit_form"] == "not_fit"
 
     ctpr_fit = fit_named_tm(PHILLIPS_2012_CTPR_DSC)
     assert len(ctpr_fit.n_repeats) < 4
     assert ctpr_fit.form == "line"
-    assert len(ctpr_fit.parameters) == 2
-    ctpr_14 = _panel_row(rows, PHILLIPS_2012_CTPR_DSC, 14)
-    assert math.isfinite(ctpr_14["tm_C"])
-    assert ctpr_14["tm_fit_form"] == "line"
     assert any("Two points determine a line" in warning for warning in ctpr_fit.warnings)
 
+    default_fit = fit_named_tm(PHILLIPS_2012_CTPRA_DSC)
     phillips_points = set(zip(default_fit.n_repeats, default_fit.values, strict=True))
     cort_fit = fit_named_tm(CORTAJARENA_2011_CTPRA_DSC)
     cort_points = set(zip(cort_fit.n_repeats, cort_fit.values, strict=True))
     assert phillips_points.isdisjoint(cort_points)
-    assert _panel_row(rows, CORTAJARENA_2011_CTPRA_DSC, 8)["tm_C"] != row_8["tm_C"]
+    assert default_fit.predict(8).value != cort_fit.predict(8).value

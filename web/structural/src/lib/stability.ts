@@ -5,8 +5,8 @@
  * n = 3, n = 8, and n = 14 is that model evaluated at n. The panel
  * route and the wiki snapshot remain the literature lookup.
  *
- * The chassis keeps four literature series separate. This module does not
- * average them and does not fill a missing melting temperature with 0.
+ * The confirmation screen uses Phillips 2012 CTPRa DSC only. This module
+ * does not average series and does not fill a missing melting temperature with 0.
  *
  * Citation strings below are copied from
  * data/stability/ctpr_thermal_literature.json. Buffer, pH, method, and
@@ -16,6 +16,9 @@
  */
 
 export const TEAM_LENGTHS = [3, 8, 14] as const;
+
+/** Canonical literature series for team-facing stability confirmation. */
+export const CANONICAL_SERIES_ID = "phillips2012_ctpra_dsc" as const;
 
 export const SERIES_IDS = [
   "phillips2012_ctpra_dsc",
@@ -86,6 +89,10 @@ export type StabilityPanel = {
   t_assay_C: number;
   rows: StabilityRow[];
   series_fits?: SeriesFitBlock[];
+  literature_series_id?: string;
+  doi?: string;
+  method?: string;
+  construct_family?: string;
   comparison?: string;
   equation_saturating?: string;
   equation_line?: string;
@@ -372,13 +379,32 @@ export function parseStabilityPanel(body: unknown): StabilityPanel {
   if (!Array.isArray(record.rows)) {
     throw new Error("Stability payload is missing rows.");
   }
-  const rows = record.rows.map((row, index) => parseRow(row, index));
-  const wanted = new Set<number>(TEAM_LENGTHS);
+  const parsed = record.rows.map((row, index) => parseRow(row, index));
+  const wantedLengths = new Set<number>(TEAM_LENGTHS);
+  const canonical = parsed.filter(
+    (row) =>
+      row.series_id === CANONICAL_SERIES_ID && wantedLengths.has(row.n_repeats),
+  );
+  const rows =
+    canonical.length > 0
+      ? canonical
+      : parsed.filter((row) => wantedLengths.has(row.n_repeats));
+  const fits = parseSeriesFits(record.series_fits);
+  const canonicalFits = fits?.filter((fit) => fit.series_id === CANONICAL_SERIES_ID);
   return {
     calibrated: record.calibrated,
     t_assay_C: record.t_assay_C,
-    rows: rows.filter((row) => wanted.has(row.n_repeats)),
-    series_fits: parseSeriesFits(record.series_fits),
+    rows,
+    series_fits:
+      canonicalFits && canonicalFits.length > 0 ? canonicalFits : fits,
+    literature_series_id:
+      typeof record.literature_series_id === "string"
+        ? record.literature_series_id
+        : undefined,
+    doi: typeof record.doi === "string" ? record.doi : undefined,
+    method: typeof record.method === "string" ? record.method : undefined,
+    construct_family:
+      typeof record.construct_family === "string" ? record.construct_family : undefined,
     comparison: typeof record.comparison === "string" ? record.comparison : undefined,
     equation_saturating:
       typeof record.equation_saturating === "string" ? record.equation_saturating : undefined,
@@ -397,20 +423,11 @@ async function fetchLivePanel(path: string): Promise<StabilityPanel> {
 }
 
 export async function fetchStabilityPanel(): Promise<StabilityPanel> {
-  // The confirmation page reads the fit payload first. The panel and
-  // the snapshot are the literature lookup, used only if the fit route
-  // cannot be loaded.
-  const livePaths = [
-    "/api/stability/confirm?t_assay_C=37",
-    "/api/stability/panel?t_assay_C=37",
-  ];
   let lastError: unknown = null;
-  for (const path of livePaths) {
-    try {
-      return await fetchLivePanel(path);
-    } catch (err: unknown) {
-      lastError = err;
-    }
+  try {
+    return await fetchLivePanel("/api/stability/confirm?t_assay_C=37");
+  } catch (err: unknown) {
+    lastError = err;
   }
   try {
     const snapshot = await fetch("/stability-snapshot.json", { cache: "no-store" });
@@ -518,7 +535,15 @@ export type SeriesBlock = {
   slots: LengthSlot[];
 };
 
-/** Four named series, in citation order, plus any unexpected id kept alone. */
+/** Team lengths as slots for the canonical confirmation model. */
+export function teamLengthSlots(rows: StabilityRow[]): LengthSlot[] {
+  return TEAM_LENGTHS.map((nRepeats) => ({
+    nRepeats,
+    rows: rows.filter((row) => row.n_repeats === nRepeats),
+  }));
+}
+
+/** Named series blocks; retained for tests and legacy snapshots. */
 export function seriesBlocks(rows: StabilityRow[]): SeriesBlock[] {
   const known = new Set<string>(SERIES_IDS);
   const extras = [...new Set(rows.map((row) => row.series_id))]

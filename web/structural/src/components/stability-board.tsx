@@ -1,24 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { StudioNav } from "@/components/studio-nav";
 import { PHILLIPS_PRINTED_DELTA_G_T_C } from "@/lib/thermo";
 import {
-  SERIES_IDS,
+  CANONICAL_SERIES_ID,
   TEAM_LENGTHS,
   citedTm,
   fetchStabilityPanel,
   formatMeasure,
   panelHasTeamRows,
-  seriesBlocks,
   seriesCopy,
+  teamLengthSlots,
   type LengthSlot,
-  type SeriesBlock,
   type SeriesCurveFit,
-  type SeriesFitBlock,
   type StabilityPanel,
   type StabilityRow,
 } from "@/lib/stability";
@@ -257,31 +255,6 @@ function lengthView(
   };
 }
 
-function ChoiceButton({
-  pressed,
-  onClick,
-  children,
-}: {
-  pressed: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={pressed}
-      onClick={onClick}
-      className={
-        pressed
-          ? "rounded-full bg-[#242220] px-4 py-2.5 text-left text-sm text-white"
-          : "rounded-full border border-[#E3D9CC] bg-white px-4 py-2.5 text-left text-sm text-[#3F3A34] hover:border-[#C45C12]"
-      }
-    >
-      {children}
-    </button>
-  );
-}
-
 function LengthCard({ view }: { view: LengthView }) {
   const stateClass =
     view.kind === "not_fit"
@@ -388,89 +361,10 @@ function FitSummary({
   );
 }
 
-function SeriesResult({
-  block,
-  assayC,
-  fit,
-}: {
-  block: SeriesBlock;
-  assayC: number;
-  fit: SeriesFitBlock | null;
-}) {
-  const copy = seriesCopy(block.seriesId);
-  const dgFit = fit?.delta_g ?? null;
-  const hideSaturatingDeltaG = block.slots.some((slot) =>
-    slot.rows.some((row) => saturatingDeltaGUnusable(row)),
-  );
-  const views = block.slots.map((slot) => lengthView(slot, block.seriesId, assayC, dgFit));
-  return (
-    <section className="rounded-2xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 md:p-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 max-w-3xl">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220] md:text-3xl">
-            {copy?.title ?? block.seriesId}
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
-            {copy?.detail ??
-              "This series was in the lookup. It is shown on its own and is not merged into the four named papers."}
-          </p>
-          {copy ? (
-            <p className="mt-2 text-sm leading-relaxed text-[#6F675C]">
-              {copy.citation}{" "}
-              <a
-                className="underline decoration-[#E3D9CC] underline-offset-4 hover:decoration-[#C45C12]"
-                href={`https://doi.org/${copy.doi}`}
-              >
-                DOI {copy.doi}
-              </a>
-              .
-            </p>
-          ) : null}
-          {fit ? (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <FitSummary fit={fit.tm} title="Calculated melt" />
-              <FitSummary
-                fit={fit.delta_g}
-                title="Calculated ΔG"
-                omitCoefficients={hideSaturatingDeltaG}
-              />
-            </div>
-          ) : null}
-        </div>
-        {copy?.isDefault ? (
-          <Badge variant="outline" className="w-fit rounded-full">
-            Default series
-          </Badge>
-        ) : null}
-      </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {views.map((view) => (
-          <LengthCard key={view.nRepeats} view={view} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function seriesChoices(blocks: SeriesBlock[]): { id: string; title: string; isDefault: boolean }[] {
-  const known = new Set<string>(SERIES_IDS);
-  const extras = blocks.map((block) => block.seriesId).filter((id) => !known.has(id));
-  const uniqueExtras = [...new Set(extras)].sort();
-  const ids = [...SERIES_IDS, ...uniqueExtras];
-  return [
-    { id: "all", title: uniqueExtras.length > 0 ? "All series" : "All four", isDefault: false },
-    ...ids.map((id) => {
-      const copy = seriesCopy(id);
-      return { id, title: copy?.title ?? id, isDefault: Boolean(copy?.isDefault) };
-    }),
-  ];
-}
-
 export function StabilityBoard() {
   const [data, setData] = useState<StabilityPanel | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [seriesFilter, setSeriesFilter] = useState("all");
 
   useEffect(() => {
     let alive = true;
@@ -491,18 +385,17 @@ export function StabilityBoard() {
     };
   }, []);
 
-  const blocks = data ? seriesBlocks(data.rows) : [];
+  const canonicalCopy = seriesCopy(CANONICAL_SERIES_ID);
+  const slots = data ? teamLengthSlots(data.rows) : [];
   const hasRows = data ? panelHasTeamRows(data.rows) : false;
-  const fitsById = new Map((data?.series_fits ?? []).map((fit) => [fit.series_id, fit]));
-  const choices = seriesChoices(blocks);
-  const visible = blocks.filter((block) => seriesFilter === "all" || block.seriesId === seriesFilter);
-  const selectedTitle =
-    seriesFilter === "all"
-      ? choices.some((choice) => choice.id === "all" && choice.title === "All series")
-        ? "every series in the lookup"
-        : "all four papers"
-      : (seriesCopy(seriesFilter)?.title ?? seriesFilter);
-  const assayC = data?.t_assay_C ?? COMPARISON_C;
+  const fit = data?.series_fits?.[0] ?? null;
+  const dgFit = fit?.delta_g ?? null;
+  const hideSaturatingDeltaG = slots.some((slot) =>
+    slot.rows.some((row) => saturatingDeltaGUnusable(row)),
+  );
+  const views = slots.map((slot) =>
+    lengthView(slot, CANONICAL_SERIES_ID, data?.t_assay_C ?? COMPARISON_C, dgFit),
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-8 md:py-12">
@@ -514,7 +407,7 @@ export function StabilityBoard() {
             Stability confirmation
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            For each literature series we show the calculated melting temperature and unfolding ΔG at n = 3, n = 8, and n = 14. Each value comes from that paper&apos;s length fit at that repeat count. Whether a construct passes at 37 °C is judged from the calculated melt, not from a wet-lab measurement. Nothing on this page is calibrated to our chassis data (calibrated = false).
+            Melting temperature and unfolding ΔG at n = 3, n = 8, and n = 14 come from a length fit to Phillips et al. 2012 CTPRa DSC (DOI 10.1002/pro.2018). Whether a construct passes at 37 °C is judged from the calculated melt, not from a wet-lab measurement. Nothing on this page is calibrated to our chassis data (calibrated = false).
           </p>
           <Link
             href="/stability/calculator"
@@ -542,27 +435,25 @@ export function StabilityBoard() {
       <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Choose which paper&apos;s fit to read. The lengths stay fixed. The comparison at 37 °C uses the calculated melt.
+          The model is anchored to Phillips et al. 2012 CTPRa DSC. The lengths stay fixed. The comparison at 37 °C uses the calculated melt.
         </p>
 
-        <div className="mt-8">
-          <h3 className="text-sm font-semibold text-[#242220]">Series</h3>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-            All four papers, or one at a time. Phillips CTPRa DSC is the default series.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Series to show">
-            {choices.map((choice) => (
-              <ChoiceButton
-                key={choice.id}
-                pressed={seriesFilter === choice.id}
-                onClick={() => setSeriesFilter(choice.id)}
+        {canonicalCopy ? (
+          <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
+            <h3 className="text-sm font-semibold text-[#242220]">{canonicalCopy.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{canonicalCopy.detail}</p>
+            <p className="mt-2 text-sm leading-relaxed text-[#6F675C]">
+              {canonicalCopy.citation}{" "}
+              <a
+                className="underline decoration-[#E3D9CC] underline-offset-4 hover:decoration-[#C45C12]"
+                href={`https://doi.org/${canonicalCopy.doi}`}
               >
-                <span className="block">{choice.title}</span>
-                {choice.isDefault ? <span className="mt-0.5 block text-[11px] opacity-80">Default series</span> : null}
-              </ChoiceButton>
-            ))}
+                DOI {canonicalCopy.doi}
+              </a>
+              .
+            </p>
           </div>
-        </div>
+        ) : null}
 
         <div className="mt-8 grid gap-8 border-t border-[#E3D9CC] pt-8 md:grid-cols-2">
           <div>
@@ -598,15 +489,9 @@ export function StabilityBoard() {
 
       <section className="mt-12" aria-label="Results">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Results</h2>
-        {data ? (
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-            Showing {selectedTitle}. Each block lists n = 3, n = 8, and n = 14.
-          </p>
-        ) : (
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-            Each paper is listed on its own, with n = 3, n = 8, and n = 14.
-          </p>
-        )}
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+          One row per team length: n = 3, n = 8, and n = 14.
+        </p>
         {data?.note ? <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#6F675C]">{data.note}</p> : null}
 
         {loading ? (
@@ -633,16 +518,25 @@ export function StabilityBoard() {
           </p>
         ) : null}
 
-        {data ? (
+        {data && hasRows ? (
           <div className="mt-6 space-y-6">
-            {visible.map((block) => (
-              <SeriesResult
-                key={block.seriesId}
-                block={block}
-                assayC={assayC}
-                fit={fitsById.get(block.seriesId) ?? null}
-              />
-            ))}
+            {fit ? (
+              <div className="rounded-2xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 md:p-8">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FitSummary fit={fit.tm} title="Calculated melt" />
+                  <FitSummary
+                    fit={fit.delta_g}
+                    title="Calculated ΔG"
+                    omitCoefficients={hideSaturatingDeltaG}
+                  />
+                </div>
+              </div>
+            ) : null}
+            <div className="grid gap-4 md:grid-cols-3">
+              {views.map((view) => (
+                <LengthCard key={view.nRepeats} view={view} />
+              ))}
+            </div>
           </div>
         ) : null}
       </section>
