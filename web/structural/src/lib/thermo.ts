@@ -41,6 +41,21 @@ export const CURVE_POINTS = 101;
 export const CALORIMETRY_MISSING =
   "ΔHcal or ΔCp is blank, so no temperature curve is drawn. You do not need ΔH or ΔS to get ΔG at the melting temperature.";
 
+export const EFFECTIVE_CAPTION =
+  "ΔCp = 0 assumption, not the Phillips calorimetric ΔH.";
+
+export const EFFECTIVE_EQUATION = [
+  "When Tm and an anchor ΔG at a known temperature are both finite, ΔHcal and ΔCp are still two unknowns.",
+  "The curve below closes that only by assuming ΔCp = 0. Temperatures are kelvin (T_K = t_C + 273.15).",
+  "",
+  "ΔH_eff = ΔG(T_ref) / (1 − T_ref/Tm)",
+  "ΔG(T) = ΔH_eff (1 − T/Tm)",
+  "ΔS_eff = ΔH_eff / Tm",
+  "",
+  "ΔH_eff is an effective enthalpy under that assumption. It is not the Phillips calorimetric ΔH.",
+  "confidence tier is hypothesis_only. is_extrapolation is true. calibrated stays false.",
+].join("\n");
+
 export const CURVE_LABEL =
   "Calculation from the ΔHcal, ΔCp, and Tm entered here. calibrated = false. This is not a measurement of the Hong Kong team fusion.";
 
@@ -299,7 +314,7 @@ function prefillMessage(prefill: Omit<ThermoPrefill, "message">): string {
   }
   if (prefill.deltaH === null || prefill.deltaCp === null) {
     parts.push(
-      "ΔHcal and ΔCp stay blank. They are not back-calculated from the printed ΔG and Tm.",
+      "ΔHcal and ΔCp stay blank. They are not the DSC values, and they are not filled from the printed ΔG.",
     );
   }
   if (prefill.deltaG !== null) {
@@ -576,4 +591,162 @@ export async function loadThermoPrefill(
     ...prefill,
     message: "The literature lookup did not answer. Tm, ΔH, and ΔCp were not filled.",
   };
+}
+
+export type EffectivePoint = {
+  t_c: number;
+  t_k: number;
+  delta_h: number;
+  delta_s: number;
+  delta_g: number;
+};
+
+export type EffectiveEnthalpy = {
+  calibrated: false;
+  confidence_tier: "hypothesis_only" | null;
+  is_extrapolation: boolean | null;
+  human_review_required: boolean;
+  has_effective_enthalpy: boolean;
+  has_curve: boolean;
+  message: string;
+  result_label: string;
+  assumption_delta_cp: number | null;
+  delta_h_eff: number | null;
+  delta_s_eff: number | null;
+  delta_g_at_tm: number | null;
+  delta_g_at_t_ref: number | null;
+  anchor_delta_g: number | null;
+  delta_g_units: string | null;
+  delta_h_units: string | null;
+  delta_s_units: string | null;
+  t_ref_c: number | null;
+  t_ref_k: number | null;
+  tm_c: number | null;
+  tm_k: number | null;
+  points: EffectivePoint[];
+  unit_conversion_applied: boolean;
+  warnings: string[];
+  assumptions: string[];
+};
+
+function optionalFinite(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  return finiteOrNull(value);
+}
+
+export function parseEffectiveEnthalpy(body: unknown): EffectiveEnthalpy {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("Effective-enthalpy response is not an object.");
+  }
+  const row = body as Record<string, unknown>;
+  if (row.calibrated !== false) {
+    throw new Error("Effective-enthalpy response must keep calibrated false.");
+  }
+  if (typeof row.has_effective_enthalpy !== "boolean") {
+    throw new Error("Effective-enthalpy response is missing has_effective_enthalpy.");
+  }
+  const warnings = row.warnings;
+  const assumptions = row.assumptions;
+  if (!Array.isArray(warnings) || warnings.some((item) => typeof item !== "string")) {
+    throw new Error("Effective-enthalpy response is missing warnings.");
+  }
+  if (!Array.isArray(assumptions) || assumptions.some((item) => typeof item !== "string")) {
+    throw new Error("Effective-enthalpy response is missing assumptions.");
+  }
+  const points = Array.isArray(row.points) ? row.points.map((point, index) => parseCurvePoint(point, index)) : [];
+  if (row.has_effective_enthalpy) {
+    if (row.confidence_tier !== "hypothesis_only" || row.is_extrapolation !== true) {
+      throw new Error("ΔCp = 0 output must be hypothesis_only and an extrapolation.");
+    }
+    if (row.assumption_delta_cp !== 0) {
+      throw new Error("ΔCp = 0 output is missing the explicit zero heat capacity.");
+    }
+    if (points.length === 0) {
+      throw new Error("ΔCp = 0 output did not include a ΔG(T) curve.");
+    }
+    return {
+      calibrated: false,
+      confidence_tier: "hypothesis_only",
+      is_extrapolation: true,
+      human_review_required: row.human_review_required === true,
+      has_effective_enthalpy: true,
+      has_curve: true,
+      message: requireText(row.message, "message"),
+      result_label: requireText(row.result_label, "result_label"),
+      assumption_delta_cp: 0,
+      delta_h_eff: requireFinite(row.delta_h_eff, "delta_h_eff"),
+      delta_s_eff: requireFinite(row.delta_s_eff, "delta_s_eff"),
+      delta_g_at_tm: requireFinite(row.delta_g_at_tm, "delta_g_at_tm"),
+      delta_g_at_t_ref: requireFinite(row.delta_g_at_t_ref, "delta_g_at_t_ref"),
+      anchor_delta_g: requireFinite(row.anchor_delta_g, "anchor_delta_g"),
+      delta_g_units: requireText(row.delta_g_units, "delta_g_units"),
+      delta_h_units: requireText(row.delta_h_units, "delta_h_units"),
+      delta_s_units: requireText(row.delta_s_units, "delta_s_units"),
+      t_ref_c: requireFinite(row.t_ref_c, "t_ref_c"),
+      t_ref_k: requireFinite(row.t_ref_k, "t_ref_k"),
+      tm_c: requireFinite(row.tm_c, "tm_c"),
+      tm_k: requireFinite(row.tm_k, "tm_k"),
+      points,
+      unit_conversion_applied: row.unit_conversion_applied === true,
+      warnings: warnings as string[],
+      assumptions: assumptions as string[],
+    };
+  }
+  return {
+    calibrated: false,
+    confidence_tier: null,
+    is_extrapolation: null,
+    human_review_required: false,
+    has_effective_enthalpy: false,
+    has_curve: false,
+    message: requireText(row.message, "message"),
+    result_label: requireText(row.result_label, "result_label"),
+    assumption_delta_cp: null,
+    delta_h_eff: null,
+    delta_s_eff: null,
+    delta_g_at_tm: optionalFinite(row.delta_g_at_tm),
+    delta_g_at_t_ref: null,
+    anchor_delta_g: null,
+    delta_g_units: textOrNull(row.delta_g_units),
+    delta_h_units: null,
+    delta_s_units: null,
+    t_ref_c: null,
+    t_ref_k: null,
+    tm_c: optionalFinite(row.tm_c),
+    tm_k: optionalFinite(row.tm_k),
+    points: [],
+    unit_conversion_applied: false,
+    warnings: warnings as string[],
+    assumptions: assumptions as string[],
+  };
+}
+
+export async function postEffectiveEnthalpy(inputs: {
+  tmC: number;
+  deltaGRef: number | null;
+  tRefC: number | null;
+  units: EnergyUnits;
+}): Promise<EffectiveEnthalpy> {
+  let response: Response;
+  try {
+    response = await fetch(`${LIVE}/api/stability/thermo/effective`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tm_c: inputs.tmC,
+        delta_g_ref: inputs.deltaGRef,
+        t_ref_c: inputs.tRefC,
+        units: inputs.units,
+        t_min_c: CURVE_T_MIN_C,
+        t_max_c: CURVE_T_MAX_C,
+        n_points: CURVE_POINTS,
+      }),
+    });
+  } catch {
+    throw new Error("The calculator API did not answer. No ΔG(T) was filled in.");
+  }
+  if (!response.ok) {
+    throw new Error(await errorDetail(response));
+  }
+  return parseEffectiveEnthalpy(await response.json());
 }

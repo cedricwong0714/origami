@@ -23,6 +23,7 @@ from origami.api.structural import app
 from origami.stability.series import literature_table_path, load_named_series
 from origami.stability.thermo import (
     ThermoInputError,
+    effective_enthalpy_delta_cp_zero,
     gibbs_helmholtz_curves,
     gibbs_helmholtz_report,
     thermo_prefill,
@@ -723,3 +724,220 @@ def test_http_thermo_and_existing_stability_routes() -> None:
     on_tm = [point for point in curve_body["points"] if abs(point["t_c"] - _TM_C) < 1e-9]
     assert len(on_tm) == 1
     assert abs(on_tm[0]["delta_g"]) < 1e-9
+
+
+def _closed_delta_h_eff(anchor: float, t_ref_c: float, tm_c: float) -> float:
+    """ΔH_eff = ΔG(T_ref) / (1 - T_ref/Tm), temperatures in kelvin."""
+    t_ref_k = t_ref_c + 273.15
+    tm_k = tm_c + 273.15
+    return anchor / (1.0 - t_ref_k / tm_k)
+
+
+def test_effective_enthalpy_is_zero_at_tm_and_recovers_the_anchor() -> None:
+    """ΔCp = 0 closes ΔG(T) from an anchor. A passing test is not validation.
+
+    Scientific basis: with ΔCp = 0 the two-state Gibbs–Helmholtz equation
+    reduces to ΔG(T) = ΔH_eff (1 - T/Tm). The anchor fixes ΔH_eff.
+    Failure mode: ΔG(Tm) leaves zero, or ΔG at the anchor temperature
+    does not return the anchor.
+    """
+    anchor = 5.0
+    t_ref_c = 10.0
+    tm_c = 60.0
+    report = effective_enthalpy_delta_cp_zero(tm_c, anchor, t_ref_c)
+    expected_h = _closed_delta_h_eff(anchor, t_ref_c, tm_c)
+    assert report["calibrated"] is False
+    assert report["confidence_tier"] == "hypothesis_only"
+    assert report["is_extrapolation"] is True
+    assert report["has_effective_enthalpy"] is True
+    assert report["assumption_delta_cp"] == 0.0
+    assert report["delta_cp_units"] == "kcal mol-1 K-1"
+    assert report["delta_h_eff"] == pytest.approx(expected_h)
+    assert report["delta_s_eff"] == pytest.approx(expected_h / (tm_c + 273.15))
+    assert report["delta_g_at_tm"] == 0.0
+    assert report["delta_g_at_t_ref"] == pytest.approx(anchor)
+    assert report["anchor_delta_g"] == pytest.approx(anchor)
+    assert report["delta_g_units"] == "kcal mol-1"
+    assert report["delta_h_units"] == "kcal mol-1"
+    assert report["delta_s_units"] == "kcal mol-1 K-1"
+    assert "not the phillips calorimetric" in report["result_label"].lower()
+    assert report["uncertainty_defined"] is False
+    at_tm = [point for point in report["points"] if abs(point["t_c"] - tm_c) < 1e-9]
+    at_ref = [point for point in report["points"] if abs(point["t_c"] - t_ref_c) < 1e-9]
+    assert len(at_tm) == 1
+    assert len(at_ref) == 1
+    assert abs(at_tm[0]["delta_g"]) < 1e-9
+    assert at_ref[0]["delta_g"] == pytest.approx(anchor)
+    assert at_tm[0]["t_k"] == pytest.approx(tm_c + 273.15)
+    for point in report["points"]:
+        assert point["t_k"] == pytest.approx(point["t_c"] + 273.15)
+        assert point["delta_g"] == pytest.approx(
+            expected_h * (1.0 - point["t_k"] / (tm_c + 273.15))
+        )
+
+
+def test_changing_tm_changes_effective_enthalpy_not_the_printed_cell() -> None:
+    """ΔH_eff follows the Tm in use. The looked-up table cell does not."""
+    prefill = thermo_prefill("phillips2012_ctpra_dsc", 3)
+    anchor = prefill["delta_g"]
+    t_ref_c = prefill["delta_g_t_c"]
+    cited_tm = prefill["tm_c"]
+    assert anchor is not None
+    assert t_ref_c == 10.0
+    assert cited_tm is not None
+    at_cited = effective_enthalpy_delta_cp_zero(cited_tm, anchor, t_ref_c)
+    shifted = effective_enthalpy_delta_cp_zero(float(cited_tm) + 5.0, anchor, t_ref_c)
+    assert shifted["delta_h_eff"] != pytest.approx(at_cited["delta_h_eff"])
+    assert shifted["delta_g_at_t_ref"] == pytest.approx(anchor)
+    assert at_cited["delta_g_at_t_ref"] == pytest.approx(anchor)
+    assert shifted["delta_g_at_tm"] == 0.0
+    assert at_cited["delta_g_at_tm"] == 0.0
+    # A point that is not Tm or T_ref must move when Tm moves.
+    sample_c = 25.0
+    at_cited_25 = next(
+        point for point in at_cited["points"] if abs(point["t_c"] - sample_c) < 1e-6
+    )
+    shifted_25 = next(
+        point for point in shifted["points"] if abs(point["t_c"] - sample_c) < 1e-6
+    )
+    assert shifted_25["delta_g"] != pytest.approx(at_cited_25["delta_g"])
+    again = thermo_prefill("phillips2012_ctpra_dsc", 3)
+    assert again["delta_g"] == anchor
+    assert again["delta_g_t_c"] == 10.0
+    assert again["tm_c"] == cited_tm
+    assert again["delta_h"] is None
+    assert again["delta_cp"] is None
+    raw = next(
+        row for row in _json_rows() if row["record_id"] == "phillips2012_ctpra3_dg_dsc"
+    )
+    assert again["delta_g"] == raw["value"]
+
+
+def test_missing_anchor_does_not_invent_delta_g_of_t() -> None:
+    """n=14 has no printed ΔG. A typed Tm still does not invent ΔG(T)."""
+    prefill = thermo_prefill("phillips2012_ctpra_dsc", 14)
+    assert prefill["delta_g"] is None
+    assert prefill["delta_g_t_c"] is None
+    report = effective_enthalpy_delta_cp_zero(
+        70.0,
+        prefill["delta_g"],
+        prefill["delta_g_t_c"],
+    )
+    assert report["has_effective_enthalpy"] is False
+    assert report["has_curve"] is False
+    assert report["points"] == []
+    assert report["delta_h_eff"] is None
+    assert report["delta_s_eff"] is None
+    assert report["delta_g_at_t_ref"] is None
+    assert report["assumption_delta_cp"] is None
+    assert report["delta_g_at_tm"] == 0.0
+    assert report["calibrated"] is False
+    assert report["confidence_tier"] is None
+    cleared = effective_enthalpy_delta_cp_zero(70.0, None, 10.0)
+    assert cleared["points"] == []
+    assert cleared["delta_h_eff"] is None
+    assert cleared["delta_g_at_tm"] == 0.0
+
+
+def test_tm_equal_to_anchor_temperature_is_rejected() -> None:
+    """The denominator is zero. ΔG there is the anchor. ΔH is not identifiable."""
+    with pytest.raises(ThermoInputError, match="not identifiable"):
+        effective_enthalpy_delta_cp_zero(10.0, 5.0, 10.0)
+    rejected = client.post(
+        "/api/stability/thermo/effective",
+        json={"tm_c": 10.0, "delta_g_ref": 5.0, "t_ref_c": 10.0},
+    )
+    assert rejected.status_code == 400
+    assert "not identifiable" in rejected.json()["detail"].lower()
+    assert "anchor" in rejected.json()["detail"].lower()
+
+
+def test_effective_path_does_not_replace_caller_delta_hcal() -> None:
+    """A typed ΔHcal and ΔCp stay on the full Gibbs–Helmholtz path."""
+    caller_h = 12.0
+    caller_cp = 0.5
+    full = gibbs_helmholtz_report(20.0, 60.0, caller_h, caller_cp)
+    assert full["delta_h_at_tm"] == caller_h
+    assert full["delta_cp"] == caller_cp
+    effective = effective_enthalpy_delta_cp_zero(60.0, 5.0, 10.0)
+    assert effective["delta_h_eff"] != pytest.approx(caller_h)
+    assert effective["assumption_delta_cp"] == 0.0
+    # Posting the caller's enthalpy to the effective route does not use it.
+    http_effective = client.post(
+        "/api/stability/thermo/effective",
+        json={
+            "tm_c": 60.0,
+            "delta_g_ref": 5.0,
+            "t_ref_c": 10.0,
+            "delta_h": caller_h,
+            "delta_cp": caller_cp,
+        },
+    )
+    assert http_effective.status_code == 200
+    body = http_effective.json()
+    assert body["delta_h_eff"] == pytest.approx(effective["delta_h_eff"])
+    assert body["delta_h_eff"] != pytest.approx(caller_h)
+    assert body["assumption_delta_cp"] == 0.0
+    assert body["confidence_tier"] == "hypothesis_only"
+    assert body["is_extrapolation"] is True
+    assert body["calibrated"] is False
+    http_full = client.post(
+        "/api/stability/thermo",
+        json={"t_c": 60.0, "tm_c": 60.0, "delta_h": caller_h, "delta_cp": caller_cp},
+    )
+    assert http_full.status_code == 200
+    assert http_full.json()["delta_h_at_tm"] == caller_h
+    assert abs(http_full.json()["delta_g"]) < 1e-9
+
+
+def test_effective_enthalpy_converts_kj_with_explicit_factor() -> None:
+    """1 kcal = 4.184 kJ. The factor is recorded. Outputs stay in kcal."""
+    kcal = effective_enthalpy_delta_cp_zero(60.0, 1.0, 10.0, units="kcal")
+    kJ = effective_enthalpy_delta_cp_zero(60.0, 4.184, 10.0, units="kJ")
+    assert kJ["unit_conversion_applied"] is True
+    assert kJ["unit_conversion_factor_kJ_per_kcal"] == 4.184
+    assert any("4.184" in warning for warning in kJ["warnings"])
+    assert kJ["delta_h_eff"] == pytest.approx(kcal["delta_h_eff"])
+    assert kJ["delta_g_at_t_ref"] == pytest.approx(1.0)
+    assert kJ["anchor_delta_g_input"] == 4.184
+    assert kcal["unit_conversion_applied"] is False
+    assert kcal["unit_conversion_factor_kJ_per_kcal"] is None
+
+
+def test_http_effective_route_and_printed_prefill_stay_separate() -> None:
+    """The printed lookup is the table cell. The effective route does not edit it."""
+    prefill = client.get(
+        "/api/stability/thermo/prefill",
+        params={"series_id": "phillips2012_ctpra_dsc", "n": 3},
+    )
+    assert prefill.status_code == 200
+    cited = prefill.json()
+    created = client.post(
+        "/api/stability/thermo/effective",
+        json={
+            "tm_c": float(cited["tm_c"]) + 8.0,
+            "delta_g_ref": cited["delta_g"],
+            "t_ref_c": cited["delta_g_t_c"],
+        },
+    )
+    assert created.status_code == 200
+    body = created.json()
+    assert body["delta_g_at_tm"] == 0.0
+    assert body["delta_g_at_t_ref"] == pytest.approx(cited["delta_g"])
+    assert body["has_curve"] is True
+    assert "ΔCp = 0 assumption" in body["result_label"]
+    again = client.get(
+        "/api/stability/thermo/prefill",
+        params={"series_id": "phillips2012_ctpra_dsc", "n": 3},
+    )
+    assert again.json()["delta_g"] == cited["delta_g"]
+    assert again.json()["tm_c"] == cited["tm_c"]
+    assert again.json()["delta_h"] is None
+    missing = client.post(
+        "/api/stability/thermo/effective",
+        json={"tm_c": 70.0, "delta_g_ref": None, "t_ref_c": 10.0},
+    )
+    assert missing.status_code == 200
+    assert missing.json()["points"] == []
+    assert missing.json()["delta_h_eff"] is None
+    assert missing.json()["delta_g_at_tm"] == 0.0

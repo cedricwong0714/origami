@@ -24,6 +24,7 @@ from origami.stability.series import (
 )
 from origami.stability.thermo import (
     ThermoInputError,
+    effective_enthalpy_delta_cp_zero,
     gibbs_helmholtz_curves,
     gibbs_helmholtz_report,
     thermo_prefill,
@@ -199,6 +200,44 @@ async def post_stability_thermo_curves(request: Request) -> dict[str, Any]:
             body.get("tm_c"),
             body.get("delta_h"),
             body.get("delta_cp"),
+            **curve_kwargs,
+        )
+    except ThermoInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/stability/thermo/effective")
+async def post_effective_enthalpy(request: Request) -> dict[str, Any]:
+    """ΔH_eff and ΔG(T) under the explicit assumption ΔCp = 0.
+
+    Body: tm_c, delta_g_ref, t_ref_c, optional units ("kcal" or "kJ"),
+    and optional t_min_c, t_max_c, n_points. Temperatures are °C.
+    Outputs are kcal. A missing anchor returns only ΔG(Tm) = 0.
+    Tm equal to the anchor temperature is HTTP 400: ΔH is not
+    identifiable. delta_h and delta_cp in the body are ignored.
+    They belong to the full Gibbs–Helmholtz route and are not
+    replaced by ΔH_eff. calibrated stays false.
+    """
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    curve_kwargs: dict[str, Any] = {}
+    if "t_min_c" in body and body.get("t_min_c") is not None:
+        curve_kwargs["t_min_c"] = body.get("t_min_c")
+    if "t_max_c" in body and body.get("t_max_c") is not None:
+        curve_kwargs["t_max_c"] = body.get("t_max_c")
+    if "n_points" in body and body.get("n_points") is not None:
+        curve_kwargs["n_points"] = body.get("n_points")
+    if "units" in body:
+        curve_kwargs["units"] = body.get("units")
+    try:
+        return effective_enthalpy_delta_cp_zero(
+            body.get("tm_c"),
+            body.get("delta_g_ref"),
+            body.get("t_ref_c"),
             **curve_kwargs,
         )
     except ThermoInputError as exc:

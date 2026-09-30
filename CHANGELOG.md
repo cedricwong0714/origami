@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (ΔCp = 0 effective enthalpy)
+
+### Added
+- When the caller supplies a finite Tm and a finite anchor ΔG at a known reference temperature, `effective_enthalpy_delta_cp_zero` reports ΔH_eff = ΔG(T_ref) / (1 − T_ref/Tm), ΔG(T) = ΔH_eff (1 − T/Tm), and ΔS_eff = ΔH_eff / Tm, temperatures in kelvin, only under the explicit assumption ΔCp = 0.
+- ΔH_eff is an effective enthalpy under that assumption. It is not the Phillips et al. 2012 DSC ΔHcal. No ΔHcal or ΔCp was added to `ctpr_thermal_literature.json`. The printed Table I ΔG cell is unchanged when Tm changes. confidence tier is hypothesis_only, is_extrapolation is true, and calibrated stays false. A missing anchor does not invent ΔG(T). Tm equal to the anchor temperature is refused because ΔH is not identifiable.
+  Reviewed by: not a human wet-lab review. A passing test of this arithmetic is not scientific validation.
+
 ## Unreleased — 2026-09-30 (Gibbs–Helmholtz calculator)
 
 ### Added

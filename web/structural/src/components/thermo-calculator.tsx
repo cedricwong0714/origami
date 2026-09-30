@@ -12,15 +12,18 @@ import {
   CURVE_LABEL,
   CURVE_T_MAX_C,
   CURVE_T_MIN_C,
+  EFFECTIVE_EQUATION,
   THERMO_EQUATION,
   energyUnitLabel,
   formatQuantity,
   loadSnapshotIndex,
   loadThermoPrefill,
+  postEffectiveEnthalpy,
   postThermo,
   postThermoCurve,
   repeatCounts,
   seriesTitle,
+  type EffectiveEnthalpy,
   type EnergyUnits,
   type ThermoCurve,
   type ThermoPrefill,
@@ -64,6 +67,14 @@ function formatAtTm(value: number): string {
   return formatQuantity(value);
 }
 
+function printedCellSentence(prefill: ThermoPrefill): string {
+  const where =
+    prefill.deltaGTemperatureC === null
+      ? "the literature table cell"
+      : `the ${formatQuantity(prefill.deltaGTemperatureC)} °C table cell`;
+  return `This is ${where}. Editing Tm does not change it, and it is not the calculator output.`;
+}
+
 function meltingIdentity(tmC: string): { tmC: number; tmK: number } | null {
   const typed = parseRequired(tmC);
   if (typed === null) return null;
@@ -95,7 +106,7 @@ function curveWindow(tmC: number): { tMinC: number; tMaxC: number } {
   };
 }
 
-function CurveChart({
+function CurveChart<T extends { t_c: number }>({
   title,
   units,
   color,
@@ -106,9 +117,9 @@ function CurveChart({
   title: string;
   units: string;
   color: string;
-  points: ThermoCurve["points"];
+  points: T[];
   tmC: number;
-  read: (point: ThermoCurve["points"][number]) => number;
+  read: (point: T) => number;
 }) {
   const width = 640;
   const height = 220;
@@ -202,9 +213,14 @@ export function ThermoCalculator() {
   const [seriesIds, setSeriesIds] = useState<string[]>(SERIES_COPY.map((item) => item.id));
   const [nOptions, setNOptions] = useState<number[]>([]);
   const [prefill, setPrefill] = useState<ThermoPrefill | null>(null);
+  const [anchorG, setAnchorG] = useState("");
+  const [anchorTRef, setAnchorTRef] = useState("");
+  const [anchorUnits, setAnchorUnits] = useState<EnergyUnits>("kcal");
   const [result, setResult] = useState<ThermoReport | null>(null);
   const [curve, setCurve] = useState<ThermoCurve | null>(null);
   const [curveNote, setCurveNote] = useState(CALORIMETRY_MISSING);
+  const [effective, setEffective] = useState<EffectiveEnthalpy | null>(null);
+  const [effectiveNote, setEffectiveNote] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>(emptyErrors());
   const [pending, setPending] = useState(false);
 
@@ -249,6 +265,11 @@ export function ThermoCalculator() {
       setTmC(next.tmC === null ? "" : String(next.tmC));
       setDeltaH(next.deltaH === null ? "" : String(next.deltaH));
       setDeltaCp(next.deltaCp === null ? "" : String(next.deltaCp));
+      setAnchorG(next.deltaG === null ? "" : String(next.deltaG));
+      setAnchorTRef(next.deltaGTemperatureC === null ? "" : String(next.deltaGTemperatureC));
+      setAnchorUnits(next.deltaGUnits?.toLowerCase().includes("kj") ? "kJ" : "kcal");
+      setEffective(null);
+      setEffectiveNote(null);
       setResult(null);
       setCurve(null);
       setCurveNote(CALORIMETRY_MISSING);
@@ -258,6 +279,52 @@ export function ThermoCalculator() {
       alive = false;
     };
   }, [seriesId, nText]);
+
+  useEffect(() => {
+    let alive = true;
+    const melting = parseRequired(tmC);
+    if (melting === null || melting + CELSIUS_TO_KELVIN <= 0) {
+      setEffective(null);
+      setEffectiveNote(null);
+      return () => {
+        alive = false;
+      };
+    }
+    const anchor = parseRequired(anchorG);
+    if (anchor !== null) {
+      const tRef = parseRequired(anchorTRef);
+      if (tRef === null || tRef + CELSIUS_TO_KELVIN <= 0) {
+        setEffective(null);
+        setEffectiveNote(
+          "An anchor ΔG needs a reference temperature in °C. None was assumed, so ΔH_eff was not calculated.",
+        );
+        return () => {
+          alive = false;
+        };
+      }
+    }
+    const tRef = parseRequired(anchorTRef);
+    postEffectiveEnthalpy({
+      tmC: melting,
+      deltaGRef: anchor,
+      tRefC: anchor === null ? null : tRef,
+      units: anchorUnits,
+    })
+      .then((next) => {
+        if (!alive) return;
+        setEffective(next);
+        setEffectiveNote(next.has_effective_enthalpy ? next.result_label : next.message);
+      })
+      .catch((err: unknown) => {
+        if (!alive) return;
+        const message = err instanceof Error ? err.message : "The ΔCp = 0 path did not return a result.";
+        setEffective(null);
+        setEffectiveNote(message);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [tmC, anchorG, anchorTRef, anchorUnits]);
 
   function chooseUnits(next: EnergyUnits) {
     setUnits(next);
@@ -400,6 +467,7 @@ export function ThermoCalculator() {
         </CardHeader>
         <CardContent>
           <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap text-[#242220]">{THERMO_EQUATION}</pre>
+          <pre className="mt-4 font-sans text-sm leading-relaxed whitespace-pre-wrap text-[#242220]">{EFFECTIVE_EQUATION}</pre>
           <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
             You do not need ΔH or ΔS to get ΔG at the melting temperature. For a two-state transition, ΔG(Tm) = 0. That identity holds only for a two-state melt. It is not a wet-lab fit, and no uncertainty band is attached to the zero. The temperature curve away from Tm is the relation Phillips et al. 2012 (DOI 10.1002/pro.2018) used to obtain unfolding ΔG at 10 °C from ΔHcal, Tm, and ΔCp. It is not a new fit. Curve outputs are kcal mol⁻¹ for ΔG and ΔH, and kcal mol⁻¹ K⁻¹ for ΔS. A kJ input is converted with 1 kcal = 4.184 kJ, and that conversion is reported.
           </p>
@@ -480,11 +548,7 @@ export function ThermoCalculator() {
                           {formatQuantity(prefill.deltaG)} {prefill.deltaGUnits ?? ""}
                         </p>
                         <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
-                          Looked up, not calculated from Tm
-                          {prefill.deltaGTemperatureC != null
-                            ? `, at ${formatQuantity(prefill.deltaGTemperatureC)} °C`
-                            : ""}
-                          .
+                          {printedCellSentence(prefill)}
                           {prefill.deltaGUncertainty != null
                             ? ` Printed uncertainty ± ${formatQuantity(prefill.deltaGUncertainty)} ${prefill.deltaGUnits ?? ""}.`
                             : ""}
@@ -506,6 +570,59 @@ export function ThermoCalculator() {
                 ΔG at the melting temperature is shown when Tm is a finite temperature. You do not need ΔH or ΔS. A length with no cited Tm stays empty until you type one.
               </p>
             )}
+            <fieldset className="space-y-3 rounded-xl border border-[#E3D9CC] p-3">
+              <legend className="px-1 text-sm font-medium text-[#242220]">Anchor for the ΔCp = 0 path</legend>
+              <p className="text-sm leading-relaxed text-[#5C564E]">
+                This anchor starts as the printed table cell when that cell exists. Clear it and only ΔG(Tm) = 0 is shown. Editing it does not change the printed table cell and does not fill ΔHcal.
+              </p>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Anchor energy unit">
+                <Button
+                  type="button"
+                  variant={anchorUnits === "kcal" ? "default" : "outline"}
+                  aria-pressed={anchorUnits === "kcal"}
+                  onClick={() => setAnchorUnits("kcal")}
+                >
+                  kcal
+                </Button>
+                <Button
+                  type="button"
+                  variant={anchorUnits === "kJ" ? "default" : "outline"}
+                  aria-pressed={anchorUnits === "kJ"}
+                  onClick={() => setAnchorUnits("kJ")}
+                >
+                  kJ
+                </Button>
+              </div>
+              <p className="text-sm text-[#5C564E]">
+                Switching the anchor unit does not convert the number already typed. The printed table cell stays in its own units.
+              </p>
+              <label className="block text-sm font-medium text-[#242220]">
+                Anchor ΔG ({energyUnitLabel(anchorUnits, "energy")})
+                <Input
+                  className="mt-1 border-[#E3D9CC]"
+                  inputMode="decimal"
+                  value={anchorG}
+                  onChange={(event) => setAnchorG(event.target.value)}
+                />
+              </label>
+              <label className="block text-sm font-medium text-[#242220]">
+                Anchor reference temperature (°C)
+                <Input
+                  className="mt-1 border-[#E3D9CC]"
+                  inputMode="decimal"
+                  value={anchorTRef}
+                  onChange={(event) => setAnchorTRef(event.target.value)}
+                />
+              </label>
+              {prefill?.deltaG != null && parseRequired(anchorG) === prefill.deltaG ? (
+                <p className="text-sm leading-relaxed text-[#5C564E]">Anchor matches the printed table cell.</p>
+              ) : null}
+              {prefill?.deltaG != null && parseRequired(anchorG) !== null && parseRequired(anchorG) !== prefill.deltaG ? (
+                <p className="text-sm leading-relaxed text-[#5C564E]">
+                  User-entered anchor. The printed table cell above is unchanged.
+                </p>
+              ) : null}
+            </fieldset>
             <fieldset className="space-y-3 rounded-xl border border-[#E3D9CC] p-3">
               <legend className="px-1 text-sm font-medium text-[#242220]">Optional, for temperature curves only</legend>
               <p className="text-sm leading-relaxed text-[#5C564E]">
@@ -613,9 +730,9 @@ export function ThermoCalculator() {
                           prefill.deltaGTemperatureC === null
                             ? ""
                             : ` at ${formatQuantity(prefill.deltaGTemperatureC)} °C`
-                        }.`}
+                        }. ${printedCellSentence(prefill)}`}
                   </p>
-                  <p>ΔHcal and ΔCp from this table: blank. They are not back-calculated from ΔG and Tm.</p>
+                  <p>ΔHcal and ΔCp from this table: blank. They are not filled from the printed ΔG. ΔH_eff under ΔCp = 0 is a separate assumption and is not written into those fields.</p>
                 </div>
               ) : (
                 <p className="text-sm leading-relaxed text-[#5C564E]">
@@ -627,9 +744,51 @@ export function ThermoCalculator() {
 
           <Card className="border-[#E3D9CC] shadow-none">
             <CardHeader>
-              <CardTitle className="text-[#242220]">Curves</CardTitle>
+              <CardTitle className="text-[#242220]">ΔG(T) under ΔCp = 0</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {effectiveNote ? <p className="text-sm leading-relaxed text-[#5C564E]">{effectiveNote}</p> : null}
+              {effective?.has_effective_enthalpy && effective.delta_h_eff !== null && effective.points.length > 0 ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-[#242220]">
+                    ΔH_eff = {formatQuantity(effective.delta_h_eff)} {effective.delta_h_units}. Effective enthalpy under ΔCp = 0, not the Phillips calorimetric ΔH. ΔS_eff = {formatQuantity(effective.delta_s_eff ?? 0)} {effective.delta_s_units}. ΔG(Tm) = {formatAtTm(effective.delta_g_at_tm ?? 0)} {effective.delta_g_units}. ΔG at {formatQuantity(effective.t_ref_c ?? 0)} °C = {formatQuantity(effective.delta_g_at_t_ref ?? 0)} {effective.delta_g_units}.
+                  </p>
+                  <p className="text-sm text-[#5C564E]">
+                    confidence tier {effective.confidence_tier}. is_extrapolation {String(effective.is_extrapolation)}. calibrated = {String(effective.calibrated)}. Changing Tm changes ΔH_eff and ΔG(T). The printed table cell does not change.
+                  </p>
+                  <CurveChart
+                    title="ΔG(T)"
+                    units={effective.delta_g_units ?? "kcal mol-1"}
+                    color="#FF8000"
+                    points={effective.points}
+                    tmC={effective.tm_c ?? 0}
+                    read={(point) => point.delta_g}
+                  />
+                  <p className="text-sm leading-relaxed text-[#242220]">{effective.result_label}</p>
+                  {effective.warnings.length > 0 ? (
+                    <ul className="list-disc space-y-1 pl-5 text-sm text-[#5C564E]">
+                      {effective.warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-[#5C564E]">
+                  No ΔG(T) curve is drawn unless Tm and an anchor ΔG are both finite. A missing anchor does not invent one. ΔG at the melting temperature, when Tm is finite, stays 0.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[#E3D9CC] shadow-none">
+            <CardHeader>
+              <CardTitle className="text-[#242220]">Curves from typed ΔHcal and ΔCp</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm leading-relaxed text-[#5C564E]">
+                These curves use the ΔHcal and ΔCp you type. They are not replaced by ΔH_eff.
+              </p>
               <p className="text-sm leading-relaxed text-[#5C564E]">{curveNote}</p>
               {curve && curve.points.length > 0 ? (
                 <div className="space-y-4">
