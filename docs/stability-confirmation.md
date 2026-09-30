@@ -35,7 +35,7 @@ n=7 and n=9 are absent from the default series, so `tm_C` stays null. Those leng
 
 ## Where this is checked
 
-`tests/math_chassis/test_stability_confirmation.py` calls `stability_panel(37)` and compares n = 3, 8, and 14 on all four series with the JSON row for that series and repeat count.
+`tests/math_chassis/test_stability_confirmation.py` calls `stability_panel(37)` and `literature_confirm(37)` and compares n = 3, 8, and 14 on all four series with the JSON row for that series and repeat count. A null printed Tm uncertainty stays null, and the published interval is null. The gate's own zero-width envelope is not copied onto the panel.
 
 ## What each number is
 
@@ -100,9 +100,10 @@ Gaps:
 
 - The ΔCp = 0 path reported point values and then said no sigma had been supplied, even when the cited Tm row and the printed ΔG row already store uncertainties. That propagation is now coded. It reads those sigmas from the caller, who copies them from the table. It does not type them. If either sigma is null, the point value remains and the band is omitted. Null is not stored as 0. The 95% band is value ± 1.96 σ from a first-order delta method, labeled as a linear approximation, not a wet-lab confidence interval. ∂H/∂Tm is negative, −G T_ref / (D² Tm²). The variance uses that square, which is the unsigned magnitude. ΔG(T) includes Cov(H, Tm), so the band at T_ref matches the anchor uncertainty. The calculator draws that band for the default series at n = 3 and n = 8, where both printed uncertainties exist.
 - `stability_panel` used to set `tm_uncertainty_C` from the gate envelope. The gate gives a missing uncertainty zero width, so a null table uncertainty became 0. The panel now copies the printed uncertainty, and null stays null.
+- The confirmation page used to label that same gate envelope. For Cortajarena and Regan 2011, which prints no Tm uncertainty, the envelope is a point (low = high = Tm). The panel and the confirm route now leave both interval ends null when the printed uncertainty is null. The board prints the word omitted. `thermal_gate` still keeps zero width for its own pass/fail tests. The calculator does not read that envelope as a sigma.
+- `/stability` lists all four series at n = 3, 8, and 14. Phillips 2012 CTPRa CD and Phillips 2012 CTPR DSC have no row at n = 8, so those cells stay extrapolated. n = 14 extrapolated means no Tm(n) was fit.
 
 Still open, and not coded around:
 
-- The stability board still labels the gate envelope. When the table prints no Tm uncertainty, that envelope is a point (low = high = Tm), so the interval column can look like a measured width of zero. The gate tests depend on that envelope. The calculator does not use it as a sigma.
 - `thermal_gate` still averages duplicate Tm rows at the same n if a caller passes more than one. The panel passes one series, and each named series has one Tm per n.
 - `ctpr_thermal_literature.json` has no ΔHcal and no ΔCp. n = 14 has no cited Tm and no printed ΔG in the default series. There is no unfolding assay of the Hong Kong team fusion. The new band does not fill any of those.

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 
+from origami.api.stability import literature_confirm
 from origami.drylab import STABILITY_SERIES, stability_panel
 from origami.stability.gate import ThermalRow, thermal_gate
 from origami.stability.series import (
@@ -208,3 +209,95 @@ def test_gaps_are_not_midpoints_of_neighbors() -> None:
     assert row_7["thermal_state"] == "omitted"
     assert row_9["thermal_state"] == "omitted"
     assert row_14["thermal_state"] == "extrapolated"
+
+
+def test_null_tm_uncertainty_omits_the_gate_envelope() -> None:
+    """A missing printed Tm uncertainty stays null on the panel.
+
+    The gate still reports a zero-width envelope for that row. The
+    confirmation payload must not copy that envelope, or the board
+    would show low = high = Tm as if the sigma were 0.
+    Scientific basis: Cortajarena and Regan 2011 Table I prints Tm
+    without an uncertainty (DOI 10.1002/pro.564). Failure mode: a
+    panel that turns that blank into ±0.
+    """
+    panel = stability_panel(37)
+    focus = [row for row in panel if row["n_repeats"] in _LENGTHS]
+    assert len(focus) == 12
+    saw_null = False
+    saw_printed = False
+    for series_id in _SERIES:
+        loaded = load_named_series(series_id)
+        gate_rows = _tm_gate_rows(series_id)
+        for n_repeats in _LENGTHS:
+            row = _panel_row(panel, series_id, n_repeats)
+            matched = [obs for obs in loaded if obs.n_repeats == n_repeats]
+            gate = thermal_gate(n_repeats, _ASSAY_C, gate_rows)
+            assert row["thermal_state"] == gate.state
+            if len(matched) == 1 and matched[0].uncertainty is None:
+                saw_null = True
+                assert row["tm_C"] == float(matched[0].value)
+                assert row["tm_uncertainty_C"] is None
+                assert row["tm_interval_low"] is None
+                assert row["tm_interval_high"] is None
+                assert gate.tm_C == float(matched[0].value)
+                assert gate.interval_low == gate.interval_high == gate.tm_C
+            elif len(matched) == 1 and matched[0].uncertainty is not None:
+                saw_printed = True
+                assert row["tm_uncertainty_C"] == float(matched[0].uncertainty)
+                assert row["tm_interval_low"] == gate.interval_low
+                assert row["tm_interval_high"] == gate.interval_high
+                assert row["tm_interval_low"] != row["tm_interval_high"]
+            else:
+                assert matched == []
+                assert row["tm_C"] is None
+                assert row["tm_uncertainty_C"] is None
+                assert row["tm_interval_low"] is None
+                assert row["tm_interval_high"] is None
+                assert row["thermal_state"] == "extrapolated"
+    assert saw_null
+    assert saw_printed
+
+
+def test_confirm_keeps_twelve_rows_and_does_not_invent_stopped_series() -> None:
+    """Four series at n = 3, 8, and 14 are twelve rows.
+
+    Phillips 2012 CTPRa CD and Phillips 2012 CTPR DSC have no Tm at
+    n = 8. Those cells stay extrapolated. They are not given a Tm from
+    another series. Failure mode: averaging or copying a neighbor Tm.
+    """
+    body = literature_confirm(_ASSAY_C)
+    rows = body["rows"]
+    assert body["calibrated"] is False
+    assert len(rows) == 12
+    assert {row["series_id"] for row in rows} == set(_SERIES)
+    pairs = {(row["series_id"], row["n_repeats"]) for row in rows}
+    assert pairs == {(series_id, n_repeats) for series_id in _SERIES for n_repeats in _LENGTHS}
+    assert "no Tm(n) was fit" in body["note"]
+
+    for series_id in (PHILLIPS_2012_CTPRA_CD, PHILLIPS_2012_CTPR_DSC):
+        for n_repeats in (8, 14):
+            row = _panel_row(rows, series_id, n_repeats)
+            assert row["thermal_state"] == "extrapolated"
+            assert row["tm_C"] is None
+            assert row["delta_g"] is None
+            assert row["tm_uncertainty_C"] is None
+            assert row["tm_interval_low"] is None
+            assert row["tm_interval_high"] is None
+
+    for n_repeats in (3, 8):
+        cortajarena = _panel_row(rows, CORTAJARENA_2011_CTPRA_DSC, n_repeats)
+        assert cortajarena["tm_C"] is not None
+        assert cortajarena["tm_uncertainty_C"] is None
+        assert cortajarena["tm_interval_low"] is None
+        assert cortajarena["tm_interval_high"] is None
+        assert cortajarena["thermal_state"] == "pass"
+
+    n14 = [
+        row
+        for row in rows
+        if row["n_repeats"] == 14
+    ]
+    assert len(n14) == 4
+    assert all(row["thermal_state"] == "extrapolated" for row in n14)
+    assert all(row["tm_C"] is None for row in n14)

@@ -9,17 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StudioNav } from "@/components/studio-nav";
 import {
   MISSING_TM_LABEL,
+  N14_NO_FIT_NOTE,
+  OMITTED_UNCERTAINTY_LABEL,
   citedInterval,
   citedTm,
   deltaGLabel,
   fetchStabilityPanel,
   formatMeasure,
-  intervalLabel,
   panelHasTeamRows,
   seriesBlocks,
   seriesCopy,
   tmAxis,
   tmLabel,
+  uncertaintyLabel,
   type SeriesBlock,
   type StabilityPanel,
   type StabilityRow,
@@ -168,7 +170,7 @@ function TmPlot({
           <span className="w-4 border-t border-dashed border-[#C45C12]" />
           {formatMeasure(assayC)} °C comparison
         </span>
-        <span>An interval narrower than the marker is listed beside the length, not drawn as a zero.</span>
+        <span>A missing printed uncertainty is omitted. It is not drawn as ±0.</span>
       </figcaption>
     </figure>
   );
@@ -236,9 +238,9 @@ function SeriesSection({
                 <TableHeader>
                   <TableRow>
                     <TableHead>n</TableHead>
-                    <TableHead>gate</TableHead>
+                    <TableHead>thermal state</TableHead>
                     <TableHead>Tm</TableHead>
-                    <TableHead>interval</TableHead>
+                    <TableHead>printed uncertainty</TableHead>
                     <TableHead>printed unfolding ΔG</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -278,10 +280,10 @@ function LengthCard({ nRepeats, rows }: { nRepeats: number; rows: StabilityRow[]
   if (!row) return null;
   const tm = citedTm(row);
   const facts = [
-    ["gate", row.thermal_state, false],
+    ["thermal state", row.thermal_state, false],
     ["Tm", tmLabel(row), tm === null],
-    ["interval", intervalLabel(row), false],
-    ["printed unfolding ΔG", deltaGLabel(row), false],
+    ["printed uncertainty", uncertaintyLabel(row), uncertaintyLabel(row) === OMITTED_UNCERTAINTY_LABEL],
+    ["printed unfolding ΔG", deltaGLabel(row), deltaGLabel(row) === "not printed"],
   ] as const;
   return (
     <div className="rounded-xl border border-[#E3D9CC] px-3 py-3">
@@ -296,6 +298,9 @@ function LengthCard({ nRepeats, rows }: { nRepeats: number; rows: StabilityRow[]
           </div>
         ))}
       </dl>
+      {nRepeats === 14 && row.thermal_state === "extrapolated" ? (
+        <p className="mt-2 text-xs leading-relaxed text-[#C45C12]">{N14_NO_FIT_NOTE}</p>
+      ) : null}
       {row.thermal_reason ? (
         <p className="mt-2 text-xs leading-relaxed text-[#8A8175]">{row.thermal_reason}</p>
       ) : null}
@@ -334,9 +339,14 @@ function LengthRow({ nRepeats, rows }: { nRepeats: number; rows: StabilityRow[] 
       <TableCell className={tm === null ? "font-medium text-[#C45C12]" : undefined}>
         {tmLabel(row)}
       </TableCell>
-      <TableCell>{intervalLabel(row)}</TableCell>
+      <TableCell className={uncertaintyLabel(row) === OMITTED_UNCERTAINTY_LABEL ? "font-medium text-[#C45C12]" : undefined}>
+        {uncertaintyLabel(row)}
+      </TableCell>
       <TableCell className="whitespace-normal">
         {deltaGLabel(row)}
+        {nRepeats === 14 && row.thermal_state === "extrapolated" ? (
+          <span className="mt-1 block text-xs font-normal text-[#C45C12]">{N14_NO_FIT_NOTE}</span>
+        ) : null}
         {row.thermal_reason ? (
           <span className="mt-1 block text-xs font-normal text-[#8A8175]">{row.thermal_reason}</span>
         ) : null}
@@ -414,8 +424,12 @@ export function StabilityBoard() {
             </p>
           ) : null}
           <p>
-            The gate is pass only when a cited Tm is strictly above that comparison temperature. A missing Tm stays the word extrapolated. No point is drawn for it, and it is never replaced with 0. On the default series, n = 14 is outside the cited repeat range, so it has no Tm and no ΔG.
+            The gate is pass only when a cited Tm is strictly above that comparison temperature. A missing Tm stays the word extrapolated. No point is drawn for it, and it is never replaced with 0. A printed Tm uncertainty is shown as printed. When the table printed none, the cell says omitted. A zero-width gate envelope is not shown as ±0.
           </p>
+          <p>
+            {N14_NO_FIT_NOTE} Phillips 2012 CTPRa CD and Phillips 2012 CTPR DSC have no cited Tm at n = 8, so those cells stay extrapolated. Each series stays in its own block.
+          </p>
+          {data?.note ? <p>{data.note}</p> : null}
         </CardContent>
       </Card>
 

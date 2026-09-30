@@ -73,6 +73,22 @@ def stability_panel(t_assay_C: float) -> list[dict[str, Any]]:
                 tm_uncertainty_C: float | None = float(matched_tm[0].uncertainty)
             else:
                 tm_uncertainty_C = None
+            # ``thermal_gate`` keeps a zero-width envelope when a row
+            # prints no uncertainty (low = high = Tm). That width is not
+            # a printed sigma. The gate's pass/fail result is unchanged.
+            # This panel is what the confirmation page reads, so a missing
+            # printed uncertainty is omitted here: both interval ends are
+            # null, and ``tm_uncertainty_C`` stays null. Null is not 0.
+            if tm_uncertainty_C is None:
+                tm_interval_low: float | None = None
+                tm_interval_high: float | None = None
+            else:
+                tm_interval_low = (
+                    None if gate.interval_low is None else float(gate.interval_low)
+                )
+                tm_interval_high = (
+                    None if gate.interval_high is None else float(gate.interval_high)
+                )
             rows.append(
                 {
                     "source": "literature_lookup",
@@ -83,12 +99,8 @@ def stability_panel(t_assay_C: float) -> list[dict[str, Any]]:
                     "thermal_state": gate.state,
                     "tm_C": None if gate.tm_C is None else float(gate.tm_C),
                     "tm_uncertainty_C": tm_uncertainty_C,
-                    "tm_interval_low": (
-                        None if gate.interval_low is None else float(gate.interval_low)
-                    ),
-                    "tm_interval_high": (
-                        None if gate.interval_high is None else float(gate.interval_high)
-                    ),
+                    "tm_interval_low": tm_interval_low,
+                    "tm_interval_high": tm_interval_high,
                     "thermal_reason": gate.reason,
                     "delta_g": None if dg is None else float(dg.value),
                     "delta_g_units": None if dg is None else dg.units,

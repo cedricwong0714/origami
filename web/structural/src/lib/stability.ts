@@ -29,6 +29,8 @@ export type StabilityRow = {
   t_assay_C: number;
   thermal_state: string;
   tm_C: number | null;
+  /** Printed Tm sigma in °C. Null means the table printed none. Not a gate width. */
+  tm_uncertainty_C: number | null;
   tm_interval_low: number | null;
   tm_interval_high: number | null;
   delta_g: number | null;
@@ -100,6 +102,15 @@ export const MISSING_TM_LABEL = "extrapolated";
 /** Printed ΔG column when that table has no value at this length. */
 export const MISSING_DELTA_G_LABEL = "not printed";
 
+/**
+ * Shown when the table printed no Tm uncertainty.
+ * A gate envelope of low = high = Tm is not a measured ±0.
+ */
+export const OMITTED_UNCERTAINTY_LABEL = "omitted";
+
+/** Shown on every n = 14 row. Extrapolated means the table has no Tm(n) fit. */
+export const N14_NO_FIT_NOTE = "n = 14 extrapolated means no Tm(n) was fit.";
+
 const LIVE = process.env.NEXT_PUBLIC_SA_API ?? "";
 
 const COPY_BY_ID = new Map<string, SeriesCopy>(SERIES_COPY.map((item) => [item.id, item]));
@@ -146,6 +157,10 @@ function parseRow(value: unknown, index: number): StabilityRow {
     t_assay_C: row.t_assay_C,
     thermal_state: row.thermal_state,
     tm_C: finiteNumber(row.tm_C, `row ${index} tm_C`),
+    tm_uncertainty_C: finiteNumber(
+      "tm_uncertainty_C" in row ? row.tm_uncertainty_C : null,
+      `row ${index} tm_uncertainty_C`,
+    ),
     tm_interval_low: finiteNumber(row.tm_interval_low, `row ${index} tm_interval_low`),
     tm_interval_high: finiteNumber(row.tm_interval_high, `row ${index} tm_interval_high`),
     delta_g: finiteNumber(row.delta_g, `row ${index} delta_g`),
@@ -183,17 +198,32 @@ export function parseStabilityPanel(body: unknown): StabilityPanel {
   };
 }
 
+async function fetchLivePanel(path: string): Promise<StabilityPanel> {
+  const response = await fetch(`${LIVE}${path}`, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`API ${response.status}`);
+  }
+  const body: unknown = await response.json();
+  return { ...parseStabilityPanel(body), source: "live" };
+}
+
 export async function fetchStabilityPanel(): Promise<StabilityPanel> {
-  try {
-    const response = await fetch(`${LIVE}/api/stability/panel?t_assay_C=37`, {
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      throw new Error(`API ${response.status}`);
+  // The confirmation page reads the 12-row confirm payload first.
+  // The full panel is the same rows before that filter. Either source
+  // is the literature lookup. The snapshot is only the offline copy.
+  const livePaths = [
+    "/api/stability/confirm?t_assay_C=37",
+    "/api/stability/panel?t_assay_C=37",
+  ];
+  let lastError: unknown = null;
+  for (const path of livePaths) {
+    try {
+      return await fetchLivePanel(path);
+    } catch (err: unknown) {
+      lastError = err;
     }
-    const body: unknown = await response.json();
-    return { ...parseStabilityPanel(body), source: "live" };
-  } catch {
+  }
+  try {
     const snapshot = await fetch("/stability-snapshot.json", { cache: "no-store" });
     if (!snapshot.ok) {
       throw new Error(
@@ -202,6 +232,9 @@ export async function fetchStabilityPanel(): Promise<StabilityPanel> {
     }
     const body: unknown = await snapshot.json();
     return { ...parseStabilityPanel(body), source: "snapshot" };
+  } catch (err: unknown) {
+    const reason = err instanceof Error ? err.message : String(lastError ?? err);
+    throw new Error(reason);
   }
 }
 
@@ -220,14 +253,32 @@ export function citedTm(row: StabilityRow | null): number | null {
   return row.tm_C;
 }
 
+/**
+ * Printed Tm uncertainty in °C.
+ * Null, missing, or non-finite means the table printed none.
+ * The gate envelope is not consulted: a missing sigma is not zero.
+ */
+export function printedTmUncertainty(row: StabilityRow | null): number | null {
+  if (citedTm(row) === null || !row) return null;
+  const sigma = row.tm_uncertainty_C;
+  if (typeof sigma !== "number" || !Number.isFinite(sigma)) return null;
+  return sigma;
+}
+
+/**
+ * Whisker for a printed Tm uncertainty.
+ * Built from Tm ± the printed sigma. A null sigma returns null, even
+ * when the payload still carries a zero-width gate envelope.
+ */
 export function citedInterval(
   row: StabilityRow | null,
 ): { low: number; high: number } | null {
-  if (citedTm(row) === null || !row) return null;
-  const low = row.tm_interval_low;
-  const high = row.tm_interval_high;
-  if (typeof low !== "number" || typeof high !== "number") return null;
-  if (!Number.isFinite(low) || !Number.isFinite(high) || low > high) return null;
+  const tm = citedTm(row);
+  const sigma = printedTmUncertainty(row);
+  if (tm === null || sigma === null) return null;
+  const low = tm - sigma;
+  const high = tm + sigma;
+  if (!Number.isFinite(low) || !Number.isFinite(high) || !(high > low)) return null;
   return { low, high };
 }
 
@@ -246,10 +297,15 @@ export function tmLabel(row: StabilityRow | null): string {
   return `${formatMeasure(tm)} °C`;
 }
 
+/** Printed Tm uncertainty, or the word omitted. Never a zero-width interval. */
+export function uncertaintyLabel(row: StabilityRow | null): string {
+  const sigma = printedTmUncertainty(row);
+  if (sigma === null) return OMITTED_UNCERTAINTY_LABEL;
+  return `± ${formatMeasure(sigma)} °C`;
+}
+
 export function intervalLabel(row: StabilityRow | null): string {
-  const interval = citedInterval(row);
-  if (!interval) return "—";
-  return `${formatMeasure(interval.low)}–${formatMeasure(interval.high)} °C`;
+  return uncertaintyLabel(row);
 }
 
 export function deltaGLabel(row: StabilityRow | null): string {

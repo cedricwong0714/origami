@@ -121,8 +121,14 @@ def test_null_tm_uncertainty_is_not_rewritten_as_zero() -> None:
                 saw_null = True
                 assert row["tm_C"] is not None
                 assert row["tm_uncertainty_C"] is None
+                # The gate envelope is zero-width here. The panel omits it.
+                assert row["tm_interval_low"] is None
+                assert row["tm_interval_high"] is None
             else:
                 saw_printed = True
                 assert row["tm_uncertainty_C"] == float(printed)
+                assert row["tm_interval_low"] is not None
+                assert row["tm_interval_high"] is not None
+                assert row["tm_interval_low"] != row["tm_interval_high"]
     assert saw_null
     assert saw_printed

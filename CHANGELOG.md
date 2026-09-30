@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (confirmation page uncertainty)
+
+### Changed
+- `stability_panel` and `GET /api/stability/confirm` omit the Tm interval when the literature row prints no Tm uncertainty. `thermal_gate` still uses a zero-width envelope for pass/fail. The confirmation page shows that missing sigma as omitted. n = 14 stays extrapolated on all four series. Phillips 2012 CTPRa CD and CTPR DSC stay extrapolated at n = 8.
+  Reviewed by: not a human wet-lab review. A passing test of this lookup is not scientific validation.
+
 ## Unreleased — 2026-09-30 (ΔCp = 0 uncertainty)
 
 ### Added
