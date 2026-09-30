@@ -211,12 +211,15 @@ async def post_effective_enthalpy(request: Request) -> dict[str, Any]:
     """ΔH_eff and ΔG(T) under the explicit assumption ΔCp = 0.
 
     Body: tm_c, delta_g_ref, t_ref_c, optional units ("kcal" or "kJ"),
-    and optional t_min_c, t_max_c, n_points. Temperatures are °C.
-    Outputs are kcal. A missing anchor returns only ΔG(Tm) = 0.
+    optional delta_g_sigma and tm_sigma_c, and optional t_min_c,
+    t_max_c, n_points. Temperatures are °C. Outputs are kcal.
+    A missing anchor returns only ΔG(Tm) = 0.
     Tm equal to the anchor temperature is HTTP 400: ΔH is not
     identifiable. delta_h and delta_cp in the body are ignored.
     They belong to the full Gibbs–Helmholtz route and are not
-    replaced by ΔH_eff. calibrated stays false.
+    replaced by ΔH_eff. A 95% band is returned only when both
+    sigmas are supplied. A null sigma is not treated as zero.
+    calibrated stays false.
     """
     try:
         body = await request.json()
@@ -233,6 +236,10 @@ async def post_effective_enthalpy(request: Request) -> dict[str, Any]:
         curve_kwargs["n_points"] = body.get("n_points")
     if "units" in body:
         curve_kwargs["units"] = body.get("units")
+    if "delta_g_sigma" in body:
+        curve_kwargs["delta_g_sigma"] = body.get("delta_g_sigma")
+    if "tm_sigma_c" in body:
+        curve_kwargs["tm_sigma_c"] = body.get("tm_sigma_c")
     try:
         return effective_enthalpy_delta_cp_zero(
             body.get("tm_c"),

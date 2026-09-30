@@ -67,6 +67,31 @@ function formatAtTm(value: number): string {
   return formatQuantity(value);
 }
 
+function printedEnergyUnits(units: string | null): "kcal" | "kJ" | null {
+  if (!units) return null;
+  const token = units.toLowerCase();
+  if (token.includes("kj")) return "kJ";
+  if (token.includes("kcal")) return "kcal";
+  return null;
+}
+
+function citedSigmas(
+  prefill: ThermoPrefill | null,
+  melting: number,
+  anchor: number | null,
+  anchorUnits: "kcal" | "kJ",
+): { deltaGSigma: number | null; tmSigmaC: number | null } | null {
+  if (!prefill || anchor === null) return null;
+  const tmMatches = prefill.tmC !== null && melting === prefill.tmC;
+  const unitsMatch = printedEnergyUnits(prefill.deltaGUnits) === anchorUnits;
+  const anchorMatches = prefill.deltaG !== null && anchor === prefill.deltaG && unitsMatch;
+  if (!tmMatches || !anchorMatches) return null;
+  return {
+    deltaGSigma: prefill.deltaGUncertainty,
+    tmSigmaC: prefill.tmUncertainty,
+  };
+}
+
 function printedCellSentence(prefill: ThermoPrefill): string {
   const where =
     prefill.deltaGTemperatureC === null
@@ -106,6 +131,10 @@ function curveWindow(tmC: number): { tMinC: number; tMaxC: number } {
   };
 }
 
+function finiteBand(value: number | null): value is number {
+  return value !== null && Number.isFinite(value);
+}
+
 function CurveChart<T extends { t_c: number }>({
   title,
   units,
@@ -113,6 +142,8 @@ function CurveChart<T extends { t_c: number }>({
   points,
   tmC,
   read,
+  readLow,
+  readHigh,
 }: {
   title: string;
   units: string;
@@ -120,16 +151,26 @@ function CurveChart<T extends { t_c: number }>({
   points: T[];
   tmC: number;
   read: (point: T) => number;
+  readLow?: (point: T) => number | null;
+  readHigh?: (point: T) => number | null;
 }) {
   const width = 640;
   const height = 220;
   const pad = { l: 72, r: 16, t: 28, b: 36 };
   const xs = points.map((point) => point.t_c);
   const ys = points.map(read);
+  const lows = readLow ? points.map(readLow) : [];
+  const highs = readHigh ? points.map(readHigh) : [];
+  const hasBand = lows.length === points.length && highs.length === points.length && lows.every(finiteBand) && highs.every(finiteBand);
+  const bandNumbers = [...lows, ...highs].filter(finiteBand);
   const xMin = Math.min(...xs);
   const xMax = Math.max(...xs);
   let yMin = Math.min(...ys);
   let yMax = Math.max(...ys);
+  if (hasBand && bandNumbers.length > 0) {
+    yMin = Math.min(yMin, ...bandNumbers);
+    yMax = Math.max(yMax, ...bandNumbers);
+  }
   if (yMin === yMax) {
     yMin -= 1;
     yMax += 1;
@@ -144,9 +185,29 @@ function CurveChart<T extends { t_c: number }>({
   const path = points
     .map((point, index) => `${index === 0 ? "M" : "L"} ${xOf(point.t_c).toFixed(2)} ${yOf(read(point)).toFixed(2)}`)
     .join(" ");
+  const bandPath = hasBand
+    ? [
+        ...highs.map((value, index) => {
+          const point = points[index];
+          if (!point || !finiteBand(value)) return "";
+          return `${index === 0 ? "M" : "L"} ${xOf(point.t_c).toFixed(2)} ${yOf(value).toFixed(2)}`;
+        }),
+        ...lows
+          .slice()
+          .reverse()
+          .map((value, index) => {
+            const point = points[points.length - 1 - index];
+            if (!point || !finiteBand(value)) return "";
+            return `L ${xOf(point.t_c).toFixed(2)} ${yOf(value).toFixed(2)}`;
+          }),
+        "Z",
+      ].join(" ")
+    : null;
   const yTicks = [yMin + yPad, (yMin + yMax) / 2, yMax - yPad];
   const showZero = yMin < 0 && yMax > 0;
-  const summary = `${title} in ${units}, from ${formatQuantity(xs[0] ?? 0)} °C to ${formatQuantity(xs[xs.length - 1] ?? 0)} °C.`;
+  const summary = `${title} in ${units}, from ${formatQuantity(xs[0] ?? 0)} °C to ${formatQuantity(xs[xs.length - 1] ?? 0)} °C.${
+    hasBand ? " Shaded band is a linear 95% approximation, not a wet-lab confidence interval." : ""
+  }`;
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={summary} style={{ fontFamily: CHART_FONT }}>
       <text x={pad.l} y={16} fill="#242220" fontSize="13" fontFamily={CHART_FONT}>
@@ -167,6 +228,7 @@ function CurveChart<T extends { t_c: number }>({
       <text x={xOf(tmC) + 4} y={pad.t + 12} fill="#5C564E" fontSize="11" fontFamily={CHART_FONT}>
         Tm
       </text>
+      {bandPath ? <path d={bandPath} fill={color} fillOpacity={0.18} stroke="none" /> : null}
       <path d={path} fill="none" stroke={color} strokeWidth="2" />
       <text x={pad.l} y={height - 10} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
         temperature (°C)
@@ -184,17 +246,20 @@ function Band({
   low,
   high,
   units,
+  label,
 }: {
   defined: boolean;
   sigma: number | null;
   low: number | null;
   high: number | null;
   units: string;
+  label?: string;
 }) {
   if (!defined || sigma === null || low === null || high === null) return null;
   return (
     <p className="text-sm text-[#5C564E]">
-      95% band {formatQuantity(low)} to {formatQuantity(high)} {units} (± 1.96 × {formatQuantity(sigma)})
+      {label ? `${label}: ` : ""}
+      95% band {formatQuantity(low)} to {formatQuantity(high)} {units} (± 1.96 × {formatQuantity(sigma)}). Linear approximation, not a wet-lab confidence interval.
     </p>
   );
 }
@@ -304,11 +369,14 @@ export function ThermoCalculator() {
       }
     }
     const tRef = parseRequired(anchorTRef);
+    const sigmas = citedSigmas(prefill, melting, anchor, anchorUnits);
     postEffectiveEnthalpy({
       tmC: melting,
       deltaGRef: anchor,
       tRefC: anchor === null ? null : tRef,
       units: anchorUnits,
+      deltaGSigma: sigmas ? sigmas.deltaGSigma : null,
+      tmSigmaC: sigmas ? sigmas.tmSigmaC : null,
     })
       .then((next) => {
         if (!alive) return;
@@ -324,7 +392,7 @@ export function ThermoCalculator() {
     return () => {
       alive = false;
     };
-  }, [tmC, anchorG, anchorTRef, anchorUnits]);
+  }, [tmC, anchorG, anchorTRef, anchorUnits, prefill]);
 
   function chooseUnits(next: EnergyUnits) {
     setUnits(next);
@@ -753,9 +821,26 @@ export function ThermoCalculator() {
                   <p className="text-sm text-[#242220]">
                     ΔH_eff = {formatQuantity(effective.delta_h_eff)} {effective.delta_h_units}. Effective enthalpy under ΔCp = 0, not the Phillips calorimetric ΔH. ΔS_eff = {formatQuantity(effective.delta_s_eff ?? 0)} {effective.delta_s_units}. ΔG(Tm) = {formatAtTm(effective.delta_g_at_tm ?? 0)} {effective.delta_g_units}. ΔG at {formatQuantity(effective.t_ref_c ?? 0)} °C = {formatQuantity(effective.delta_g_at_t_ref ?? 0)} {effective.delta_g_units}.
                   </p>
+                  <Band
+                    defined={effective.uncertainty_defined}
+                    sigma={effective.delta_h_eff_sigma}
+                    low={effective.delta_h_eff_95_lower}
+                    high={effective.delta_h_eff_95_upper}
+                    units={effective.delta_h_units ?? ""}
+                    label="ΔH_eff"
+                  />
+                  <Band
+                    defined={effective.uncertainty_defined}
+                    sigma={effective.delta_g_at_t_ref_sigma}
+                    low={effective.delta_g_at_t_ref_95_lower}
+                    high={effective.delta_g_at_t_ref_95_upper}
+                    units={effective.delta_g_units ?? ""}
+                    label="ΔG at the anchor temperature"
+                  />
                   <p className="text-sm text-[#5C564E]">
                     confidence tier {effective.confidence_tier}. is_extrapolation {String(effective.is_extrapolation)}. calibrated = {String(effective.calibrated)}. Changing Tm changes ΔH_eff and ΔG(T). The printed table cell does not change.
                   </p>
+                  <p className="text-sm leading-relaxed text-[#5C564E]">{effective.uncertainty_note}</p>
                   <CurveChart
                     title="ΔG(T)"
                     units={effective.delta_g_units ?? "kcal mol-1"}
@@ -763,6 +848,8 @@ export function ThermoCalculator() {
                     points={effective.points}
                     tmC={effective.tm_c ?? 0}
                     read={(point) => point.delta_g}
+                    readLow={effective.uncertainty_defined ? (point) => point.delta_g_95_lower : undefined}
+                    readHigh={effective.uncertainty_defined ? (point) => point.delta_g_95_upper : undefined}
                   />
                   <p className="text-sm leading-relaxed text-[#242220]">{effective.result_label}</p>
                   {effective.warnings.length > 0 ? (

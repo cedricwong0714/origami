@@ -941,3 +941,201 @@ def test_http_effective_route_and_printed_prefill_stay_separate() -> None:
     assert missing.json()["points"] == []
     assert missing.json()["delta_h_eff"] is None
     assert missing.json()["delta_g_at_tm"] == 0.0
+
+
+def _point_at(report: dict[str, object], t_c: float) -> dict[str, object]:
+    points = report["points"]
+    assert isinstance(points, list)
+    matched = [
+        point
+        for point in points
+        if isinstance(point, dict) and abs(float(point["t_c"]) - t_c) < 1e-6
+    ]
+    assert len(matched) == 1
+    return matched[0]
+
+
+def test_delta_cp_zero_band_matches_anchor_and_is_zero_at_tm() -> None:
+    """At T_ref the band is the anchor uncertainty. At Tm, ΔG is 0.
+
+    Scientific basis: under ΔCp = 0, ΔG(T) = ΔH_eff (1 − T/Tm) with
+    ΔH_eff = ΔG(T_ref) / (1 − T_ref/Tm), temperatures in kelvin.
+    At T_ref the Tm terms cancel, so σ(ΔG) equals σ(anchor). That
+    equality is the check that the band is not a new biological number.
+    Failure mode: a band at T_ref wider than the anchor sigma, a
+    nonzero ΔG at Tm, or a null sigma stored as 0.
+    """
+    anchor = 5.0
+    t_ref_c = 10.0
+    tm_c = 60.0
+    sigma_g = 0.4
+    sigma_tm = 0.3
+    report = effective_enthalpy_delta_cp_zero(
+        tm_c,
+        anchor,
+        t_ref_c,
+        delta_g_sigma=sigma_g,
+        tm_sigma_c=sigma_tm,
+    )
+    assert report["calibrated"] is False
+    assert report["confidence_tier"] == "hypothesis_only"
+    assert report["uncertainty_defined"] is True
+    assert "linear approximation" in report["uncertainty_note"].lower()
+    assert "not a wet-lab" in report["uncertainty_note"].lower()
+    at_ref = _point_at(report, t_ref_c)
+    at_tm = _point_at(report, tm_c)
+    assert at_ref["delta_g"] == pytest.approx(anchor)
+    assert at_ref["delta_g_sigma"] == pytest.approx(sigma_g)
+    assert at_ref["delta_g_95_lower"] == pytest.approx(anchor - 1.96 * sigma_g)
+    assert at_ref["delta_g_95_upper"] == pytest.approx(anchor + 1.96 * sigma_g)
+    assert report["delta_g_at_t_ref_sigma"] == pytest.approx(sigma_g)
+    assert abs(float(at_tm["delta_g"])) < 1e-8
+    assert report["delta_g_at_tm"] == 0.0
+
+    eps = 1e-4
+    base_h = float(report["delta_h_eff"])
+    h_from_g = float(
+        effective_enthalpy_delta_cp_zero(tm_c, anchor + eps, t_ref_c)["delta_h_eff"]
+    )
+    h_from_tm = float(
+        effective_enthalpy_delta_cp_zero(tm_c + eps, anchor, t_ref_c)["delta_h_eff"]
+    )
+    d_h_d_g = (h_from_g - base_h) / eps
+    d_h_d_tm = (h_from_tm - base_h) / eps
+    tm_k = tm_c + 273.15
+    t_ref_k = t_ref_c + 273.15
+    denominator = 1.0 - (t_ref_k / tm_k)
+    user_magnitude = anchor * t_ref_k / (denominator**2 * tm_k**2)
+    assert d_h_d_g == pytest.approx(1.0 / denominator, rel=1e-6, abs=1e-6)
+    assert d_h_d_tm == pytest.approx(-user_magnitude, rel=1e-5, abs=1e-6)
+    expected_h_sigma = math.sqrt((d_h_d_g * sigma_g) ** 2 + (d_h_d_tm * sigma_tm) ** 2)
+    assert report["delta_h_eff_sigma"] == pytest.approx(expected_h_sigma, rel=1e-6, abs=1e-8)
+    assert report["delta_h_eff_95_lower"] == pytest.approx(
+        base_h - 1.96 * expected_h_sigma
+    )
+    shifted = effective_enthalpy_delta_cp_zero(
+        tm_c + 5.0,
+        anchor,
+        t_ref_c,
+        delta_g_sigma=sigma_g,
+        tm_sigma_c=sigma_tm,
+    )
+    assert shifted["delta_h_eff"] != pytest.approx(base_h)
+
+    sample_c = 25.0
+    sample = _point_at(report, sample_c)
+    sample_g = float(sample["delta_g"])
+    raised_anchor = effective_enthalpy_delta_cp_zero(tm_c, anchor + eps, t_ref_c)
+    raised_tm = effective_enthalpy_delta_cp_zero(tm_c + eps, anchor, t_ref_c)
+    g_up = float(_point_at(raised_anchor, sample_c)["delta_g"])
+    tm_up = float(_point_at(raised_tm, sample_c)["delta_g"])
+    d_g_d_g = (g_up - sample_g) / eps
+    d_g_d_tm = (float(tm_up) - sample_g) / eps
+    expected_g_sigma = math.sqrt((d_g_d_g * sigma_g) ** 2 + (d_g_d_tm * sigma_tm) ** 2)
+    assert sample["delta_g_sigma"] == pytest.approx(expected_g_sigma, rel=1e-4, abs=1e-6)
+
+
+@pytest.mark.parametrize("n_repeats", [3, 8])
+def test_printed_sigmas_for_default_series_set_the_anchor_band(n_repeats: int) -> None:
+    """n=3 and n=8 Phillips CTPRa DSC: both printed uncertainties exist.
+
+    The numbers are read from the literature table. They are not typed here.
+    At the printed ΔG temperature the band equals that printed uncertainty.
+    """
+    prefill = thermo_prefill("phillips2012_ctpra_dsc", n_repeats)
+    sigma_g = prefill["delta_g_uncertainty"]
+    sigma_tm = prefill["tm_uncertainty"]
+    anchor = prefill["delta_g"]
+    tm_c = prefill["tm_c"]
+    t_ref_c = prefill["delta_g_t_c"]
+    assert sigma_g is not None
+    assert sigma_tm is not None
+    assert anchor is not None
+    assert tm_c is not None
+    assert t_ref_c is not None
+    report = effective_enthalpy_delta_cp_zero(
+        tm_c,
+        anchor,
+        t_ref_c,
+        delta_g_sigma=sigma_g,
+        tm_sigma_c=sigma_tm,
+    )
+    assert report["uncertainty_defined"] is True
+    assert report["anchor_delta_g_sigma"] == pytest.approx(float(sigma_g))
+    assert report["tm_sigma_k"] == pytest.approx(float(sigma_tm))
+    assert report["delta_g_at_t_ref"] == pytest.approx(anchor)
+    assert report["delta_g_at_t_ref_sigma"] == pytest.approx(float(sigma_g))
+    assert report["delta_g_at_tm"] == 0.0
+    at_ref = _point_at(report, float(t_ref_c))
+    assert at_ref["delta_g_sigma"] == pytest.approx(float(sigma_g))
+    assert at_ref["delta_g_95_lower"] == pytest.approx(float(anchor) - 1.96 * float(sigma_g))
+    http = client.post(
+        "/api/stability/thermo/effective",
+        json={
+            "tm_c": tm_c,
+            "delta_g_ref": anchor,
+            "t_ref_c": t_ref_c,
+            "delta_g_sigma": sigma_g,
+            "tm_sigma_c": sigma_tm,
+        },
+    )
+    assert http.status_code == 200
+    body = http.json()
+    assert body["uncertainty_defined"] is True
+    assert body["delta_g_at_t_ref_sigma"] == pytest.approx(float(sigma_g))
+    assert body["calibrated"] is False
+
+
+def test_null_effective_uncertainty_is_not_zero() -> None:
+    """A missing sigma stays null. Cortajarena's Tm uncertainty is null in the table."""
+    omitted = effective_enthalpy_delta_cp_zero(
+        60.0,
+        5.0,
+        10.0,
+        delta_g_sigma=None,
+        tm_sigma_c=0.2,
+    )
+    assert omitted["has_effective_enthalpy"] is True
+    assert omitted["uncertainty_defined"] is False
+    assert omitted["delta_h_eff_sigma"] is None
+    assert omitted["delta_h_eff"] is not None
+    assert omitted["delta_g_at_tm"] == 0.0
+    assert "printed none" in omitted["uncertainty_note"].lower()
+    assert "not treated as zero" in omitted["uncertainty_note"].lower()
+    assert _point_at(omitted, 10.0)["delta_g_sigma"] is None
+
+    prefill = thermo_prefill("cortajarena2011_ctpra_dsc", 3)
+    assert prefill["tm_c"] is not None
+    assert prefill["tm_uncertainty"] is None
+    assert prefill["delta_g"] is None
+    cortajarena = effective_enthalpy_delta_cp_zero(
+        prefill["tm_c"],
+        5.0,
+        10.0,
+        delta_g_sigma=0.2,
+        tm_sigma_c=prefill["tm_uncertainty"],
+    )
+    assert cortajarena["uncertainty_defined"] is False
+    assert cortajarena["delta_h_eff_sigma"] is None
+    assert cortajarena["delta_h_eff_sigma"] != 0
+    assert cortajarena["tm_sigma_k"] is None
+    assert cortajarena["delta_g_at_t_ref"] == pytest.approx(5.0)
+    changed = effective_enthalpy_delta_cp_zero(
+        float(prefill["tm_c"]) + 5.0,
+        5.0,
+        10.0,
+        tm_sigma_c=None,
+    )
+    assert changed["delta_h_eff"] != pytest.approx(cortajarena["delta_h_eff"])
+
+    rejected = client.post(
+        "/api/stability/thermo/effective",
+        json={
+            "tm_c": 60.0,
+            "delta_g_ref": 5.0,
+            "t_ref_c": 10.0,
+            "delta_g_sigma": -1.0,
+            "tm_sigma_c": 0.2,
+        },
+    )
+    assert rejected.status_code == 400

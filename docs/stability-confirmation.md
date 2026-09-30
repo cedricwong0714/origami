@@ -84,3 +84,25 @@ These are missing inputs. They are not coded around.
 - `ctpr_thermal_literature.json` has no ΔHcal and no ΔCp. The Phillips calorimetric curve, which used a nonzero ΔCp, cannot be computed from the file.
 - n = 14 has no cited Tm and no printed ΔG in the default series. Neither number is invented.
 - There is no unfolding assay of the Hong Kong team fusion. `calibrated` stays false. A passing test is not that assay.
+
+## Audit gaps
+
+Checked `origami/stability/thermo.py`, `gate.py`, `series.py`, `origami/api/stability.py`, `origami/drylab.py` `stability_panel`, the stability board, the calculator, and `tests/math_chassis/test_thermo_calculator.py`, `test_stability_confirmation.py`, `test_drylab.py`.
+
+What already held, and was left in place:
+
+- For a two-state melt, ΔG(Tm) = 0. That identity has no uncertainty band.
+- Under ΔCp = 0, ΔH_eff = ΔG(T_ref) / (1 − T_ref/Tm) and ΔG(T) = ΔH_eff (1 − T/Tm), with T_K = t_C + 273.15. Changing Tm changes ΔH_eff. The printed ΔG cell does not change.
+- The full Gibbs–Helmholtz curve is a separate path and runs only when the caller supplies ΔHcal and ΔCp. The literature file still has neither.
+- The thermal panel uses one series at a time. A missing n outside the cited repeat range is extrapolated. A missing n inside that range stays omitted. Series are not averaged. `calibrated` stays false.
+
+Gaps:
+
+- The ΔCp = 0 path reported point values and then said no sigma had been supplied, even when the cited Tm row and the printed ΔG row already store uncertainties. That propagation is now coded. It reads those sigmas from the caller, who copies them from the table. It does not type them. If either sigma is null, the point value remains and the band is omitted. Null is not stored as 0. The 95% band is value ± 1.96 σ from a first-order delta method, labeled as a linear approximation, not a wet-lab confidence interval. ∂H/∂Tm is negative, −G T_ref / (D² Tm²). The variance uses that square, which is the unsigned magnitude. ΔG(T) includes Cov(H, Tm), so the band at T_ref matches the anchor uncertainty. The calculator draws that band for the default series at n = 3 and n = 8, where both printed uncertainties exist.
+- `stability_panel` used to set `tm_uncertainty_C` from the gate envelope. The gate gives a missing uncertainty zero width, so a null table uncertainty became 0. The panel now copies the printed uncertainty, and null stays null.
+
+Still open, and not coded around:
+
+- The stability board still labels the gate envelope. When the table prints no Tm uncertainty, that envelope is a point (low = high = Tm), so the interval column can look like a measured width of zero. The gate tests depend on that envelope. The calculator does not use it as a sigma.
+- `thermal_gate` still averages duplicate Tm rows at the same n if a caller passes more than one. The panel passes one series, and each named series has one Tm per n.
+- `ctpr_thermal_literature.json` has no ΔHcal and no ΔCp. n = 14 has no cited Tm and no printed ΔG in the default series. There is no unfolding assay of the Hong Kong team fusion. The new band does not fill any of those.

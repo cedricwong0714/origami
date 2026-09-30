@@ -45,6 +45,11 @@ curve only when the caller supplies both a finite Tm and a finite anchor
 assumption ΔCp = 0. The resulting ΔH_eff is an effective enthalpy. It is
 not the DSC ΔHcal. Phillips et al. 2012 used a nonzero ΔCp; that number
 is not in the JSON. If the anchor is missing, ΔG(T) is not invented.
+
+When the caller also passes the anchor ΔG sigma and the Tm sigma, the
+same function reports a first-order 95% band. Those sigmas are not read
+from memory here. A missing sigma stays missing and is not replaced
+with zero. The band is a linear approximation, not a wet-lab interval.
 """
 
 from __future__ import annotations
@@ -158,6 +163,23 @@ _TM_EQUALS_TREF = (
     "Tm equals the anchor reference temperature, so the denominator "
     "1 - T_ref/Tm is 0. ΔG at that temperature is the anchor. "
     "ΔH is not identifiable under the ΔCp = 0 assumption."
+)
+
+# Shown whenever the ΔCp = 0 path has both an anchor sigma and a Tm sigma.
+# 1.96 is the coverage factor already used by the full Gibbs–Helmholtz
+# path. It is not a biological parameter and not a wet-lab interval.
+_EFFECTIVE_UNCERTAINTY_NOTE = (
+    "95% band is value ± 1.96 σ from a first-order (delta method) "
+    "propagation of the anchor ΔG uncertainty and the Tm uncertainty. "
+    "It is a linear approximation, not a wet-lab confidence interval. "
+    "T_ref and the evaluation temperature T are treated as exact. "
+    "A temperature difference in °C is the same difference in kelvin. "
+    "Let R = T_ref/Tm, D = 1−R, and H = G/D, with Tm in kelvin. "
+    "∂H/∂G = 1/D. ∂H/∂Tm = −G T_ref / (D^2 Tm^2). "
+    "The magnitude of ∂H/∂Tm is G T_ref / (D^2 Tm^2). "
+    "ΔG(T) = H (1−T/Tm). H depends on Tm, so σ_H and σ_Tm are not "
+    "added as independent errors. The covariance is included, and the "
+    "band at T_ref matches the anchor uncertainty."
 )
 
 
@@ -743,10 +765,124 @@ def _empty_effective(
         "unit_conversion_factor_kJ_per_kcal": None,
         "uncertainty_defined": False,
         "uncertainty_note": uncertainty_note,
+        "delta_h_eff_sigma": None,
+        "delta_h_eff_95_lower": None,
+        "delta_h_eff_95_upper": None,
+        "anchor_delta_g_sigma": None,
+        "tm_sigma_k": None,
+        "delta_g_at_t_ref_sigma": None,
+        "delta_g_at_t_ref_95_lower": None,
+        "delta_g_at_t_ref_95_upper": None,
         "parameter_sources": [],
         "assumptions": assumptions,
         "warnings": [],
     }
+
+
+def _omitted_effective_uncertainty(delta_g_sigma: object, tm_sigma_c: object) -> str:
+    """Name which sigma is missing. Do not call a missing sigma zero."""
+    missing: list[str] = []
+    if delta_g_sigma is None:
+        missing.append("the anchor ΔG")
+    if tm_sigma_c is None:
+        missing.append("Tm")
+    if not missing:
+        joined = "a sigma"
+    elif len(missing) == 1:
+        joined = missing[0]
+    else:
+        joined = " and ".join(missing)
+    return (
+        "Uncertainty is omitted because the table printed none for "
+        f"{joined}, or that sigma was not passed. "
+        "A missing sigma was not treated as zero."
+    )
+
+
+def _resolve_effective_sigmas(
+    delta_g_sigma: object,
+    tm_sigma_c: object,
+    units: str,
+) -> tuple[float | None, float | None, bool, str]:
+    """Return anchor and Tm sigmas in kcal and kelvin, or omit the band.
+
+    ``None`` is not zero. A °C uncertainty is copied into kelvin because
+    the two scales differ by an offset, not by a scale factor, so a
+    temperature difference is unchanged.
+    """
+    sigma_g_in = _as_optional_sigma("delta_g_sigma", delta_g_sigma)
+    sigma_tm = _as_optional_sigma("tm_sigma_c", tm_sigma_c)
+    if sigma_g_in is None or sigma_tm is None:
+        return None, None, False, _omitted_effective_uncertainty(sigma_g_in, sigma_tm)
+    sigma_g, _converted = _to_kcal(sigma_g_in, units)
+    return sigma_g, sigma_tm, True, _EFFECTIVE_UNCERTAINTY_NOTE
+
+
+def _effective_enthalpy_partials(
+    anchor_kcal: float,
+    t_ref_k: float,
+    tm_k: float,
+) -> tuple[float, float, float]:
+    """Return D, ∂H/∂G, and ∂H/∂Tm.
+
+    R = T_ref/Tm and D = 1−R. H = G/D.
+    ∂H/∂G = 1/D.
+    ∂H/∂Tm = −G T_ref / (D^2 Tm^2), Tm in kelvin.
+    The sign is negative: raising Tm while holding the anchor ΔG fixed
+    makes the denominator larger and ΔH_eff smaller when the anchor is
+    positive and T_ref is below Tm. The variance uses the square, so it
+    matches the unsigned magnitude G T_ref / (D^2 Tm^2).
+    """
+    denominator = 1.0 - (t_ref_k / tm_k)
+    d_h_d_g = 1.0 / denominator
+    d_h_d_tm = -(anchor_kcal * t_ref_k) / (denominator**2 * tm_k**2)
+    return denominator, d_h_d_g, d_h_d_tm
+
+
+def _effective_delta_g_sigma(
+    anchor_kcal: float,
+    sigma_g: float,
+    sigma_h: float,
+    d_h_d_tm: float,
+    sigma_tm: float,
+    delta_h_eff: float,
+    t_k: float,
+    t_ref_k: float,
+    tm_k: float,
+) -> float:
+    """σ of ΔG(T) = H (1−T/Tm), with Cov(H, Tm) included.
+
+    Independent addition of σ_H and σ_Tm would leave a Tm width at
+    T_ref, where ΔG is exactly the anchor. The covariance term cancels
+    that width. A direct delta method on G and Tm is checked against
+    the same number and must agree.
+    """
+    d_f_d_h = 1.0 - (t_k / tm_k)
+    d_f_d_tm = delta_h_eff * (t_k / tm_k**2)
+    covariance = d_h_d_tm * sigma_tm**2
+    variance = (
+        (d_f_d_h * sigma_h) ** 2
+        + (d_f_d_tm * sigma_tm) ** 2
+        + 2.0 * d_f_d_h * d_f_d_tm * covariance
+    )
+    span = tm_k - t_ref_k
+    direct = _quadrature(
+        [
+            ((tm_k - t_k) / span, sigma_g),
+            (anchor_kcal * (t_k - t_ref_k) / span**2, sigma_tm),
+        ]
+    )
+    if variance < 0.0 and variance > -1e-18:
+        variance = 0.0
+    if variance < 0.0 or not math.isfinite(variance):
+        raise ThermoInputError("ΔG(T) uncertainty variance is not usable")
+    sigma = math.sqrt(variance)
+    if abs(sigma - direct) > 1e-8:
+        raise ThermoInputError(
+            "ΔG(T) uncertainty from H and Tm does not match the "
+            f"direct delta method ({sigma} vs {direct})"
+        )
+    return sigma
 
 
 def effective_enthalpy_delta_cp_zero(
@@ -758,6 +894,8 @@ def effective_enthalpy_delta_cp_zero(
     t_min_c: object = _DEFAULT_CURVE_T_MIN_C,
     t_max_c: object = _DEFAULT_CURVE_T_MAX_C,
     n_points: object = _DEFAULT_CURVE_POINTS,
+    delta_g_sigma: object = None,
+    tm_sigma_c: object = None,
 ) -> dict[str, Any]:
     """Effective enthalpy when the caller assumes ΔCp = 0.
 
@@ -785,6 +923,17 @@ def effective_enthalpy_delta_cp_zero(
     and that conversion is recorded. ``calibrated`` is false.
     ``confidence_tier`` is ``hypothesis_only`` and ``is_extrapolation``
     is true on the effective-enthalpy result only.
+
+    ``delta_g_sigma`` and ``tm_sigma_c`` are optional. They are the
+    caller's sigmas, in the same unit as the anchor and in °C. This
+    function does not read the literature file and does not invent a
+    sigma. Both must be supplied before a band is reported. If either
+    is ``None``, the point values are still returned and every sigma
+    stays null. A °C sigma is used as a kelvin sigma because the
+    conversion is an offset. The 95% band is value ± 1.96 σ from a
+    first-order delta method. It is a linear approximation, not a
+    wet-lab confidence interval. At the anchor temperature the band
+    matches the anchor uncertainty. At Tm the value is 0.
 
     The grid defaults (0 °C to 100 °C) are a display window. Tm and
     T_ref are included on the curve. This is not a DSC range.
@@ -904,12 +1053,74 @@ def effective_enthalpy_delta_cp_zero(
             f"ΔG at Tm is {at_tm['delta_g']}, not 0, under ΔCp = 0"
         )
 
+    sigma_g, sigma_tm, uncertainty_defined, uncertainty_note = _resolve_effective_sigmas(
+        delta_g_sigma,
+        tm_sigma_c,
+        units,
+    )
+    sigma_h: float | None = None
+    h_low: float | None = None
+    h_high: float | None = None
+    d_h_d_tm = 0.0
+    if uncertainty_defined:
+        assert sigma_g is not None and sigma_tm is not None
+        _denominator, _d_h_d_g, d_h_d_tm = _effective_enthalpy_partials(
+            anchor_kcal,
+            t_ref_k,
+            tm_k,
+        )
+        sigma_h = _quadrature([(_d_h_d_g, sigma_g), (d_h_d_tm, sigma_tm)])
+        h_low, h_high = _band(delta_h_eff, sigma_h)
+
+    def _delta_g_band(t_k: float, delta_g: float) -> dict[str, float | None]:
+        if not uncertainty_defined or sigma_g is None or sigma_tm is None or sigma_h is None:
+            return {
+                "delta_g_sigma": None,
+                "delta_g_95_lower": None,
+                "delta_g_95_upper": None,
+            }
+        sigma = _effective_delta_g_sigma(
+            anchor_kcal,
+            sigma_g,
+            sigma_h,
+            d_h_d_tm,
+            sigma_tm,
+            delta_h_eff,
+            t_k,
+            t_ref_k,
+            tm_k,
+        )
+        low, high = _band(delta_g, sigma)
+        return {
+            "delta_g_sigma": sigma,
+            "delta_g_95_lower": low,
+            "delta_g_95_upper": high,
+        }
+
     grid = _curve_grid(t_min_value, t_max_value, n_points, tm_c_value)
     for required in (tm_c_value, t_ref_value):
         if not any(abs(sample - required) < 1e-9 for sample in grid):
             grid.append(required)
     grid.sort()
-    points = [_at(sample) for sample in grid]
+    points: list[dict[str, Any]] = []
+    for sample in grid:
+        point = _at(sample)
+        point.update(_delta_g_band(point["t_k"], point["delta_g"]))
+        points.append(point)
+    ref_band = _delta_g_band(t_ref_k, at_ref["delta_g"])
+    ref_sigma = ref_band["delta_g_sigma"]
+    # At T_ref, ΔG is the anchor, so the band must be that anchor's
+    # uncertainty. A wider band here would be a new number.
+    if (
+        uncertainty_defined
+        and ref_sigma is not None
+        and sigma_g is not None
+        and abs(ref_sigma - sigma_g) > 1e-8
+    ):
+        raise ThermoInputError(
+            "ΔG uncertainty at the anchor temperature does not equal "
+            f"the anchor sigma ({ref_sigma} vs {sigma_g})"
+        )
 
     warnings: list[str] = [
         "ΔCp = 0 is an assumption. ΔH_eff is not the Phillips calorimetric ΔHcal.",
@@ -961,20 +1172,42 @@ def effective_enthalpy_delta_cp_zero(
         "input_units": units,
         "unit_conversion_applied": converted,
         "unit_conversion_factor_kJ_per_kcal": _KJ_PER_KCAL if converted else None,
-        "uncertainty_defined": False,
-        "uncertainty_note": (
-            "No sigma was supplied for the anchor ΔG or for Tm. "
-            "No uncertainty band was attached. "
-            "A printed table uncertainty was not turned into a 95% band on ΔH_eff."
-        ),
+        "uncertainty_defined": uncertainty_defined,
+        "uncertainty_note": uncertainty_note,
+        "delta_h_eff_sigma": sigma_h,
+        "delta_h_eff_95_lower": h_low,
+        "delta_h_eff_95_upper": h_high,
+        "anchor_delta_g_sigma": sigma_g,
+        "tm_sigma_k": sigma_tm,
+        "delta_g_at_t_ref_sigma": ref_band["delta_g_sigma"],
+        "delta_g_at_t_ref_95_lower": ref_band["delta_g_95_lower"],
+        "delta_g_at_t_ref_95_upper": ref_band["delta_g_95_upper"],
         "parameter_sources": [],
         "parameter_source_note": (
-            "The anchor ΔG, its reference temperature, and Tm are "
-            "caller-supplied. This function does not attach a citation. "
-            "ΔCp = 0 is an assumption, not a value read from "
-            "ctpr_thermal_literature.json."
+            "The anchor ΔG, its reference temperature, Tm, and any sigmas "
+            "are caller-supplied. This function does not attach a citation "
+            "and does not read ctpr_thermal_literature.json. "
+            "ΔCp = 0 is an assumption. A missing sigma is not filled in."
         ),
-        "assumptions": _effective_assumptions(),
+        "assumptions": _effective_assumptions()
+        + (
+            [
+                (
+                    "The 95% band is a first-order delta-method approximation "
+                    "of the supplied anchor ΔG sigma and Tm sigma. "
+                    "It is not a wet-lab confidence interval. "
+                    "T_ref and T are exact. "
+                    "At T_ref the band matches the anchor uncertainty."
+                )
+            ]
+            if uncertainty_defined
+            else [
+                (
+                    "No 95% band is attached. A missing anchor ΔG sigma or "
+                    "Tm sigma was not replaced with zero."
+                )
+            ]
+        ),
         "warnings": warnings,
     }
 

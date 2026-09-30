@@ -65,6 +65,14 @@ def stability_panel(t_assay_C: float) -> list[dict[str, Any]]:
         for n_repeats in range(N_REPEATS_MIN, N_REPEATS_MAX + 1):
             gate = thermal_gate(n_repeats, assay, thermal_rows)
             dg = delta_g_at_n(series_id, n_repeats)
+            # Copy the printed Tm uncertainty. The gate envelope uses
+            # zero width when a row prints none, and subtracting that
+            # width from Tm would report a sigma of 0. Null stays null.
+            matched_tm = [obs for obs in loaded if obs.n_repeats == n_repeats]
+            if len(matched_tm) == 1 and matched_tm[0].uncertainty is not None:
+                tm_uncertainty_C: float | None = float(matched_tm[0].uncertainty)
+            else:
+                tm_uncertainty_C = None
             rows.append(
                 {
                     "source": "literature_lookup",
@@ -74,10 +82,7 @@ def stability_panel(t_assay_C: float) -> list[dict[str, Any]]:
                     "t_assay_C": assay,
                     "thermal_state": gate.state,
                     "tm_C": None if gate.tm_C is None else float(gate.tm_C),
-                    "tm_uncertainty_C": (
-                        None if gate.interval_low is None or gate.tm_C is None
-                        else float(gate.tm_C - gate.interval_low)
-                    ),
+                    "tm_uncertainty_C": tm_uncertainty_C,
                     "tm_interval_low": (
                         None if gate.interval_low is None else float(gate.interval_low)
                     ),

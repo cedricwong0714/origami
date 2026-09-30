@@ -54,6 +54,10 @@ export const EFFECTIVE_EQUATION = [
   "",
   "ΔH_eff is an effective enthalpy under that assumption. It is not the Phillips calorimetric ΔH.",
   "confidence tier is hypothesis_only. is_extrapolation is true. calibrated stays false.",
+  "",
+  "When the anchor ΔG and Tm both have a printed uncertainty, the ΔG(T) curve carries a 95% band.",
+  "That band is value ± 1.96 σ from a first-order delta method. It is a linear approximation, not a wet-lab confidence interval.",
+  "If the table printed no uncertainty, the point value is shown and the band is omitted. A blank sigma is not zero.",
 ].join("\n");
 
 export const CURVE_LABEL =
@@ -599,6 +603,9 @@ export type EffectivePoint = {
   delta_h: number;
   delta_s: number;
   delta_g: number;
+  delta_g_sigma: number | null;
+  delta_g_95_lower: number | null;
+  delta_g_95_upper: number | null;
 };
 
 export type EffectiveEnthalpy = {
@@ -612,10 +619,18 @@ export type EffectiveEnthalpy = {
   result_label: string;
   assumption_delta_cp: number | null;
   delta_h_eff: number | null;
+  delta_h_eff_sigma: number | null;
+  delta_h_eff_95_lower: number | null;
+  delta_h_eff_95_upper: number | null;
   delta_s_eff: number | null;
   delta_g_at_tm: number | null;
   delta_g_at_t_ref: number | null;
+  delta_g_at_t_ref_sigma: number | null;
+  delta_g_at_t_ref_95_lower: number | null;
+  delta_g_at_t_ref_95_upper: number | null;
   anchor_delta_g: number | null;
+  uncertainty_defined: boolean;
+  uncertainty_note: string;
   delta_g_units: string | null;
   delta_h_units: string | null;
   delta_s_units: string | null;
@@ -653,7 +668,14 @@ export function parseEffectiveEnthalpy(body: unknown): EffectiveEnthalpy {
   if (!Array.isArray(assumptions) || assumptions.some((item) => typeof item !== "string")) {
     throw new Error("Effective-enthalpy response is missing assumptions.");
   }
-  const points = Array.isArray(row.points) ? row.points.map((point, index) => parseCurvePoint(point, index)) : [];
+  if (typeof row.uncertainty_defined !== "boolean") {
+    throw new Error("Effective-enthalpy response is missing uncertainty_defined.");
+  }
+  const uncertaintyDefined = row.uncertainty_defined;
+  const uncertaintyNote = requireText(row.uncertainty_note, "uncertainty_note");
+  const points = Array.isArray(row.points)
+    ? row.points.map((point, index) => parseEffectivePoint(point, index, uncertaintyDefined))
+    : [];
   if (row.has_effective_enthalpy) {
     if (row.confidence_tier !== "hypothesis_only" || row.is_extrapolation !== true) {
       throw new Error("ΔCp = 0 output must be hypothesis_only and an extrapolation.");
@@ -675,10 +697,30 @@ export function parseEffectiveEnthalpy(body: unknown): EffectiveEnthalpy {
       result_label: requireText(row.result_label, "result_label"),
       assumption_delta_cp: 0,
       delta_h_eff: requireFinite(row.delta_h_eff, "delta_h_eff"),
+      delta_h_eff_sigma: uncertaintyDefined
+        ? requireFinite(row.delta_h_eff_sigma, "delta_h_eff_sigma")
+        : optionalSigma(row.delta_h_eff_sigma, "delta_h_eff_sigma"),
+      delta_h_eff_95_lower: uncertaintyDefined
+        ? requireFinite(row.delta_h_eff_95_lower, "delta_h_eff_95_lower")
+        : optionalSigma(row.delta_h_eff_95_lower, "delta_h_eff_95_lower"),
+      delta_h_eff_95_upper: uncertaintyDefined
+        ? requireFinite(row.delta_h_eff_95_upper, "delta_h_eff_95_upper")
+        : optionalSigma(row.delta_h_eff_95_upper, "delta_h_eff_95_upper"),
       delta_s_eff: requireFinite(row.delta_s_eff, "delta_s_eff"),
       delta_g_at_tm: requireFinite(row.delta_g_at_tm, "delta_g_at_tm"),
       delta_g_at_t_ref: requireFinite(row.delta_g_at_t_ref, "delta_g_at_t_ref"),
+      delta_g_at_t_ref_sigma: uncertaintyDefined
+        ? requireFinite(row.delta_g_at_t_ref_sigma, "delta_g_at_t_ref_sigma")
+        : optionalSigma(row.delta_g_at_t_ref_sigma, "delta_g_at_t_ref_sigma"),
+      delta_g_at_t_ref_95_lower: uncertaintyDefined
+        ? requireFinite(row.delta_g_at_t_ref_95_lower, "delta_g_at_t_ref_95_lower")
+        : optionalSigma(row.delta_g_at_t_ref_95_lower, "delta_g_at_t_ref_95_lower"),
+      delta_g_at_t_ref_95_upper: uncertaintyDefined
+        ? requireFinite(row.delta_g_at_t_ref_95_upper, "delta_g_at_t_ref_95_upper")
+        : optionalSigma(row.delta_g_at_t_ref_95_upper, "delta_g_at_t_ref_95_upper"),
       anchor_delta_g: requireFinite(row.anchor_delta_g, "anchor_delta_g"),
+      uncertainty_defined: uncertaintyDefined,
+      uncertainty_note: uncertaintyNote,
       delta_g_units: requireText(row.delta_g_units, "delta_g_units"),
       delta_h_units: requireText(row.delta_h_units, "delta_h_units"),
       delta_s_units: requireText(row.delta_s_units, "delta_s_units"),
@@ -703,10 +745,18 @@ export function parseEffectiveEnthalpy(body: unknown): EffectiveEnthalpy {
     result_label: requireText(row.result_label, "result_label"),
     assumption_delta_cp: null,
     delta_h_eff: null,
+    delta_h_eff_sigma: null,
+    delta_h_eff_95_lower: null,
+    delta_h_eff_95_upper: null,
     delta_s_eff: null,
     delta_g_at_tm: optionalFinite(row.delta_g_at_tm),
     delta_g_at_t_ref: null,
+    delta_g_at_t_ref_sigma: null,
+    delta_g_at_t_ref_95_lower: null,
+    delta_g_at_t_ref_95_upper: null,
     anchor_delta_g: null,
+    uncertainty_defined: false,
+    uncertainty_note: uncertaintyNote,
     delta_g_units: textOrNull(row.delta_g_units),
     delta_h_units: null,
     delta_s_units: null,
@@ -721,11 +771,36 @@ export function parseEffectiveEnthalpy(body: unknown): EffectiveEnthalpy {
   };
 }
 
+function parseEffectivePoint(value: unknown, index: number, requireBand: boolean): EffectivePoint {
+  const point = parseCurvePoint(value, index);
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`Curve point ${index} is not an object.`);
+  }
+  const row = value as Record<string, unknown>;
+  const sigma = requireBand
+    ? requireFinite(row.delta_g_sigma, `points[${index}].delta_g_sigma`)
+    : optionalSigma(row.delta_g_sigma, `points[${index}].delta_g_sigma`);
+  const low = requireBand
+    ? requireFinite(row.delta_g_95_lower, `points[${index}].delta_g_95_lower`)
+    : optionalSigma(row.delta_g_95_lower, `points[${index}].delta_g_95_lower`);
+  const high = requireBand
+    ? requireFinite(row.delta_g_95_upper, `points[${index}].delta_g_95_upper`)
+    : optionalSigma(row.delta_g_95_upper, `points[${index}].delta_g_95_upper`);
+  return {
+    ...point,
+    delta_g_sigma: sigma,
+    delta_g_95_lower: low,
+    delta_g_95_upper: high,
+  };
+}
+
 export async function postEffectiveEnthalpy(inputs: {
   tmC: number;
   deltaGRef: number | null;
   tRefC: number | null;
   units: EnergyUnits;
+  deltaGSigma?: number | null;
+  tmSigmaC?: number | null;
 }): Promise<EffectiveEnthalpy> {
   let response: Response;
   try {
@@ -737,6 +812,8 @@ export async function postEffectiveEnthalpy(inputs: {
         delta_g_ref: inputs.deltaGRef,
         t_ref_c: inputs.tRefC,
         units: inputs.units,
+        delta_g_sigma: inputs.deltaGSigma ?? null,
+        tm_sigma_c: inputs.tmSigmaC ?? null,
         t_min_c: CURVE_T_MIN_C,
         t_max_c: CURVE_T_MAX_C,
         n_points: CURVE_POINTS,

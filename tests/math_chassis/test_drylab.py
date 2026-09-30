@@ -7,10 +7,11 @@ Failure mode: a panel that blends series, or a dataset that marks itself calibra
 
 from __future__ import annotations
 
-from origami.drylab import drylab_dataset, stability_panel
+from origami.drylab import STABILITY_SERIES, drylab_dataset, stability_panel
 from origami.stability.series import (
     CORTAJARENA_2011_CTPRA_DSC,
     PHILLIPS_2012_CTPRA_DSC,
+    load_named_series,
 )
 
 
@@ -93,3 +94,35 @@ def test_dataset_records_measurements_and_does_not_fit_the_gp() -> None:
     assert "contour_nm" in observables
     radial = [row for row in bundle["measurements"] if row["observable"] == "ca_radial_A"]
     assert radial[0]["value_mean_A"] == 10.0
+
+
+def test_null_tm_uncertainty_is_not_rewritten_as_zero() -> None:
+    """The panel copies the printed Tm uncertainty. Null stays null.
+
+    The gate envelope uses zero width when a row prints no uncertainty.
+    Reporting that width as tm_uncertainty_C would invent a sigma of 0.
+    """
+    panel = stability_panel(37.0)
+    saw_null = False
+    saw_printed = False
+    for series_id in STABILITY_SERIES:
+        by_n: dict[int, list[object]] = {}
+        for obs in load_named_series(series_id):
+            by_n.setdefault(obs.n_repeats, []).append(obs)
+        for row in panel:
+            if row["series_id"] != series_id:
+                continue
+            matched = by_n.get(int(row["n_repeats"]), [])
+            if len(matched) != 1:
+                assert row["tm_uncertainty_C"] is None
+                continue
+            printed = matched[0].uncertainty
+            if printed is None:
+                saw_null = True
+                assert row["tm_C"] is not None
+                assert row["tm_uncertainty_C"] is None
+            else:
+                saw_printed = True
+                assert row["tm_uncertainty_C"] == float(printed)
+    assert saw_null
+    assert saw_printed

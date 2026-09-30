@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (ΔCp = 0 uncertainty)
+
+### Added
+- `effective_enthalpy_delta_cp_zero` propagates a caller-supplied anchor ΔG sigma and Tm sigma by a first-order delta method. The 95% band is value ± 1.96 σ and is labeled as a linear approximation, not a wet-lab confidence interval. At the anchor temperature the band matches the anchor uncertainty. A missing sigma stays null and is not replaced with zero.
+- `stability_panel` copies the printed Tm uncertainty. A null table uncertainty is no longer reported as 0.
+  Reviewed by: not a human wet-lab review. A passing test of this arithmetic is not scientific validation.
+
 ## Unreleased — 2026-09-30 (ΔCp = 0 effective enthalpy)
 
 ### Added
