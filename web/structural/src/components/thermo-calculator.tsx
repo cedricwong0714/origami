@@ -519,10 +519,15 @@ export function ThermoCalculator() {
             Estimate ΔG at other temperatures
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            ΔG at the melting temperature is 0 for a two-state melt. The paper’s number stays what the table printed. calibrated stays false.
+            Use this page to explore how unfolding free energy might change with temperature. At the melting temperature, ΔG is 0 for a two-state melt. The paper&apos;s printed value is always shown on its own. Estimates here are not calibrated to wet-lab data (calibrated = false).
           </p>
         </div>
-        <Badge className="rounded-full bg-[#242220] text-white">calibrated = false</Badge>
+        <Badge
+          className="rounded-full bg-[#242220] text-white"
+          title="Temperature estimates are not calibrated to wet-lab measurements on this chassis."
+        >
+          calibrated = false
+        </Badge>
       </header>
 
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-2 lg:gap-10">
@@ -756,7 +761,9 @@ export function ThermoCalculator() {
                   />
                 </div>
                 <p className="text-sm leading-relaxed text-[#5C564E]">ΔG(T) under the assumption that ΔCp is 0.</p>
-                <p className="text-sm leading-relaxed text-[#5C564E]">This estimate is an extrapolation. calibrated is false.</p>
+                <p className="text-sm leading-relaxed text-[#5C564E]">
+                  This estimate is an extrapolation (confidence tier: hypothesis_only). It is not calibrated to wet-lab data (calibrated = false).
+                </p>
                 {effective.human_review_required ? (
                   <p className="text-sm leading-relaxed text-[#5C564E]">A person should review this estimate before it is used.</p>
                 ) : null}
@@ -793,7 +800,7 @@ export function ThermoCalculator() {
                 <CurveChart title="ΔH(T)" units={prettyUnits(curve.delta_h_units)} color="#242220" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_h} />
                 <CurveChart title="ΔS(T)" units={prettyUnits(curve.delta_s_units)} color="#266FB1" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_s} />
                 <p className="text-sm leading-relaxed text-[#5C564E]">{curve.result_label || CURVE_LABEL}</p>
-                <p className="text-sm text-[#242220]">calibrated is false.</p>
+                <p className="text-sm text-[#242220]">These curves are not calibrated to wet-lab data (calibrated = false).</p>
                 {pending ? <p className="text-sm text-[#8A8175]">Updating the curves…</p> : null}
                 {curve.warnings.length > 0 ? (
                   <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">

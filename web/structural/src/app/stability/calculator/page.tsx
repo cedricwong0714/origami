@@ -4,7 +4,7 @@ import { ThermoCalculator } from "@/components/thermo-calculator";
 export const metadata: Metadata = {
   title: "Estimate ΔG · ORIGAMI",
   description:
-    "ΔG at the melting temperature is 0 for a two-state melt. The paper’s unfolding ΔG stays the table value. Full temperature curves appear only after ΔHcal and ΔCp are typed. calibrated stays false.",
+    "Estimate unfolding ΔG at temperatures other than the melt. At Tm, ΔG is 0 for a two-state melt. The paper’s table value is shown separately. Full ΔG(T), ΔH(T), and ΔS(T) curves need both ΔHcal and ΔCp. calibrated = false.",
 };
 
 export default function ThermoCalculatorPage() {

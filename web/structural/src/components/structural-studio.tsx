@@ -191,7 +191,11 @@ export function StructuralStudio() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="rounded-full bg-[#242220] text-white">
+          <Badge
+            variant="secondary"
+            className="rounded-full bg-[#242220] text-white"
+            title="Predictions are not calibrated to wet-lab measurements on this chassis."
+          >
             calibrated = false
           </Badge>
           {data?.source === "snapshot" ? (
@@ -288,26 +292,32 @@ export function StructuralStudio() {
               <Input
                 value={custom}
                 onChange={(event) => setCustom(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addCustom();
+                  }
+                }}
                 aria-label="Custom repeat count"
                 className="w-24 bg-white"
               />
-              <Button variant="outline" onClick={addCustom}>
-                Add n
+              <Button variant="outline" type="button" onClick={addCustom}>
+                Add repeat count
               </Button>
               <span className="text-sm text-[#8A8175]">
                 measuring {nOptions.length ? nOptions.join(", ") : "nothing"}
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={run} disabled={loading || nOptions.length === 0} size="lg">
+              <Button type="button" onClick={run} disabled={loading || nOptions.length === 0} size="lg">
                 {loading ? <Loader2 className="animate-spin" /> : <Check />}
                 Run structural analysis
               </Button>
-              <Button variant="outline" onClick={downloadJson} disabled={!data}>
-                <Download /> JSON
+              <Button variant="outline" type="button" onClick={downloadJson} disabled={!data}>
+                <Download /> Download JSON
               </Button>
-              <Button variant="ghost" onClick={() => setWiki((value) => !value)}>
-                <Printer /> {wiki ? "Edit view" : "Wiki figure"}
+              <Button variant="ghost" type="button" onClick={() => setWiki((value) => !value)} aria-pressed={wiki}>
+                <Printer /> {wiki ? "Switch to edit layout" : "Switch to wiki figure layout"}
               </Button>
             </div>
             {error ? (
@@ -491,7 +501,16 @@ export function StructuralStudio() {
                       <TableRow
                         key={row.repeat_index}
                         className="cursor-pointer"
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setSite(row.repeat_index)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSite(row.repeat_index);
+                          }
+                        }}
+                        aria-label={`Highlight repeat ${row.repeat_index} in the 3D view`}
                         data-state={site === row.repeat_index ? "selected" : undefined}
                       >
                         <TableCell className="font-medium">
@@ -587,9 +606,16 @@ export function StructuralStudio() {
       ) : null}
 
       <footer className="mt-12 border-t border-[#E3D9CC] pt-6 text-xs leading-relaxed text-[#8A8175]">
-        Hong Kong team · ORIGAMI structural chassis · GitLab
-        software/hong-kong-team/origami. Passing software tests is not
-        scientific validation.
+        Hong Kong team · ORIGAMI structural chassis ·{" "}
+        <a
+          className="underline decoration-[#E3D9CC] underline-offset-2 hover:decoration-[#C45C12]"
+          href="https://gitlab.ISEF.org/2026/software/hong-kong-team/origami"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          GitLab repository
+        </a>
+        . Passing software tests is not scientific validation.
       </footer>
     </div>
   );

@@ -53,7 +53,7 @@ export const EFFECTIVE_EQUATION = [
   "ΔS_eff = ΔH_eff / Tm",
   "",
   "ΔH_eff is an effective enthalpy under that assumption. It is not the Phillips calorimetric ΔH.",
-  "confidence tier is hypothesis_only. is_extrapolation is true. calibrated stays false.",
+  "Confidence tier: hypothesis_only. is_extrapolation is true. calibrated = false (not validated against wet-lab data).",
   "",
   "When the anchor ΔG and Tm both have a printed uncertainty, the ΔG(T) curve carries a 95% band.",
   "That band is value ± 1.96 σ from a first-order delta method. It is a linear approximation, not a wet-lab confidence interval.",
@@ -61,7 +61,7 @@ export const EFFECTIVE_EQUATION = [
 ].join("\n");
 
 export const CURVE_LABEL =
-  "Calculation from the ΔHcal, ΔCp, and Tm entered here. calibrated = false. This is not a measurement of the Hong Kong team fusion.";
+  "Curves are calculated from the ΔHcal, ΔCp, and melting temperature you entered. They are not calibrated to wet-lab data (calibrated = false) and they are not a measurement of the Hong Kong team fusion.";
 
 export type EnergyUnits = "kcal" | "kJ";
 

@@ -242,12 +242,16 @@ export function DataBoard() {
             n = 3, 8, 14
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
-            The numbers the chassis already computed. Ink bars are axial span.
-            Orange bars are the end chord on that same scale. Blue whiskers are the 95% chord band.
+            Side-by-side comparison for the team lengths n = 3, 8, and 14. Dark bars show axial span along the screw axis; orange bars show end-to-end chord on the same scale. Blue whiskers mark the 95% chord band from deposited-structure scatter (not a wet-lab interval).
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge className="rounded-full bg-[#242220] text-white">calibrated = false</Badge>
+          <Badge
+            className="rounded-full bg-[#242220] text-white"
+            title="These backbone numbers are not calibrated to wet-lab measurements."
+          >
+            calibrated = false
+          </Badge>
           {data?.source === "live" ? <Badge variant="outline">live chassis</Badge> : null}
           {data?.source === "snapshot" ? <Badge variant="outline">wiki snapshot</Badge> : null}
         </div>
@@ -270,8 +274,8 @@ export function DataBoard() {
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="font-heading text-2xl">End separation</CardTitle>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={download}>
-                  <Download /> CSV
+                <Button variant="outline" type="button" onClick={download}>
+                  <Download /> Download CSV
                 </Button>
               </div>
             </CardHeader>
@@ -354,8 +358,8 @@ export function DataBoard() {
           <Card className="border-[#E3D9CC] bg-white shadow-none">
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="font-heading text-2xl">Wiki caption</CardTitle>
-              <Button variant="outline" onClick={copyCaption}>
-                <Copy /> {copied ? "Copied" : "Copy"}
+              <Button variant="outline" type="button" onClick={copyCaption}>
+                <Copy /> {copied ? "Caption copied" : "Copy caption"}
               </Button>
             </CardHeader>
             <CardContent>

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Run" },
-  { href: "/present", label: "Present" },
-  { href: "/stability", label: "Stability" },
+  { href: "/", label: "Structural run" },
+  { href: "/present", label: "Present data" },
+  { href: "/stability", label: "Stability check" },
   { href: "/stability/calculator", label: "Estimate ΔG" },
 ];
 

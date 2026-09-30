@@ -514,7 +514,7 @@ export function StabilityBoard() {
             Stability confirmation
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Calculated melting temperature and calculated unfolding ΔG at n = 3, n = 8, and n = 14. Each number is that paper&apos;s length fit evaluated at that repeat count. The comparison at 37 °C uses the calculated melt. calibrated stays false.
+            For each literature series we show the calculated melting temperature and unfolding ΔG at n = 3, n = 8, and n = 14. Each value comes from that paper&apos;s length fit at that repeat count. Whether a construct passes at 37 °C is judged from the calculated melt, not from a wet-lab measurement. Nothing on this page is calibrated to our chassis data (calibrated = false).
           </p>
           <Link
             href="/stability/calculator"
@@ -524,7 +524,10 @@ export function StabilityBoard() {
           </Link>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge className="rounded-full bg-[#242220] text-white">
+          <Badge
+            className="rounded-full bg-[#242220] text-white"
+            title="Literature fits are not calibrated to wet-lab measurements on this chassis."
+          >
             calibrated = {data ? String(data.calibrated) : "false"}
           </Badge>
           {data?.source === "live" ? (
@@ -564,15 +567,18 @@ export function StabilityBoard() {
         <div className="mt-8 grid gap-8 border-t border-[#E3D9CC] pt-8 md:grid-cols-2">
           <div>
             <h3 className="text-sm font-semibold text-[#242220]">Repeat counts</h3>
-            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Lengths being confirmed">
+            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Lengths being confirmed (fixed, not selectable)">
               {TEAM_LENGTHS.map((n) => (
-                <li key={n} className="rounded-full bg-[#242220] px-4 py-2.5 text-sm font-medium text-white">
+                <li
+                  key={n}
+                  className="rounded-full border border-[#E3D9CC] bg-[#FBF8F3] px-4 py-2.5 text-sm font-medium text-[#242220]"
+                >
                   n = {n}
                 </li>
               ))}
             </ul>
             <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
-              These repeat counts are fixed. They are the lengths being confirmed.
+              These three repeat counts are fixed on this screen. They match the team&apos;s CTPR lengths and cannot be changed here.
             </p>
           </div>
           <div>
