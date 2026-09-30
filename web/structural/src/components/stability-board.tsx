@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -385,6 +386,9 @@ export function StabilityBoard() {
           <p className="mt-3 text-sm leading-relaxed text-[#5C564E] md:text-[15px]">
             Cited melting temperatures for team lengths n = 3, 8, and 14. Each series stays in its own block. This page does not average them, does not fit a Tm(n) curve, and does not claim a wet-lab validation of the fusion.
           </p>
+          <Link href="/stability/calculator" className="mt-3 inline-block text-sm font-medium text-[#FF8000]">
+            ΔG, ΔH, ΔS calculator
+          </Link>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge className="rounded-full bg-[#242220] text-white">

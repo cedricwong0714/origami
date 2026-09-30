@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (Gibbs–Helmholtz calculator)
+
+### Added
+- Two-state Gibbs–Helmholtz arithmetic for caller-supplied ΔHcal, ΔCp, and Tm. ΔH(T) = ΔHcal + ΔCp (T − Tm), ΔS(T) = ΔHcal/Tm + ΔCp ln(T/Tm), ΔG(T) = ΔH(T) − T ΔS(T), with temperatures in kelvin. ΔG(Tm) is 0 when the inputs are consistent.
+- The literature table still has only Tm and printed ΔG. ΔHcal and ΔCp are not stored and are not back-calculated. A missing calorimetry input returns no curve. `calibrated` stays false. The curve is not a measurement of the Hong Kong team fusion.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-27 (teammate checkpoint)
 
 ### Added

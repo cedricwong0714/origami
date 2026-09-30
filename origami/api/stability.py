@@ -15,12 +15,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from origami.drylab import STABILITY_SERIES, stability_panel
 from origami.stability.series import (
     DEFAULT_OPERATING_TEMPERATURE_C,
     PHILLIPS_2012_CTPRA_DSC,
+)
+from origami.stability.thermo import (
+    ThermoInputError,
+    gibbs_helmholtz_curves,
+    gibbs_helmholtz_report,
+    thermo_prefill,
 )
 
 router = APIRouter()
@@ -133,3 +139,113 @@ def get_stability_confirm(
 ) -> dict[str, Any]:
     """n = 3, 8, and 14 from the literature panel, one row per series."""
     return literature_confirm(t_assay_C)
+
+
+@router.post("/api/stability/thermo")
+async def post_stability_thermo(request: Request) -> dict[str, Any]:
+    """ΔG, ΔH, and ΔS from caller-supplied Gibbs–Helmholtz inputs.
+
+    Body: t_c, tm_c, delta_h, delta_cp, optional units ("kcal" or "kJ"),
+    and optional delta_h_sigma, delta_cp_sigma, tm_sigma_c.
+    Temperatures are °C. Outputs are kcal. calibrated stays false.
+    """
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return gibbs_helmholtz_report(
+            body.get("t_c"),
+            body.get("tm_c"),
+            body.get("delta_h"),
+            body.get("delta_cp"),
+            units="kcal" if "units" not in body else body.get("units"),
+            delta_h_sigma=body.get("delta_h_sigma"),
+            delta_cp_sigma=body.get("delta_cp_sigma"),
+            tm_sigma_c=body.get("tm_sigma_c"),
+        )
+    except ThermoInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _reject_missing_calorimetry(body: dict[str, Any]) -> None:
+    """Missing ΔHcal or ΔCp is an error. The route does not store a fill-in."""
+    missing: list[str] = []
+    if "delta_h" not in body or body.get("delta_h") is None:
+        missing.append("ΔHcal")
+    if "delta_cp" not in body or body.get("delta_cp") is None:
+        missing.append("ΔCp")
+    if not missing:
+        return
+    if len(missing) == 1:
+        lead = f"{missing[0]} is missing."
+    else:
+        lead = f"{' and '.join(missing)} are missing."
+    raise HTTPException(
+        status_code=400,
+        detail=(
+            f"{lead} Calorimetry inputs are required. "
+            "No ΔH(T), ΔS(T), or ΔG(T) curve is returned."
+        ),
+    )
+
+
+@router.post("/api/stability/thermo/curves")
+async def post_stability_thermo_curves(request: Request) -> dict[str, Any]:
+    """ΔH(T), ΔS(T), and ΔG(T) from posted ΔHcal, ΔCp, and Tm.
+
+    The body is the whole input. Nothing is read from the literature
+    file and nothing is written back to it. Missing or non-finite
+    ΔHcal or ΔCp is HTTP 400.
+    """
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    _reject_missing_calorimetry(body)
+    curve_kwargs: dict[str, Any] = {}
+    if "t_min_c" in body and body.get("t_min_c") is not None:
+        curve_kwargs["t_min_c"] = body.get("t_min_c")
+    if "t_max_c" in body and body.get("t_max_c") is not None:
+        curve_kwargs["t_max_c"] = body.get("t_max_c")
+    if "n_points" in body and body.get("n_points") is not None:
+        curve_kwargs["n_points"] = body.get("n_points")
+    if "units" in body:
+        curve_kwargs["units"] = body.get("units")
+    try:
+        return gibbs_helmholtz_curves(
+            body.get("tm_c"),
+            body.get("delta_h"),
+            body.get("delta_cp"),
+            **curve_kwargs,
+        )
+    except ThermoInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/api/stability/thermo/prefill")
+def get_thermo_prefill(
+    series_id: str = Query(..., description="Named literature series id."),
+    n: str = Query(..., description="Repeat count. Not interpolated."),
+) -> dict[str, Any]:
+    """Cited Tm and ΔG for one series and n. ΔH and ΔCp stay null if absent."""
+    try:
+        if not isinstance(series_id, str) or series_id.strip() == "":
+            raise ThermoInputError("series_id is required")
+        token = n.strip()
+        if token.startswith("-"):
+            digits = token[1:]
+            negative = True
+        else:
+            digits = token
+            negative = False
+        if digits == "" or not digits.isdigit():
+            raise ThermoInputError("n must be an integer")
+        n_repeats = -int(digits) if negative else int(digits)
+        return thermo_prefill(series_id.strip(), n_repeats)
+    except ThermoInputError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
