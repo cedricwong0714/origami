@@ -64,6 +64,14 @@ function formatAtTm(value: number): string {
   return formatQuantity(value);
 }
 
+function meltingIdentity(tmC: string): { tmC: number; tmK: number } | null {
+  const typed = parseRequired(tmC);
+  if (typed === null) return null;
+  const tmK = typed + CELSIUS_TO_KELVIN;
+  if (tmK <= 0) return null;
+  return { tmC: typed, tmK };
+}
+
 function parseRequired(raw: string): number | null {
   const trimmed = raw.trim();
   if (trimmed === "") return null;
@@ -280,10 +288,7 @@ export function ThermoCalculator() {
     const heatCapacity = parseRequired(deltaCp);
     if (enthalpy === null || heatCapacity === null) {
       clearComputed(CALORIMETRY_MISSING);
-      setErrors({
-        temperature: null,
-        form: CALORIMETRY_MISSING,
-      });
+      setErrors(emptyErrors());
       return;
     }
     if (melting === null || melting + CELSIUS_TO_KELVIN <= 0) {
@@ -369,6 +374,7 @@ export function ThermoCalculator() {
 
   const energy = energyUnitLabel(units, "energy");
   const entropy = energyUnitLabel(units, "entropy");
+  const identity = meltingIdentity(tmC);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
@@ -378,9 +384,9 @@ export function ThermoCalculator() {
           <p className="text-[11px] font-semibold tracking-[0.22em] text-[#FF8000] uppercase">
             Gibbs–Helmholtz arithmetic
           </p>
-          <h1 className="mt-2 font-heading text-4xl text-[#242220] md:text-5xl">ΔG, ΔH, ΔS calculator</h1>
+          <h1 className="mt-2 font-heading text-4xl text-[#242220] md:text-5xl">ΔG at the melting temperature</h1>
           <p className="mt-3 text-sm leading-relaxed text-[#5C564E] md:text-[15px]">
-            Two-state Gibbs–Helmholtz arithmetic on the ΔHcal, ΔCp, and Tm you enter. calibrated stays false. This is not a measurement of the Hong Kong team fusion.
+            You do not need ΔH or ΔS to get ΔG at the melting temperature. For a two-state transition that value is 0 as soon as Tm is known. ΔHcal and ΔCp are optional and are used only for the temperature curves. calibrated stays false. This is not a measurement of the Hong Kong team fusion.
           </p>
         </div>
         <Badge className="rounded-full bg-[#242220] text-white">
@@ -395,7 +401,7 @@ export function ThermoCalculator() {
         <CardContent>
           <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap text-[#242220]">{THERMO_EQUATION}</pre>
           <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
-            This is the relation Phillips et al. 2012 (DOI 10.1002/pro.2018) used to obtain unfolding ΔG at 10 °C from ΔHcal, Tm, and ΔCp. It is not a new fit. Outputs are kcal mol⁻¹ for ΔG and ΔH, and kcal mol⁻¹ K⁻¹ for ΔS. A kJ input is converted with 1 kcal = 4.184 kJ, and that conversion is reported.
+            You do not need ΔH or ΔS to get ΔG at the melting temperature. For a two-state transition, ΔG(Tm) = 0. That identity holds only for a two-state melt. It is not a wet-lab fit, and no uncertainty band is attached to the zero. The temperature curve away from Tm is the relation Phillips et al. 2012 (DOI 10.1002/pro.2018) used to obtain unfolding ΔG at 10 °C from ΔHcal, Tm, and ΔCp. It is not a new fit. Curve outputs are kcal mol⁻¹ for ΔG and ΔH, and kcal mol⁻¹ K⁻¹ for ΔS. A kJ input is converted with 1 kcal = 4.184 kJ, and that conversion is reported.
           </p>
         </CardContent>
       </Card>
@@ -456,30 +462,80 @@ export function ThermoCalculator() {
             {tmCaption(tmC, prefill) ? (
               <p className="text-sm leading-relaxed text-[#5C564E]">{tmCaption(tmC, prefill)}</p>
             ) : null}
-            <label className="block text-sm font-medium text-[#242220]">
-              ΔHcal, ΔH at Tm ({energy})
-              <Input
-                className="mt-1 border-[#E3D9CC]"
-                inputMode="decimal"
-                value={deltaH}
-                onChange={(event) => {
-                  setDeltaH(event.target.value);
-                  clearComputed();
-                }}
-              />
-            </label>
-            <label className="block text-sm font-medium text-[#242220]">
-              ΔCp ({entropy})
-              <Input
-                className="mt-1 border-[#E3D9CC]"
-                inputMode="decimal"
-                value={deltaCp}
-                onChange={(event) => {
-                  setDeltaCp(event.target.value);
-                  clearComputed();
-                }}
-              />
-            </label>
+            {identity ? (
+              <div className="space-y-3 rounded-xl border border-[#E3D9CC] bg-[#FFF7EF] p-4" role="status" aria-live="polite">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-sm font-medium text-[#242220]">ΔG at the melting temperature</p>
+                    <p className="mt-1 font-heading text-3xl text-[#242220]">0 {energy}</p>
+                    <p className="mt-1 text-sm text-[#5C564E]">
+                      Tm = {formatQuantity(identity.tmC)} °C = {formatQuantity(identity.tmK)} K. T_K = t_C + 273.15.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#242220]">Printed unfolding ΔG</p>
+                    {prefill?.deltaG != null ? (
+                      <>
+                        <p className="mt-1 font-heading text-3xl text-[#242220]">
+                          {formatQuantity(prefill.deltaG)} {prefill.deltaGUnits ?? ""}
+                        </p>
+                        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+                          Looked up, not calculated from Tm
+                          {prefill.deltaGTemperatureC != null
+                            ? `, at ${formatQuantity(prefill.deltaGTemperatureC)} °C`
+                            : ""}
+                          .
+                          {prefill.deltaGUncertainty != null
+                            ? ` Printed uncertainty ± ${formatQuantity(prefill.deltaGUncertainty)} ${prefill.deltaGUnits ?? ""}.`
+                            : ""}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+                        Not printed for this series and n.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm leading-relaxed text-[#5C564E]">
+                  For a two-state transition, ΔG(Tm) = 0 by definition. You do not need ΔH or ΔS to get ΔG at the melting temperature. This identity holds only for a two-state melt. It is not a wet-lab fit. calibrated is false. No uncertainty band is attached to this zero.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-[#5C564E]">
+                ΔG at the melting temperature is shown when Tm is a finite temperature. You do not need ΔH or ΔS. A length with no cited Tm stays empty until you type one.
+              </p>
+            )}
+            <fieldset className="space-y-3 rounded-xl border border-[#E3D9CC] p-3">
+              <legend className="px-1 text-sm font-medium text-[#242220]">Optional, for temperature curves only</legend>
+              <p className="text-sm leading-relaxed text-[#5C564E]">
+                ΔHcal and ΔCp are optional. They are used only to draw ΔH(T), ΔS(T), and ΔG(T) away from Tm. Leave them blank when you do not have them. ΔS is not an input. You do not need ΔH or ΔS to get ΔG at the melting temperature.
+              </p>
+              <label className="block text-sm font-medium text-[#242220]">
+                ΔHcal, ΔH at Tm (optional, {energy})
+                <Input
+                  className="mt-1 border-[#E3D9CC]"
+                  inputMode="decimal"
+                  value={deltaH}
+                  onChange={(event) => {
+                    setDeltaH(event.target.value);
+                    clearComputed();
+                  }}
+                />
+              </label>
+              <label className="block text-sm font-medium text-[#242220]">
+                ΔCp (optional, {entropy})
+                <Input
+                  className="mt-1 border-[#E3D9CC]"
+                  inputMode="decimal"
+                  value={deltaCp}
+                  onChange={(event) => {
+                    setDeltaCp(event.target.value);
+                    clearComputed();
+                  }}
+                />
+              </label>
+            </fieldset>
             <fieldset className="space-y-3 rounded-xl border border-[#E3D9CC] p-3">
               <legend className="px-1 text-sm font-medium text-[#242220]">Optional sigmas</legend>
               <p className="text-sm text-[#5C564E]">
@@ -499,10 +555,10 @@ export function ThermoCalculator() {
               </label>
             </fieldset>
             <p className="text-sm text-[#5C564E]">
-              An evaluation temperature is optional. The curves use the whole window. Leave it blank if you only want ΔH(T), ΔS(T), and ΔG(T) versus temperature.
+              The evaluation temperature is optional and is used only with ΔHcal and ΔCp. Leave it blank to draw the curves across the window. ΔG at the melting temperature does not use it.
             </p>
             <Button type="submit" disabled={pending} className="bg-[#FF8000] text-white">
-              {pending ? "Calculating…" : "Calculate curves"}
+              {pending ? "Calculating…" : "Calculate temperature curves"}
             </Button>
           </CardContent>
         </Card>
@@ -553,8 +609,11 @@ export function ThermoCalculator() {
                     Printed ΔG:{" "}
                     {prefill.deltaG === null
                       ? "not printed for this series and n."
-                      : `${formatQuantity(prefill.deltaG)} ${prefill.deltaGUnits ?? ""}`.trim() +
-                        ". That is the table entry, not a calculator result."}
+                      : `Looked up, not calculated from Tm: ${formatQuantity(prefill.deltaG)} ${prefill.deltaGUnits ?? ""}${
+                          prefill.deltaGTemperatureC === null
+                            ? ""
+                            : ` at ${formatQuantity(prefill.deltaGTemperatureC)} °C`
+                        }.`}
                   </p>
                   <p>ΔHcal and ΔCp from this table: blank. They are not back-calculated from ΔG and Tm.</p>
                 </div>
@@ -689,7 +748,7 @@ export function ThermoCalculator() {
                 <p className="text-sm leading-relaxed text-[#5C564E]">
                   {curve
                     ? "No single temperature was requested. The curves above are the temperature dependence. Type an evaluation temperature and calculate again to read ΔG, ΔH, and ΔS at that one temperature."
-                    : "No result yet. The curves need Tm, ΔHcal, and ΔCp. An evaluation temperature is only for this single-point readout."}
+                    : "ΔG, ΔH, and ΔS at a temperature other than Tm need optional ΔHcal and ΔCp. ΔG at the melting temperature is already shown when Tm is filled in, without those inputs."}
                 </p>
               ) : null}
             </CardContent>

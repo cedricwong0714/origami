@@ -28,8 +28,16 @@ sends kJ is converted with 1 kcal = 4.184 kJ, and that conversion is
 recorded. ``calibrated`` is always false: this is arithmetic on cited
 or caller-supplied inputs, not a wet-lab validation.
 
-ΔH and ΔCp are never read from memory. ``thermo_prefill`` copies them
-only when the literature JSON actually has those fields.
+ΔH, ΔS, and ΔCp are never read from memory and are never back-calculated
+from Tm or from a printed ΔG. ``thermo_prefill`` copies ΔH and ΔCp only
+when the literature JSON actually has those fields.
+
+ΔG at the melting temperature does not need those inputs. For a two-state
+transition, ΔG(Tm) = 0 by definition. That identity is the only ΔG this
+module computes from Tm alone. A curve of ΔH(T), ΔS(T), and ΔG(T) away
+from Tm still requires caller-supplied ΔHcal and ΔCp. Missing calorimetry
+leaves the curve empty. It does not hide ΔG(Tm), and it does not draw a
+line of zeros.
 """
 
 from __future__ import annotations
@@ -78,13 +86,31 @@ _DELTA_CP_KEYS = (
 EQUATION_TEXT = (
     "For a two-state unfold, temperatures are kelvin "
     "(T_K = t_C + 273.15). "
-    "ΔHcal is ΔH at Tm. ΔCp is assumed constant. "
+    "ΔG(Tm) = 0 by definition. That identity does not need ΔH or ΔS. "
+    "It holds only for a two-state melt. "
+    "A temperature curve away from Tm still needs caller-supplied "
+    "ΔHcal and ΔCp. ΔHcal is ΔH at Tm. ΔCp is assumed constant. "
     "ΔH(T) = ΔHcal + ΔCp * (T - Tm). "
     "ΔS(T) = ΔHcal / Tm + ΔCp * ln(T / Tm). "
     "ΔG(T) = ΔH(T) - T * ΔS(T). "
-    "ΔG(Tm) = 0 when the inputs are consistent, because "
-    "ΔS(Tm) = ΔHcal / Tm. "
     "The same ΔG is ΔHcal * (1 - T/Tm) + ΔCp * ((T - Tm) - T * ln(T/Tm))."
+)
+
+# Temperature named for the Phillips et al. 2012 Table I unfolding ΔG
+# column. This is the temperature that table states, not a value derived
+# from Tm and not a fitted parameter.
+# Source: data/stability/README.md, "Unfolding ΔG at 10°C", Phillips et al.
+# 2012, DOI 10.1002/pro.2018, Table I. The same temperature is named in
+# origami.stability.series.delta_g_at_n.
+_PHILLIPS_TABLE_I_DELTA_G_T_C = 10.0
+
+_TWO_STATE_IDENTITY = (
+    "For a two-state transition, ΔG(Tm) = 0 by definition. "
+    "Temperatures are kelvin: T_K = t_C + 273.15. "
+    "This identity holds only for a two-state melt. "
+    "It is not a wet-lab fit. calibrated is false. "
+    "No uncertainty band is attached to this zero. "
+    "ΔH and ΔS are not required and were not calculated from Tm."
 )
 
 # Display window for the temperature curve. Not a biological parameter,
@@ -364,37 +390,109 @@ def gibbs_helmholtz_report(
     }
 
 
-def _no_curve(missing: list[str]) -> dict[str, Any]:
-    """An absent curve. Missing calorimetry is not filled with zeros."""
+def _delta_g_identity_at_tm(tm_c: object) -> dict[str, Any] | None:
+    """ΔG(Tm) = 0 when Tm is finite. None when Tm was not supplied.
+
+    A non-finite Tm raises ``ThermoInputError``. ``None`` means the caller
+    did not give a melting temperature, so this function does not invent ΔG.
+    ΔH, ΔS, and ΔCp are not arguments. They are not inferred.
+    """
+    if tm_c is None:
+        return None
+    tm_c_value = _as_finite("tm_c", tm_c)
+    tm_k = _celsius_to_kelvin("Tm", tm_c_value)
+    return {
+        "delta_g_at_tm": 0.0,
+        "delta_g_units": _ENERGY_UNITS,
+        "tm_c": tm_c_value,
+        "tm_k": tm_k,
+        "uncertainty_defined": False,
+        "delta_g_sigma": None,
+        "delta_g_95_lower": None,
+        "delta_g_95_upper": None,
+        "uncertainty_note": (
+            "No uncertainty band is attached to ΔG(Tm) = 0. "
+            "The identity holds only for a two-state melt. "
+            "It is not a wet-lab fit."
+        ),
+    }
+
+
+def _no_curve(missing: list[str], tm_c: object) -> dict[str, Any]:
+    """An absent curve. Missing calorimetry is not filled with zeros.
+
+    A finite Tm still reports ΔG(Tm) = 0. That single value is not a
+    plotted curve. A missing Tm leaves ``delta_g_at_tm`` null.
+    """
     if len(missing) == 1:
         lead = f"{missing[0]} is missing."
     else:
         lead = f"{' and '.join(missing)} are missing."
+    identity = _delta_g_identity_at_tm(tm_c)
+    if identity is None:
+        message = (
+            f"{lead} Calorimetry inputs are missing. "
+            "No ΔH(T), ΔS(T), or ΔG(T) curve is computed. "
+            "No melting temperature was supplied, so ΔG was not invented."
+        )
+        assumptions = [
+            "No finite melting temperature was supplied, so ΔG was not invented.",
+            "ΔHcal and ΔCp were not both supplied, so the Gibbs–Helmholtz "
+            "equation was not evaluated. Missing calorimetry inputs are "
+            "not replaced with zero.",
+        ]
+        tm_c_value = None
+        tm_k = None
+        delta_g_at_tm = None
+        delta_g_units = None
+        uncertainty_note = (
+            "No ΔG was reported, so no uncertainty band was attached."
+        )
+    else:
+        message = (
+            f"{lead} Calorimetry inputs are missing. "
+            "No ΔH(T), ΔS(T), or ΔG(T) curve is computed. "
+            "ΔG at the melting temperature is 0. "
+            "You do not need ΔH or ΔS for that value."
+        )
+        assumptions = [
+            _TWO_STATE_IDENTITY,
+            "ΔHcal and ΔCp were not both supplied, so no temperature curve "
+            "was computed. Missing calorimetry inputs are not replaced "
+            "with zero and are not plotted.",
+        ]
+        tm_c_value = identity["tm_c"]
+        tm_k = identity["tm_k"]
+        delta_g_at_tm = identity["delta_g_at_tm"]
+        delta_g_units = identity["delta_g_units"]
+        uncertainty_note = identity["uncertainty_note"]
     return {
         "calibrated": False,
         "model": "two_state_gibbs_helmholtz",
         "equation": EQUATION_TEXT,
         "has_curve": False,
-        "message": (
-            f"{lead} Calorimetry inputs are missing. "
-            "No ΔH(T), ΔS(T), or ΔG(T) curve is computed."
-        ),
+        "message": message,
         "result_label": _CURVE_LABEL,
         "missing_inputs": missing,
         "points": [],
         "delta_g": None,
         "delta_h": None,
         "delta_s": None,
-        "delta_g_at_tm": None,
-        "delta_g_units": None,
+        "delta_g_at_tm": delta_g_at_tm,
+        "delta_g_units": delta_g_units,
         "delta_h_units": None,
         "delta_s_units": None,
+        "tm_c": tm_c_value,
+        "tm_k": tm_k,
+        "t_units": "C",
+        "t_k_units": "K",
+        "uncertainty_defined": False,
+        "uncertainty_note": uncertainty_note,
+        "delta_g_sigma": None,
+        "delta_g_95_lower": None,
+        "delta_g_95_upper": None,
         "warnings": [],
-        "assumptions": [
-            "ΔHcal and ΔCp were not supplied, so the Gibbs–Helmholtz "
-            "equation was not evaluated. Missing calorimetry inputs are "
-            "not replaced with zero.",
-        ],
+        "assumptions": assumptions,
     }
 
 
@@ -428,8 +526,10 @@ def gibbs_helmholtz_curves(
 
     ``delta_h`` is ΔHcal (ΔH at Tm). ``delta_cp`` is ΔCp. Either one
     being ``None`` returns ``has_curve`` false and an empty ``points``
-    list. No zero series is invented. Any other non-finite input raises
-    ``ThermoInputError``.
+    list. No zero series is invented. If ``tm_c`` is a finite
+    temperature, ``delta_g_at_tm`` is still 0. That is the two-state
+    identity, not a curve. If ``tm_c`` is ``None``, ``delta_g_at_tm``
+    stays null. Any other non-finite input raises ``ThermoInputError``.
 
     The grid defaults are a display window (0 °C to 100 °C, 101 points),
     not a measured DSC range. When Tm lies inside that window, one sample
@@ -444,7 +544,7 @@ def gibbs_helmholtz_curves(
     if delta_cp is None:
         missing.append("ΔCp")
     if missing:
-        return _no_curve(missing)
+        return _no_curve(missing, tm_c)
 
     tm_c_value = _as_finite("tm_c", tm_c)
     if t_min_c is None:
@@ -602,9 +702,12 @@ def thermo_prefill(series_id: str, n_repeats: int) -> dict[str, Any]:
     """Cited Tm, ΔG, ΔH, and ΔCp for one named series and repeat count.
 
     Tm and ΔG are copied from the literature table when that series has
-    a single row at ``n_repeats``. ΔH and ΔCp are copied only when the
-    JSON row has those fields. Otherwise they are null. This function
-    does not interpolate a missing n and does not average rows.
+    a single row at ``n_repeats``. A copied ΔG is marked ``looked_up``
+    and carries the temperature that Phillips Table I states for that
+    column (10 °C). It is not calculated from Tm. ΔH and ΔCp are copied
+    only when the JSON row has those fields. Otherwise they are null.
+    This function does not interpolate a missing n and does not average
+    rows.
     """
     if not isinstance(series_id, str) or series_id.strip() == "":
         raise ThermoInputError("series_id is required")
@@ -715,6 +818,9 @@ def thermo_prefill(series_id: str, n_repeats: int) -> dict[str, Any]:
         "delta_g": None if dg_obs is None else dg_obs.value,
         "delta_g_units": None if dg_obs is None else dg_obs.units,
         "delta_g_uncertainty": None if dg_obs is None else dg_obs.uncertainty,
+        "delta_g_origin": None if dg_obs is None else "looked_up",
+        "delta_g_t_c": None if dg_obs is None else _PHILLIPS_TABLE_I_DELTA_G_T_C,
+        "delta_g_t_units": None if dg_obs is None else "C",
         "delta_h": delta_h,
         "delta_h_units": delta_h_units,
         "delta_cp": delta_cp,

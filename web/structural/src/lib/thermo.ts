@@ -14,14 +14,24 @@ const LIVE = process.env.NEXT_PUBLIC_SA_API ?? "";
 
 export const THERMO_EQUATION = [
   "For a two-state unfold, temperatures are in kelvin (T_K = t_C + 273.15).",
+  "ΔG at the melting temperature is 0. You do not need ΔH or ΔS for that value.",
+  "The identity holds only for a two-state melt. It is not a wet-lab fit.",
+  "",
+  "A temperature curve away from Tm still needs ΔHcal and ΔCp.",
   "ΔHcal is ΔH at Tm. ΔCp is constant.",
   "",
   "ΔH(T) = ΔHcal + ΔCp (T − Tm)",
   "ΔS(T) = ΔHcal/Tm + ΔCp ln(T/Tm)",
   "ΔG(T) = ΔH(T) − T ΔS(T)",
-  "",
-  "ΔG(Tm) = 0 when those inputs are consistent, because ΔS(Tm) = ΔHcal/Tm.",
 ].join("\n");
+
+/**
+ * Temperature stated for the Phillips et al. 2012 Table I unfolding ΔG column.
+ * Source: data/stability/README.md, "Unfolding ΔG at 10°C".
+ * Used only to label a looked-up table value when the payload omits the
+ * temperature. It is not calculated from Tm.
+ */
+export const PHILLIPS_PRINTED_DELTA_G_T_C = 10;
 
 /** Display window sent with a curve request. Not a DSC setpoint. */
 export const CURVE_T_MIN_C = 0;
@@ -29,7 +39,7 @@ export const CURVE_T_MAX_C = 100;
 export const CURVE_POINTS = 101;
 
 export const CALORIMETRY_MISSING =
-  "Calorimetry inputs are missing. No ΔH(T), ΔS(T), or ΔG(T) curve is shown.";
+  "ΔHcal or ΔCp is blank, so no temperature curve is drawn. You do not need ΔH or ΔS to get ΔG at the melting temperature.";
 
 export const CURVE_LABEL =
   "Calculation from the ΔHcal, ΔCp, and Tm entered here. calibrated = false. This is not a measurement of the Hong Kong team fusion.";
@@ -75,6 +85,9 @@ export type ThermoPrefill = {
   deltaCp: number | null;
   deltaG: number | null;
   deltaGUnits: string | null;
+  deltaGUncertainty: number | null;
+  deltaGOrigin: "looked_up" | null;
+  deltaGTemperatureC: number | null;
   doi: string | null;
   method: string | null;
   message: string;
@@ -291,8 +304,12 @@ function prefillMessage(prefill: Omit<ThermoPrefill, "message">): string {
   }
   if (prefill.deltaG !== null) {
     const units = prefill.deltaGUnits ?? "reported units";
+    const at =
+      prefill.deltaGTemperatureC === null
+        ? ""
+        : ` at ${formatQuantity(prefill.deltaGTemperatureC)} °C`;
     parts.push(
-      `Printed ΔG on this row is ${formatQuantity(prefill.deltaG)} ${units}. That is the table entry, not a calculator result.`,
+      `Looked up, not calculated from Tm: printed unfolding ΔG is ${formatQuantity(prefill.deltaG)} ${units}${at}.`,
     );
   }
   if (prefill.method || prefill.doi) {
@@ -302,10 +319,38 @@ function prefillMessage(prefill: Omit<ThermoPrefill, "message">): string {
   return parts.join(" ");
 }
 
+function lookedUpDeltaG(row: Record<string, unknown>): {
+  deltaG: number | null;
+  deltaGUnits: string | null;
+  deltaGUncertainty: number | null;
+  deltaGOrigin: "looked_up" | null;
+  deltaGTemperatureC: number | null;
+} {
+  const deltaG = finiteOrNull(row.delta_g);
+  if (deltaG === null) {
+    return {
+      deltaG: null,
+      deltaGUnits: null,
+      deltaGUncertainty: null,
+      deltaGOrigin: null,
+      deltaGTemperatureC: null,
+    };
+  }
+  const stated = finiteOrNull(row.delta_g_t_c);
+  return {
+    deltaG,
+    deltaGUnits: textOrNull(row.delta_g_units),
+    deltaGUncertainty: finiteOrNull(row.delta_g_uncertainty),
+    deltaGOrigin: "looked_up",
+    deltaGTemperatureC: stated === null ? PHILLIPS_PRINTED_DELTA_G_T_C : stated,
+  };
+}
+
 function fromApiBody(body: unknown): ThermoPrefill | null {
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
   const row = body as Record<string, unknown>;
   const tmC = finiteOrNull(row.tm_c);
+  const printed = lookedUpDeltaG(row);
   const prefill: Omit<ThermoPrefill, "message"> = {
     origin: "api",
     tmStatus: tmStatusOf(row.tm_status, tmC),
@@ -313,8 +358,7 @@ function fromApiBody(body: unknown): ThermoPrefill | null {
     tmUncertainty: finiteOrNull(row.tm_uncertainty),
     deltaH: finiteOrNull(row.delta_h),
     deltaCp: finiteOrNull(row.delta_cp),
-    deltaG: finiteOrNull(row.delta_g),
-    deltaGUnits: textOrNull(row.delta_g_units),
+    ...printed,
     doi: textOrNull(row.doi),
     method: textOrNull(row.method),
   };
@@ -383,6 +427,9 @@ function fromSnapshot(index: SnapshotIndex, seriesId: string, n: number): Thermo
       deltaCp: null,
       deltaG: null,
       deltaGUnits: null,
+      deltaGUncertainty: null,
+      deltaGOrigin: null,
+      deltaGTemperatureC: null,
       doi: null,
       method: null,
     };
@@ -394,6 +441,7 @@ function fromSnapshot(index: SnapshotIndex, seriesId: string, n: number): Thermo
   }
   const row = matches[0] ?? {};
   const tmC = finiteOrNull(row.tm_C);
+  const printed = lookedUpDeltaG(row);
   const prefill: Omit<ThermoPrefill, "message"> = {
     origin: "snapshot",
     tmStatus: tmStatusOf(row.thermal_state, tmC),
@@ -401,8 +449,7 @@ function fromSnapshot(index: SnapshotIndex, seriesId: string, n: number): Thermo
     tmUncertainty: finiteOrNull(row.tm_uncertainty_C),
     deltaH: null,
     deltaCp: null,
-    deltaG: finiteOrNull(row.delta_g),
-    deltaGUnits: textOrNull(row.delta_g_units),
+    ...printed,
     doi: null,
     method: null,
   };
@@ -519,6 +566,9 @@ export async function loadThermoPrefill(
     deltaCp: null,
     deltaG: null,
     deltaGUnits: null,
+    deltaGUncertainty: null,
+    deltaGOrigin: null,
+    deltaGTemperatureC: null,
     doi: null,
     method: null,
   };

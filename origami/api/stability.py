@@ -170,35 +170,14 @@ async def post_stability_thermo(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-def _reject_missing_calorimetry(body: dict[str, Any]) -> None:
-    """Missing ΔHcal or ΔCp is an error. The route does not store a fill-in."""
-    missing: list[str] = []
-    if "delta_h" not in body or body.get("delta_h") is None:
-        missing.append("ΔHcal")
-    if "delta_cp" not in body or body.get("delta_cp") is None:
-        missing.append("ΔCp")
-    if not missing:
-        return
-    if len(missing) == 1:
-        lead = f"{missing[0]} is missing."
-    else:
-        lead = f"{' and '.join(missing)} are missing."
-    raise HTTPException(
-        status_code=400,
-        detail=(
-            f"{lead} Calorimetry inputs are required. "
-            "No ΔH(T), ΔS(T), or ΔG(T) curve is returned."
-        ),
-    )
-
-
 @router.post("/api/stability/thermo/curves")
 async def post_stability_thermo_curves(request: Request) -> dict[str, Any]:
-    """ΔH(T), ΔS(T), and ΔG(T) from posted ΔHcal, ΔCp, and Tm.
+    """ΔG(Tm) from Tm, and curves only when ΔHcal and ΔCp are posted.
 
     The body is the whole input. Nothing is read from the literature
-    file and nothing is written back to it. Missing or non-finite
-    ΔHcal or ΔCp is HTTP 400.
+    file and nothing is written back to it. A finite Tm with missing
+    ΔHcal or ΔCp returns ΔG(Tm) = 0 and an empty curve. A non-finite
+    number is HTTP 400. ΔH, ΔS, and ΔCp are not filled in.
     """
     try:
         body = await request.json()
@@ -206,7 +185,6 @@ async def post_stability_thermo_curves(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="JSON object required") from exc
     if not isinstance(body, dict):
         raise HTTPException(status_code=400, detail="JSON object required")
-    _reject_missing_calorimetry(body)
     curve_kwargs: dict[str, Any] = {}
     if "t_min_c" in body and body.get("t_min_c") is not None:
         curve_kwargs["t_min_c"] = body.get("t_min_c")

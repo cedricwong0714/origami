@@ -409,12 +409,23 @@ def test_cortajarena_prefill_has_tm_and_no_invented_delta_g_or_enthalpy() -> Non
 
 
 def test_missing_delta_hcal_returns_no_curve() -> None:
-    """A missing ΔHcal or ΔCp does not become a curve of zeros."""
-    for kwargs in (
-        {"tm_c": 60.0, "delta_h": None, "delta_cp": 0.2},
-        {"tm_c": 60.0, "delta_h": 10.0, "delta_cp": None},
-        {"tm_c": None, "delta_h": None, "delta_cp": None},
-    ):
+    """A missing ΔHcal or ΔCp does not become a curve of zeros.
+
+    A finite Tm still returns ΔG(Tm) = 0. That is one value, not a
+    plotted series. A missing Tm does not invent ΔG.
+    """
+    cases = (
+        {"tm_c": 60.0, "delta_h": None, "delta_cp": 0.2, "expect_identity": True},
+        {"tm_c": 60.0, "delta_h": 10.0, "delta_cp": None, "expect_identity": True},
+        {"tm_c": None, "delta_h": None, "delta_cp": None, "expect_identity": False},
+    )
+    for case in cases:
+        expect_identity = bool(case["expect_identity"])
+        kwargs = {
+            "tm_c": case["tm_c"],
+            "delta_h": case["delta_h"],
+            "delta_cp": case["delta_cp"],
+        }
         report = gibbs_helmholtz_curves(**kwargs)
         assert report["has_curve"] is False
         assert report["calibrated"] is False
@@ -422,11 +433,41 @@ def test_missing_delta_hcal_returns_no_curve() -> None:
         assert report["delta_g"] is None
         assert report["delta_h"] is None
         assert report["delta_s"] is None
-        assert report["delta_g_at_tm"] is None
         assert report["missing_inputs"]
+        assert report["uncertainty_defined"] is False
+        assert report["delta_g_sigma"] is None
+        assert report["delta_g_95_lower"] is None
+        assert report["delta_g_95_upper"] is None
         assert "calorimetry inputs are missing" in report["message"].lower()
         encoded = json.dumps(report["points"])
         assert encoded == "[]"
+        if expect_identity:
+            assert report["delta_g_at_tm"] == 0.0
+            assert report["delta_g_units"] == "kcal mol-1"
+            assert report["tm_k"] == pytest.approx(float(case["tm_c"]) + 273.15)
+            assert "two-state" in " ".join(report["assumptions"]).lower()
+            assert "uncertainty band" in report["uncertainty_note"].lower()
+        else:
+            assert report["delta_g_at_tm"] is None
+
+
+def test_finite_tm_without_calorimetry_returns_delta_g_zero() -> None:
+    """Finite Tm and missing ΔHcal/ΔCp still returns delta_G_at_Tm = 0.
+
+    Supplying ΔHcal and ΔCp does not move ΔG(Tm) off zero. The curve
+    exists only in that second call. The first call has no points.
+    """
+    alone = gibbs_helmholtz_curves(60.0, None, None)
+    assert alone["has_curve"] is False
+    assert alone["points"] == []
+    assert alone["delta_g_at_tm"] == 0.0
+    assert alone["calibrated"] is False
+    assert alone["delta_g_95_lower"] is None
+    assert alone["delta_g_95_upper"] is None
+    supplied = gibbs_helmholtz_curves(60.0, _DELTA_H, _DELTA_CP)
+    assert supplied["has_curve"] is True
+    assert abs(supplied["delta_g_at_tm"]) < 1e-9
+    assert supplied["calibrated"] is False
 
 
 def test_curve_uses_kelvin_and_is_zero_at_tm() -> None:
@@ -503,6 +544,11 @@ def test_default_series_prefill_n3_and_n8_matches_literature_json() -> None:
         assert prefill["tm_units"] == tm_raw["units"]
         assert prefill["delta_g"] == dg_raw["value"]
         assert prefill["delta_g_units"] == dg_raw["units"]
+        assert prefill["delta_g_origin"] == "looked_up"
+        # 10 °C is the temperature Phillips Table I states for this column
+        # (data/stability/README.md). It is not read from the value field.
+        assert prefill["delta_g_t_c"] == 10.0
+        assert prefill["delta_g_t_units"] == "C"
         assert prefill["delta_h"] is None
         assert prefill["delta_cp"] is None
         assert prefill["calibrated"] is False
@@ -525,10 +571,17 @@ def test_n14_default_series_stays_extrapolated() -> None:
     assert prefill["tm_status"] == "extrapolated"
     assert prefill["tm_c"] is None
     assert prefill["delta_g"] is None
+    assert prefill["delta_g_origin"] is None
+    assert prefill["delta_g_t_c"] is None
     assert prefill["delta_h"] is None
     assert prefill["delta_cp"] is None
     assert prefill["calibrated"] is False
     assert prefill["interpolated"] is False
+    # No typed Tm: the identity is not applied, so ΔG stays uninvented.
+    blank = gibbs_helmholtz_curves(None, None, None)
+    assert blank["delta_g_at_tm"] is None
+    assert blank["has_curve"] is False
+    assert blank["points"] == []
 
 
 def test_http_thermo_and_existing_stability_routes() -> None:
@@ -599,6 +652,8 @@ def test_http_thermo_and_existing_stability_routes() -> None:
         )
         assert payload["tm_c"] == raw_tm["value"]
         assert payload["delta_g"] == raw_dg["value"]
+        assert payload["delta_g_origin"] == "looked_up"
+        assert payload["delta_g_t_c"] == 10.0
         assert payload["delta_h"] is None
         assert payload["delta_cp"] is None
         assert payload["tm_status"] == "cited"
@@ -612,22 +667,32 @@ def test_http_thermo_and_existing_stability_routes() -> None:
     assert extrapolated.json()["tm_status"] == "extrapolated"
     assert extrapolated.json()["tm_c"] is None
     assert extrapolated.json()["delta_g"] is None
+    assert extrapolated.json()["delta_g_origin"] is None
+    assert extrapolated.json()["delta_g_t_c"] is None
     assert extrapolated.json()["delta_h"] is None
 
     missing_curve = client.post(
         "/api/stability/thermo/curves",
         json={"tm_c": _TM_C, "delta_cp": _DELTA_CP},
     )
-    assert missing_curve.status_code == 400
-    assert "missing" in missing_curve.json()["detail"].lower()
-    assert "points" not in missing_curve.json()
+    assert missing_curve.status_code == 200
+    missing_body = missing_curve.json()
+    assert missing_body["has_curve"] is False
+    assert missing_body["points"] == []
+    assert missing_body["delta_g_at_tm"] == 0.0
+    assert missing_body["calibrated"] is False
+    assert missing_body["delta_g_95_lower"] is None
+    assert missing_body["delta_g_95_upper"] is None
+    assert "calorimetry inputs are missing" in missing_body["message"].lower()
 
     null_curve = client.post(
         "/api/stability/thermo/curves",
         json={"tm_c": _TM_C, "delta_h": None, "delta_cp": _DELTA_CP},
     )
-    assert null_curve.status_code == 400
-    assert "points" not in null_curve.json()
+    assert null_curve.status_code == 200
+    assert null_curve.json()["points"] == []
+    assert null_curve.json()["delta_g_at_tm"] == 0.0
+    assert null_curve.json()["has_curve"] is False
 
     rejected_curve = client.post(
         "/api/stability/thermo/curves",
