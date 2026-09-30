@@ -10,15 +10,15 @@ import {
   SERIES_IDS,
   TEAM_LENGTHS,
   citedTm,
-  deltaGLabel,
   fetchStabilityPanel,
   formatMeasure,
   panelHasTeamRows,
-  printedTmUncertainty,
   seriesBlocks,
   seriesCopy,
   type LengthSlot,
   type SeriesBlock,
+  type SeriesCurveFit,
+  type SeriesFitBlock,
   type StabilityPanel,
   type StabilityRow,
 } from "@/lib/stability";
@@ -28,18 +28,22 @@ const PHILLIPS_DSC = new Set<string>(["phillips2012_ctpra_dsc", "phillips2012_ct
 
 const COMPARISON_C = 37;
 
-type LengthKind = "pass" | "fail" | "extrapolated" | "other" | "conflict";
+type LengthKind = "pass" | "fail" | "not_fit" | "other" | "conflict";
 
 type LengthView = {
   nRepeats: number;
   kind: LengthKind;
   stateWord: string;
   stateSpeech: string;
+  lengthNote: string | null;
   tmText: string;
-  uncertaintyText: string;
-  uncertaintySpeech: string | null;
+  paperTmText: string | null;
+  bandText: string;
+  bandSpeech: string | null;
   deltaGText: string;
   deltaGSpeech: string;
+  paperDeltaGText: string | null;
+  deltaGBandText: string | null;
   rowCount?: number;
 };
 
@@ -47,135 +51,169 @@ function prettyUnits(text: string): string {
   return text.replaceAll("mol-1", "mol⁻¹").replaceAll("K-1", "K⁻¹");
 }
 
-function aboveComparison(assayC: number): string {
-  return `The cited melt is above ${formatMeasure(assayC)} °C.`;
+function formatFit(value: number): string {
+  if (!Number.isFinite(value)) {
+    throw new Error("formatFit requires a finite number.");
+  }
+  const abs = Math.abs(value);
+  if (abs !== 0 && (abs >= 1000 || abs < 0.001)) {
+    return value.toExponential(3);
+  }
+  return formatMeasure(value);
+}
+
+function bandSpan(low: number | null, high: number | null, units: string): string | null {
+  if (low === null || high === null) return null;
+  if (!Number.isFinite(low) || !Number.isFinite(high)) return null;
+  const unitText = units.trim();
+  const span = `${formatFit(low)}–${formatFit(high)}`;
+  return unitText ? `${span} ${unitText}` : span;
+}
+
+function paperLine(value: number | null | undefined, units: string): string | null {
+  if (value === undefined) return null;
+  if (value === null || !Number.isFinite(value)) return "Paper row: not in this series";
+  const unitText = units.trim();
+  return unitText ? `Paper row: ${formatMeasure(value)} ${unitText}` : `Paper row: ${formatMeasure(value)}`;
 }
 
 function deltaGCopy(
   row: StabilityRow | null,
   seriesId: string,
-  seriesHasDeltaG: boolean,
-  panelHasRows: boolean,
-): { text: string; speech: string } {
+): { text: string; speech: string; paper: string | null; band: string | null } {
+  const phillips = PHILLIPS_DSC.has(seriesId)
+    ? ` The printed column is the table value at ${PHILLIPS_PRINTED_DELTA_G_T_C} °C.`
+    : "";
   if (row && typeof row.delta_g === "number" && Number.isFinite(row.delta_g)) {
-    const where = PHILLIPS_DSC.has(seriesId)
-      ? `${PHILLIPS_PRINTED_DELTA_G_T_C} °C`
-      : "the temperature the table states";
+    const units = prettyUnits(row.delta_g_units ?? "");
+    const band = bandSpan(row.delta_g_band_95_low, row.delta_g_band_95_high, units);
     return {
-      text: prettyUnits(deltaGLabel(row)),
-      speech: `Unfolding free energy copied from the table, at ${where}. It does not decide pass or fail, and editing a temperature elsewhere does not change it.`,
+      text: `${formatFit(row.delta_g)}${units ? ` ${units}` : ""}`,
+      speech: row.comparison_uses_fit
+        ? `Calculated from this series' printed unfolding ΔG values versus repeat count. It is not a temperature correction, and it does not decide pass or fail.${phillips}`
+        : `Unfolding free energy from the lookup.${phillips} It does not decide pass or fail.`,
+      paper: row.comparison_uses_fit
+        ? paperLine(row.paper_delta_g, units)
+        : null,
+      band: row.comparison_uses_fit ? band : null,
     };
   }
-  if (!panelHasRows) {
+  if (row?.comparison_uses_fit) {
     return {
       text: "Not printed",
-      speech: "No unfolding free energy was copied. The lookup has no rows for these lengths.",
+      speech: "This series has no unfolding ΔG rows. Nothing was borrowed from another paper.",
+      paper: null,
+      band: null,
     };
-  }
-  if (!seriesHasDeltaG) {
-    return { text: "Not printed", speech: "This series has no ΔG column." };
   }
   return {
     text: "Not printed",
-    speech: "This paper has no row for this length, so no unfolding free energy was copied.",
+    speech: "This series has no unfolding ΔG value at this length.",
+    paper: null,
+    band: null,
   };
 }
 
-function extrapolatedView(
+function emptyMelt(
   nRepeats: number,
   seriesId: string,
-  seriesHasDeltaG: boolean,
-  panelHasRows: boolean,
+  reason: string,
 ): LengthView {
-  const deltaG = deltaGCopy(null, seriesId, seriesHasDeltaG, panelHasRows);
+  const deltaG = deltaGCopy(null, seriesId);
   return {
     nRepeats,
-    kind: "extrapolated",
-    stateWord: "Extrapolated",
-    stateSpeech: "This paper has no row for this length, so no melting temperature was fit.",
+    kind: "not_fit",
+    stateWord: "Not fit",
+    stateSpeech: reason,
+    lengthNote: null,
     tmText: "Not fit",
-    uncertaintyText: "Not printed",
-    uncertaintySpeech: null,
+    paperTmText: null,
+    bandText: "Not reported",
+    bandSpeech: null,
     deltaGText: deltaG.text,
     deltaGSpeech: deltaG.speech,
+    paperDeltaGText: deltaG.paper,
+    deltaGBandText: deltaG.band,
   };
 }
 
-function lengthView(
-  slot: LengthSlot,
-  seriesId: string,
-  seriesHasDeltaG: boolean,
-  panelHasRows: boolean,
-  assayC: number,
-): LengthView {
+function lengthView(slot: LengthSlot, seriesId: string, assayC: number): LengthView {
   if (slot.rows.length > 1) {
-    const deltaG = deltaGCopy(null, seriesId, seriesHasDeltaG, panelHasRows);
+    const deltaG = deltaGCopy(null, seriesId);
     return {
       nRepeats: slot.nRepeats,
       kind: "conflict",
       stateWord: "Not shown",
       stateSpeech: `This length has ${slot.rows.length} rows in this paper. They were not averaged, and no melting temperature was chosen.`,
+      lengthNote: null,
       tmText: "Not shown",
-      uncertaintyText: "Not shown",
-      uncertaintySpeech: null,
+      paperTmText: null,
+      bandText: "Not shown",
+      bandSpeech: null,
       deltaGText: deltaG.text,
       deltaGSpeech: deltaG.speech,
+      paperDeltaGText: deltaG.paper,
+      deltaGBandText: deltaG.band,
       rowCount: slot.rows.length,
     };
   }
   const row = slot.rows[0] ?? null;
   if (!row) {
-    return extrapolatedView(slot.nRepeats, seriesId, seriesHasDeltaG, panelHasRows);
+    return emptyMelt(
+      slot.nRepeats,
+      seriesId,
+      "This length has no calculated melting temperature.",
+    );
   }
   const tm = citedTm(row);
-  const deltaG = deltaGCopy(row, seriesId, seriesHasDeltaG, panelHasRows);
-  const noCitedMelt =
-    row.thermal_state === "extrapolated" ||
-    (tm === null && row.thermal_state !== "pass" && row.thermal_state !== "fail");
-  if (noCitedMelt) {
-    const empty = extrapolatedView(slot.nRepeats, seriesId, seriesHasDeltaG, panelHasRows);
-    return { ...empty, deltaGText: deltaG.text, deltaGSpeech: deltaG.speech };
-  }
+  const deltaG = deltaGCopy(row, seriesId);
   if (tm === null) {
+    const empty = emptyMelt(
+      slot.nRepeats,
+      seriesId,
+      row.thermal_reason ?? "No melting-temperature curve was fit for this series.",
+    );
     return {
-      nRepeats: slot.nRepeats,
-      kind: "other",
-      stateWord: row.thermal_state === "fail" ? "Fail" : row.thermal_state === "pass" ? "Pass" : "Not shown",
-      stateSpeech:
-        row.thermal_reason ??
-        "The lookup marked this length, and no melting temperature is available to show.",
-      tmText: "Not fit",
-      uncertaintyText: "Not printed",
-      uncertaintySpeech: null,
+      ...empty,
       deltaGText: deltaG.text,
       deltaGSpeech: deltaG.speech,
+      paperDeltaGText: deltaG.paper,
+      deltaGBandText: deltaG.band,
     };
   }
-  const sigma = printedTmUncertainty(row);
   const passed = row.thermal_state === "pass";
   const failed = row.thermal_state === "fail";
+  const usesFit = row.comparison_uses_fit;
+  const band = usesFit ? bandSpan(row.tm_interval_low, row.tm_interval_high, "°C") : null;
   return {
     nRepeats: slot.nRepeats,
     kind: passed ? "pass" : failed ? "fail" : "other",
     stateWord: passed ? "Pass" : failed ? "Fail" : row.thermal_state,
-    stateSpeech: passed
-      ? aboveComparison(assayC)
-      : failed
-        ? `The cited melt is not above ${formatMeasure(assayC)} °C.`
-        : (row.thermal_reason ?? "This length is listed as the lookup returned it."),
-    tmText: `${formatMeasure(tm)} °C`,
-    uncertaintyText: sigma === null ? "Omitted" : `± ${formatMeasure(sigma)} °C`,
-    uncertaintySpeech:
-      sigma === null ? "The paper did not print an uncertainty, not zero." : null,
+    stateSpeech: usesFit
+      ? passed
+        ? `The comparison uses the fit. The calculated melt is above ${formatMeasure(assayC)} °C.`
+        : failed
+          ? `The comparison uses the fit. The calculated melt is not above ${formatMeasure(assayC)} °C.`
+          : (row.thermal_reason ?? "The comparison uses the fit.")
+      : passed
+        ? `The cited melt is above ${formatMeasure(assayC)} °C.`
+        : failed
+          ? `The cited melt is not above ${formatMeasure(assayC)} °C.`
+          : (row.thermal_reason ?? "This length is listed as the lookup returned it."),
+    lengthNote: row.length_note,
+    tmText: `${formatFit(tm)} °C`,
+    paperTmText: usesFit ? paperLine(row.paper_tm_C, "°C") : null,
+    bandText: usesFit ? (band ?? "Not reported") : "Lookup",
+    bandSpeech: usesFit
+      ? band
+        ? "Linear approximation of the fit covariance, value ± 1.96 σ. Not a wet-lab confidence interval."
+        : "The fit covariance is not finite, so the 95% band is non-identifiable. The calculated value is still shown."
+      : null,
     deltaGText: deltaG.text,
     deltaGSpeech: deltaG.speech,
+    paperDeltaGText: deltaG.paper,
+    deltaGBandText: deltaG.band,
   };
-}
-
-function seriesHasPrintedDeltaG(block: SeriesBlock): boolean {
-  return block.slots.some((slot) =>
-    slot.rows.some((row) => typeof row.delta_g === "number" && Number.isFinite(row.delta_g)),
-  );
 }
 
 function ChoiceButton({
@@ -205,13 +243,13 @@ function ChoiceButton({
 
 function LengthCard({ view }: { view: LengthView }) {
   const stateClass =
-    view.kind === "extrapolated"
+    view.kind === "not_fit"
       ? "text-[#C45C12]"
       : view.kind === "fail" || view.kind === "conflict"
         ? "text-[#9B2C2C]"
         : "text-[#242220]";
   const shell =
-    view.kind === "extrapolated"
+    view.kind === "not_fit"
       ? "flex h-full flex-col rounded-2xl border border-dashed border-[#C45C12]/40 bg-white p-5 md:p-6"
       : "flex h-full flex-col rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-6";
   return (
@@ -220,29 +258,33 @@ function LengthCard({ view }: { view: LengthView }) {
       <p className="mt-5 text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">State</p>
       <h3 className={`mt-1 font-heading text-3xl font-semibold tracking-tight ${stateClass}`}>{view.stateWord}</h3>
       <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{view.stateSpeech}</p>
+      {view.lengthNote ? (
+        <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{view.lengthNote}</p>
+      ) : null}
       <dl className="mt-6 space-y-5 border-t border-[#E3D9CC] pt-5">
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Melting temperature</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Calculated melt</dt>
           <dd className="mt-1 font-heading text-2xl font-semibold tabular-nums text-[#242220]">{view.tmText}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Uncertainty</dt>
-          <dd
-            className={
-              view.uncertaintySpeech
-                ? "mt-1 text-base font-medium text-[#C45C12]"
-                : "mt-1 text-base font-medium tabular-nums text-[#242220]"
-            }
-          >
-            {view.uncertaintyText}
-          </dd>
-          {view.uncertaintySpeech ? (
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{view.uncertaintySpeech}</p>
+          {view.paperTmText ? (
+            <p className="mt-1 text-sm text-[#8A8175]">{view.paperTmText}</p>
           ) : null}
         </div>
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Unfolding ΔG</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">95% band</dt>
+          <dd className="mt-1 text-base font-medium tabular-nums text-[#242220]">{view.bandText}</dd>
+          {view.bandSpeech ? (
+            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{view.bandSpeech}</p>
+          ) : null}
+        </div>
+        <div>
+          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Calculated ΔG</dt>
           <dd className="mt-1 text-base font-medium text-[#242220]">{view.deltaGText}</dd>
+          {view.deltaGBandText ? (
+            <p className="mt-1 text-sm tabular-nums text-[#242220]">95% band: {view.deltaGBandText}</p>
+          ) : null}
+          {view.paperDeltaGText ? (
+            <p className="mt-1 text-sm text-[#8A8175]">{view.paperDeltaGText}</p>
+          ) : null}
           <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{view.deltaGSpeech}</p>
         </div>
       </dl>
@@ -250,20 +292,52 @@ function LengthCard({ view }: { view: LengthView }) {
   );
 }
 
+function parameterLine(fit: SeriesCurveFit): string[] {
+  return fit.parameters.map((parameter) => {
+    const value = formatFit(parameter.value);
+    if (!parameter.identifiable || parameter.standard_error === null) {
+      return `${parameter.name} = ${value} ${parameter.units} (non-identifiable)`;
+    }
+    return `${parameter.name} = ${value} ± ${formatFit(parameter.standard_error)} ${parameter.units}`;
+  });
+}
+
+function FitSummary({ fit, title }: { fit: SeriesCurveFit; title: string }) {
+  const points = fit.n_repeats.length > 0 ? `Fit on n = ${fit.n_repeats.join(", ")}.` : "No points were fit.";
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-semibold text-[#242220]">{title}</h3>
+      {fit.equation ? (
+        <p className="mt-1 font-heading text-sm text-[#242220]">{fit.equation}</p>
+      ) : null}
+      <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{points}</p>
+      {parameterLine(fit).length > 0 ? (
+        <ul className="mt-2 space-y-1 text-sm tabular-nums text-[#3F3A34]">
+          {parameterLine(fit).map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      ) : null}
+      {fit.warnings.map((warning) => (
+        <p key={warning} className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+          {warning}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function SeriesResult({
   block,
   assayC,
-  panelHasRows,
+  fit,
 }: {
   block: SeriesBlock;
   assayC: number;
-  panelHasRows: boolean;
+  fit: SeriesFitBlock | null;
 }) {
   const copy = seriesCopy(block.seriesId);
-  const hasDeltaG = seriesHasPrintedDeltaG(block);
-  const views = block.slots.map((slot) =>
-    lengthView(slot, block.seriesId, hasDeltaG, panelHasRows, assayC),
-  );
+  const views = block.slots.map((slot) => lengthView(slot, block.seriesId, assayC));
   return (
     <section className="rounded-2xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 md:p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -286,6 +360,12 @@ function SeriesResult({
               </a>
               .
             </p>
+          ) : null}
+          {fit ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <FitSummary fit={fit.tm} title="Calculated melt" />
+              <FitSummary fit={fit.delta_g} title="Calculated ΔG" />
+            </div>
           ) : null}
         </div>
         {copy?.isDefault ? (
@@ -344,6 +424,7 @@ export function StabilityBoard() {
 
   const blocks = data ? seriesBlocks(data.rows) : [];
   const hasRows = data ? panelHasTeamRows(data.rows) : false;
+  const fitsById = new Map((data?.series_fits ?? []).map((fit) => [fit.series_id, fit]));
   const choices = seriesChoices(blocks);
   const visible = blocks.filter((block) => seriesFilter === "all" || block.seriesId === seriesFilter);
   const selectedTitle =
@@ -364,7 +445,7 @@ export function StabilityBoard() {
             Stability confirmation
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Cited melting temperatures for n = 3, n = 8, and n = 14. Each paper stays in its own block. Nothing here is averaged, and a missing melt is not filled in.
+            Calculated melting temperature and calculated unfolding ΔG at n = 3, n = 8, and n = 14. Each number is that paper&apos;s length fit evaluated at that repeat count. The comparison at 37 °C uses the calculated melt. calibrated stays false.
           </p>
           <Link
             href="/stability/calculator"
@@ -389,7 +470,7 @@ export function StabilityBoard() {
       <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Choose which paper to read. The lengths and the comparison temperature stay fixed.
+          Choose which paper&apos;s fit to read. The lengths stay fixed. The comparison at 37 °C uses the calculated melt.
         </p>
 
         <div className="mt-8">
@@ -455,7 +536,7 @@ export function StabilityBoard() {
 
         {loading ? (
           <p className="mt-8 flex items-center gap-2 text-sm text-[#8A8175]">
-            <Loader2 className="animate-spin" /> Loading the cited melting temperatures…
+            <Loader2 className="animate-spin" /> Loading the calculated melting temperatures…
           </p>
         ) : null}
 
@@ -480,7 +561,12 @@ export function StabilityBoard() {
         {data ? (
           <div className="mt-6 space-y-6">
             {visible.map((block) => (
-              <SeriesResult key={block.seriesId} block={block} assayC={assayC} panelHasRows={hasRows} />
+              <SeriesResult
+                key={block.seriesId}
+                block={block}
+                assayC={assayC}
+                fit={fitsById.get(block.seriesId) ?? null}
+              />
             ))}
           </div>
         ) : null}

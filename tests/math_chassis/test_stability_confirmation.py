@@ -11,6 +11,7 @@ blending neighbors, or lets delta_G set thermal_state.
 from __future__ import annotations
 
 import json
+import math
 
 from origami.api.stability import literature_confirm
 from origami.drylab import STABILITY_SERIES, stability_panel
@@ -259,45 +260,88 @@ def test_null_tm_uncertainty_omits_the_gate_envelope() -> None:
     assert saw_printed
 
 
-def test_confirm_keeps_twelve_rows_and_does_not_invent_stopped_series() -> None:
-    """Four series at n = 3, 8, and 14 are twelve rows.
+def test_confirm_page_payload_evaluates_the_fit_at_n_14() -> None:
+    """The confirmation payload shows the length model, including n = 14.
 
-    Phillips 2012 CTPRa CD and Phillips 2012 CTPR DSC have no Tm at
-    n = 8. Those cells stay extrapolated. They are not given a Tm from
-    another series. Failure mode: averaging or copying a neighbor Tm.
+    The lookup panel still leaves a missing table cell empty. This
+    payload does not. Failure mode: a blank n = 14, a copied table
+    cell used as the primary number, or one series fit on another's
+    points. A passing test is not scientific validation.
     """
+    from origami.stability.length_fit import fit_named_delta_g, fit_named_tm, saturating_value
+
     body = literature_confirm(_ASSAY_C)
     rows = body["rows"]
     assert body["calibrated"] is False
+    assert body["comparison"] == "fit"
+    assert body["confidence_tier"] == "hypothesis_only"
     assert len(rows) == 12
     assert {row["series_id"] for row in rows} == set(_SERIES)
     pairs = {(row["series_id"], row["n_repeats"]) for row in rows}
     assert pairs == {(series_id, n_repeats) for series_id in _SERIES for n_repeats in _LENGTHS}
-    assert "no Tm(n) was fit" in body["note"]
+    assert "no Tm(n) was fit" not in body["note"]
+    assert "calculated" in body["note"].lower()
+    assert "ΔHcal" in body["note"]
 
-    for series_id in (PHILLIPS_2012_CTPRA_CD, PHILLIPS_2012_CTPR_DSC):
-        for n_repeats in (8, 14):
-            row = _panel_row(rows, series_id, n_repeats)
-            assert row["thermal_state"] == "extrapolated"
-            assert row["tm_C"] is None
-            assert row["delta_g"] is None
-            assert row["tm_uncertainty_C"] is None
-            assert row["tm_interval_low"] is None
-            assert row["tm_interval_high"] is None
+    default_fit = fit_named_tm(PHILLIPS_2012_CTPRA_DSC)
+    assert default_fit.form == "saturating"
+    theta = tuple(parameter.value for parameter in default_fit.parameters)
+    for n_repeats in _LENGTHS:
+        row = _panel_row(rows, PHILLIPS_2012_CTPRA_DSC, n_repeats)
+        expected = saturating_value(n_repeats, theta[0], theta[1], theta[2])
+        assert row["calibrated"] is False
+        assert row["comparison_uses_fit"] is True
+        assert row["tm_C"] == expected
+        assert row["tm_C"] == default_fit.predict(n_repeats).value
+        assert math.isfinite(row["tm_C"])
+        assert row["thermal_state"] in ("pass", "fail")
+        assert "The comparison uses the fit." in row["thermal_reason"]
+        assert row["tm_band_label"] == "linear approximation"
+        assert row["confidence_tier"] == "hypothesis_only"
+    row_3 = _panel_row(rows, PHILLIPS_2012_CTPRA_DSC, 3)
+    row_8 = _panel_row(rows, PHILLIPS_2012_CTPRA_DSC, 8)
+    row_14 = _panel_row(rows, PHILLIPS_2012_CTPRA_DSC, 14)
+    assert row_3["paper_tm_C"] == 63.0
+    assert row_3["tm_C"] != row_3["paper_tm_C"]
+    assert row_8["paper_tm_C"] == 74.0
+    assert row_8["tm_C"] != 74
+    assert row_8["tm_C"] != 63
+    assert row_14["paper_tm_C"] is None
+    assert row_14["past_longest_cited_length"] is True
+    assert row_14["longest_cited_n"] == max(
+        obs.n_repeats for obs in load_named_series(PHILLIPS_2012_CTPRA_DSC)
+    )
+    assert row_14["length_note"] == (
+        f"14 is past the longest cited length in this series ({row_14['longest_cited_n']})."
+    )
+    assert "extrapolated" not in row_14["length_note"]
+    dg_fit = fit_named_delta_g(PHILLIPS_2012_CTPRA_DSC)
+    assert dg_fit.form == "saturating"
+    assert math.isfinite(row_14["delta_g"])
+    assert row_14["delta_g"] == dg_fit.predict(14).value
+    assert row_14["paper_delta_g"] is None
+    assert row_3["paper_delta_g"] == 4.8
 
-    for n_repeats in (3, 8):
+    cortajarena_dg = fit_named_delta_g(CORTAJARENA_2011_CTPRA_DSC)
+    assert cortajarena_dg.form == "not_fit"
+    assert cortajarena_dg.n_points == 0
+    for n_repeats in _LENGTHS:
         cortajarena = _panel_row(rows, CORTAJARENA_2011_CTPRA_DSC, n_repeats)
-        assert cortajarena["tm_C"] is not None
-        assert cortajarena["tm_uncertainty_C"] is None
-        assert cortajarena["tm_interval_low"] is None
-        assert cortajarena["tm_interval_high"] is None
-        assert cortajarena["thermal_state"] == "pass"
+        assert math.isfinite(cortajarena["tm_C"])
+        assert cortajarena["delta_g"] is None
+        assert cortajarena["delta_g_fit_form"] == "not_fit"
 
-    n14 = [
-        row
-        for row in rows
-        if row["n_repeats"] == 14
-    ]
-    assert len(n14) == 4
-    assert all(row["thermal_state"] == "extrapolated" for row in n14)
-    assert all(row["tm_C"] is None for row in n14)
+    ctpr_fit = fit_named_tm(PHILLIPS_2012_CTPR_DSC)
+    assert len(ctpr_fit.n_repeats) < 4
+    assert ctpr_fit.form == "line"
+    assert len(ctpr_fit.parameters) == 2
+    ctpr_14 = _panel_row(rows, PHILLIPS_2012_CTPR_DSC, 14)
+    assert math.isfinite(ctpr_14["tm_C"])
+    assert ctpr_14["tm_fit_form"] == "line"
+    assert any("Two points determine a line" in warning for warning in ctpr_fit.warnings)
+
+    phillips_points = set(zip(default_fit.n_repeats, default_fit.values, strict=True))
+    cort_fit = fit_named_tm(CORTAJARENA_2011_CTPRA_DSC)
+    cort_points = set(zip(cort_fit.n_repeats, cort_fit.values, strict=True))
+    assert phillips_points.isdisjoint(cort_points)
+    assert _panel_row(rows, CORTAJARENA_2011_CTPRA_DSC, 8)["tm_C"] != row_8["tm_C"]

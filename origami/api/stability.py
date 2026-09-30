@@ -1,9 +1,11 @@
-"""HTTP lookup of the existing literature thermal panel.
+"""HTTP surfaces for the literature thermal panel and the length fit.
 
-This module does not fit ``Tm(n)``, does not interpolate, and does not
-average series. Each row is whatever ``stability_panel`` already
-returns. ``delta_G`` is carried on the row and is not a pass/fail rule.
-``calibrated`` stays false.
+``GET /api/stability/panel`` is the raw lookup. It does not fit
+``Tm(n)`` and it does not average series. ``GET /api/stability/confirm``
+is the page payload. Each melting temperature and unfolding ΔG on that
+payload is the per-series length model evaluated at that repeat count.
+The comparison at the assay temperature uses the calculated melting
+temperature. ``calibrated`` stays false.
 
 The default comparison temperature is
 ``DEFAULT_OPERATING_TEMPERATURE_C`` (37 C). That value is an *E. coli*
@@ -18,6 +20,16 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from origami.drylab import STABILITY_SERIES, stability_panel
+from origami.stability.length_fit import (
+    MODEL_NAME,
+    MODEL_VERSION,
+    SATURATING_EQUATION,
+    LINE_EQUATION,
+    LengthFit,
+    fit_named_delta_g,
+    fit_named_tm,
+    fit_public_dict,
+)
 from origami.stability.series import (
     DEFAULT_OPERATING_TEMPERATURE_C,
     PHILLIPS_2012_CTPRA_DSC,
@@ -32,10 +44,10 @@ from origami.stability.thermo import (
 
 router = APIRouter()
 
-# Confirmation lengths requested by the dry-lab screen. These are not
-# a fitted Tm(n) grid. n=14 is outside the cited repeat range, so the
-# thermal gate leaves its Tm empty.
-_CONFIRM_N: frozenset[int] = frozenset({3, 8, 14})
+# Lengths shown on the confirmation page. The number at each length is
+# the length model evaluated there, including a length past the longest
+# cited repeat count.
+_CONFIRM_N: tuple[int, ...] = (3, 8, 14)
 
 _ASSAY_DESCRIPTION = (
     "Assay comparison temperature in degrees Celsius. "
@@ -45,9 +57,17 @@ _ASSAY_DESCRIPTION = (
 )
 
 _CONFIRM_NOTE = (
-    "n=14 Tm is extrapolated and no Tm(n) was fit. "
-    "No interpolation. Series stay separate and are never averaged. "
-    "delta_G does not set pass/fail. calibrated stays false. "
+    "Melting temperature and unfolding ΔG are calculated from a fit to one series. "
+    f"With at least four points the model is {SATURATING_EQUATION}, "
+    "with y_inf, y_1, and lambda positive. "
+    f"With two or three points the model is {LINE_EQUATION}. "
+    "The number at each repeat count is that model evaluated at n. "
+    "The comparison at the assay temperature uses the calculated melting temperature. "
+    "A 95% band is value ± 1.96 sigma from the linearized fit covariance. "
+    "It is a linear approximation, not a wet-lab confidence interval. "
+    "Series are not averaged. "
+    "ΔHcal and ΔCp are not in the literature file and are not estimated here. "
+    "calibrated stays false. A passing test is not scientific validation. "
     "The default comparison temperature 37 C is an E. coli operating "
     "assumption, not a temperature from Phillips et al. 2012. "
     f"Default series id: {PHILLIPS_2012_CTPRA_DSC}."
@@ -85,14 +105,41 @@ def literature_panel(t_assay_C: float) -> dict[str, Any]:
 
 
 def literature_confirm(t_assay_C: float) -> dict[str, Any]:
-    """Keep one row per series at n = 3, 8, and 14.
+    """One calculated row per series at n = 3, 8, and 14.
 
-    Four named series and three lengths are twelve rows. Rows are not
-    merged across series. A count other than that means the panel was
-    collapsed or duplicated, which this lookup must not do.
+    Four named series and three lengths are twelve rows. Each series is
+    fit on its own rows. The displayed melting temperature is the model
+    at that n, and the pass/fail comparison uses that calculated value.
+    The literature lookup for the same cell is ``paper_tm_C`` when a
+    row exists. ``GET /api/stability/panel`` remains the raw lookup.
     """
     panel = literature_panel(t_assay_C)
-    rows = [row for row in panel["rows"] if int(row["n_repeats"]) in _CONFIRM_N]
+    lookup = {
+        (str(row["series_id"]), int(row["n_repeats"])): row for row in panel["rows"]
+    }
+    rows: list[dict[str, Any]] = []
+    series_fits: list[dict[str, Any]] = []
+    for series_id in STABILITY_SERIES:
+        tm_fit = fit_named_tm(series_id)
+        dg_fit = fit_named_delta_g(series_id)
+        series_fits.append(
+            {
+                "series_id": series_id,
+                "tm": fit_public_dict(tm_fit),
+                "delta_g": fit_public_dict(dg_fit),
+            }
+        )
+        for n_repeats in _CONFIRM_N:
+            rows.append(
+                _confirm_row(
+                    series_id,
+                    n_repeats,
+                    float(panel["t_assay_C"]),
+                    lookup.get((series_id, n_repeats)),
+                    tm_fit,
+                    dg_fit,
+                )
+            )
     expected = len(STABILITY_SERIES) * len(_CONFIRM_N)
     series_ids = [row["series_id"] for row in rows]
     keys = [(row["series_id"], int(row["n_repeats"])) for row in rows]
@@ -101,7 +148,7 @@ def literature_confirm(t_assay_C: float) -> dict[str, Any]:
             status_code=500,
             detail=(
                 "stability confirmation must keep one row per series "
-                f"at n in {sorted(_CONFIRM_N)} "
+                f"at n in {list(_CONFIRM_N)} "
                 f"({len(STABILITY_SERIES)} series, {expected} rows). "
                 f"Got {len(rows)} rows."
             ),
@@ -115,9 +162,115 @@ def literature_confirm(t_assay_C: float) -> dict[str, Any]:
         "calibrated": False,
         "t_assay_C": panel["t_assay_C"],
         "default_series_id": PHILLIPS_2012_CTPRA_DSC,
+        "comparison": "fit",
+        "model_name": MODEL_NAME,
+        "model_version": MODEL_VERSION,
+        "equation_saturating": SATURATING_EQUATION,
+        "equation_line": LINE_EQUATION,
+        "confidence_tier": "hypothesis_only",
+        "human_review_required": True,
         "rows": rows,
+        "series_fits": series_fits,
         "note": _CONFIRM_NOTE,
     }
+
+
+def _confirm_row(
+    series_id: str,
+    n_repeats: int,
+    t_assay_C: float,
+    paper: dict[str, Any] | None,
+    tm_fit: LengthFit,
+    dg_fit: LengthFit,
+) -> dict[str, Any]:
+    """Calculated Tm and ΔG, with the paper cell kept as a reference."""
+    tm_pred = tm_fit.predict(n_repeats)
+    dg_pred = dg_fit.predict(n_repeats)
+    paper_tm = _paper_tm(paper)
+    paper_dg = None if paper is None else paper.get("delta_g")
+    if tm_pred.value is None:
+        state = "not_fit"
+        reason = (
+            tm_fit.warnings[0]
+            if tm_fit.warnings
+            else "No melting-temperature curve was fit for this series."
+        )
+    elif tm_pred.value > t_assay_C:
+        state = "pass"
+        reason = (
+            "The comparison uses the fit. "
+            f"Calculated Tm {tm_pred.value} C is strictly greater than "
+            f"assay temperature {t_assay_C} C."
+        )
+    else:
+        state = "fail"
+        reason = (
+            "The comparison uses the fit. "
+            f"Calculated Tm {tm_pred.value} C is less than or equal to "
+            f"assay temperature {t_assay_C} C."
+        )
+    return {
+        "source": "length_fit",
+        "calibrated": False,
+        "comparison_uses_fit": True,
+        "series_id": series_id,
+        "n_repeats": n_repeats,
+        "t_assay_C": t_assay_C,
+        "thermal_state": state,
+        "tm_C": _plain(tm_pred.value),
+        "tm_uncertainty_C": _plain(tm_pred.sigma),
+        "tm_interval_low": _plain(tm_pred.band_95_low),
+        "tm_interval_high": _plain(tm_pred.band_95_high),
+        "tm_band_label": tm_pred.band_label,
+        "tm_fit_form": tm_fit.form,
+        "thermal_reason": reason,
+        "paper_tm_C": _plain(paper_tm),
+        "paper_tm_uncertainty_C": _plain(
+            None if paper is None else paper.get("tm_uncertainty_C")
+        ),
+        "delta_g": _plain(dg_pred.value),
+        "delta_g_units": dg_fit.units if dg_pred.value is not None else None,
+        "delta_g_uncertainty": _plain(dg_pred.sigma),
+        "delta_g_band_95_low": _plain(dg_pred.band_95_low),
+        "delta_g_band_95_high": _plain(dg_pred.band_95_high),
+        "delta_g_band_label": dg_pred.band_label,
+        "delta_g_fit_form": dg_fit.form,
+        "paper_delta_g": _plain(None if paper_dg is None else float(paper_dg)),
+        "paper_delta_g_uncertainty": _plain(
+            None if paper is None else paper.get("delta_g_uncertainty")
+        ),
+        "paper_delta_g_units": None if paper is None else paper.get("delta_g_units"),
+        "longest_cited_n": tm_pred.longest_cited_n,
+        "past_longest_cited_length": tm_pred.past_longest_cited_length,
+        "length_note": tm_pred.length_note,
+        "confidence_tier": "hypothesis_only",
+        "human_review_required": True,
+        "model_name": MODEL_NAME,
+        "model_version": MODEL_VERSION,
+    }
+
+
+def _paper_tm(paper: dict[str, Any] | None) -> float | None:
+    """Cited Tm from the lookup when that cell is a real table row."""
+    if paper is None:
+        return None
+    if paper.get("thermal_state") not in ("pass", "fail"):
+        return None
+    value = paper.get("tm_C")
+    if value is None:
+        return None
+    return float(value)
+
+
+def _plain(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = float(value)
+    if number != number or number in (float("inf"), float("-inf")):
+        return None
+    return number
 
 
 @router.get("/api/stability/panel")
@@ -138,7 +291,7 @@ def get_stability_confirm(
         description=_ASSAY_DESCRIPTION,
     ),
 ) -> dict[str, Any]:
-    """n = 3, 8, and 14 from the literature panel, one row per series."""
+    """Calculated n = 3, 8, and 14, one row per series. The panel route stays the lookup."""
     return literature_confirm(t_assay_C)
 
 

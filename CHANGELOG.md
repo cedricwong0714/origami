@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (per-series length fit)
+
+### Added
+- `origami/stability/length_fit.py` fits one series at a time. With at least four Tm or ΔG points the model is `y(n) = y_inf - (y_inf - y_1) * exp(-(n-1)/lambda)`, with `y_inf`, `y_1`, and `lambda` positive. With two or three points the model is `y(n) = a + b*n`. Fewer than two points are not fit.
+- `GET /api/stability/confirm` evaluates that model at n = 3, 8, and 14. The comparison at 37 °C uses the calculated melting temperature. A 95% band is value ± 1.96 σ from the linearized `curve_fit` covariance and is labeled a linear approximation, not a wet-lab confidence interval. `confidence_tier` is `hypothesis_only`. `calibrated` stays false.
+- The literature lookup remains `stability_panel` and `GET /api/stability/panel`. A paper cell is returned as `paper_tm_C` or `paper_delta_g` when a row exists. It is not the primary number.
+  Reason: the confirmation screen was leaving n = 14 blank. The number is now the model at that length. n = 14 is past the longest cited length in each checked-in series, and the payload says so.
+  ΔHcal and ΔCp were not added. They are not in `ctpr_thermal_literature.json` and they are not estimated here. Series are not averaged. Cortajarena's missing ΔG column is not filled from Phillips.
+  Reviewed by: not a human wet-lab review. A passing test of this fit is not scientific validation.
+
 ## Unreleased — 2026-09-30 (confirmation page uncertainty)
 
 ### Changed

@@ -1,9 +1,12 @@
 /**
- * Thermal lookup for the stability confirmation screen.
+ * Stability confirmation screen.
+ *
+ * The live confirm payload is a per-series length fit. The number at
+ * n = 3, n = 8, and n = 14 is that model evaluated at n. The panel
+ * route and the wiki snapshot remain the literature lookup.
  *
  * The chassis keeps four literature series separate. This module does not
- * average them, does not fit Tm(n), and does not fill a missing melting
- * temperature with 0.
+ * average them and does not fill a missing melting temperature with 0.
  *
  * Citation strings below are copied from
  * data/stability/ctpr_thermal_literature.json. Buffer, pH, method, and
@@ -23,19 +26,57 @@ export const SERIES_IDS = [
 
 export type KnownSeriesId = (typeof SERIES_IDS)[number];
 
+export type FittedParameter = {
+  name: string;
+  value: number;
+  units: string;
+  standard_error: number | null;
+  identifiable: boolean;
+};
+
+export type SeriesCurveFit = {
+  form: string;
+  equation: string;
+  n_points: number;
+  n_repeats: number[];
+  units: string;
+  longest_cited_n: number | null;
+  warnings: string[];
+  parameters: FittedParameter[];
+};
+
+export type SeriesFitBlock = {
+  series_id: string;
+  tm: SeriesCurveFit;
+  delta_g: SeriesCurveFit;
+};
+
 export type StabilityRow = {
   series_id: string;
   n_repeats: number;
   t_assay_C: number;
   thermal_state: string;
   tm_C: number | null;
-  /** Printed Tm sigma in °C. Null means the table printed none. Not a gate width. */
+  /** Fit sigma in °C when the payload is a length fit. Lookup rows still carry the printed sigma. */
   tm_uncertainty_C: number | null;
   tm_interval_low: number | null;
   tm_interval_high: number | null;
+  tm_band_label: string | null;
+  tm_fit_form: string | null;
   delta_g: number | null;
   delta_g_units: string | null;
   delta_g_uncertainty: number | null;
+  delta_g_band_95_low: number | null;
+  delta_g_band_95_high: number | null;
+  delta_g_band_label: string | null;
+  delta_g_fit_form: string | null;
+  /** Present on the fit payload. Undefined on the raw lookup. */
+  paper_tm_C?: number | null;
+  paper_delta_g?: number | null;
+  paper_delta_g_units?: string | null;
+  comparison_uses_fit: boolean;
+  length_note: string | null;
+  past_longest_cited_length: boolean;
   calibrated: boolean;
   thermal_reason: string | null;
 };
@@ -44,6 +85,10 @@ export type StabilityPanel = {
   calibrated: boolean;
   t_assay_C: number;
   rows: StabilityRow[];
+  series_fits?: SeriesFitBlock[];
+  comparison?: string;
+  equation_saturating?: string;
+  equation_line?: string;
   note?: string;
   source?: "live" | "snapshot";
 };
@@ -96,8 +141,8 @@ export const SERIES_COPY: readonly SeriesCopy[] = [
   },
 ];
 
-/** Word shown wherever a melting temperature is missing. Never a zero. */
-export const MISSING_TM_LABEL = "extrapolated";
+/** Word shown when a melting temperature was not calculated. Never a zero. */
+export const MISSING_TM_LABEL = "Not fit";
 
 /** Printed ΔG column when that table has no value at this length. */
 export const MISSING_DELTA_G_LABEL = "not printed";
@@ -108,8 +153,8 @@ export const MISSING_DELTA_G_LABEL = "not printed";
  */
 export const OMITTED_UNCERTAINTY_LABEL = "omitted";
 
-/** Shown on every n = 14 row. Extrapolated means the table has no Tm(n) fit. */
-export const N14_NO_FIT_NOTE = "n = 14 extrapolated means no Tm(n) was fit.";
+/** Shown beside a calculated length that is past the longest cited n in that series. */
+export const PAST_LONGEST_CITED = "past the longest cited length";
 
 const LIVE = process.env.NEXT_PUBLIC_SA_API ?? "";
 
@@ -151,7 +196,7 @@ function parseRow(value: unknown, index: number): StabilityRow {
   if (typeof row.calibrated !== "boolean") {
     throw new Error(`Stability row ${index} is missing calibrated.`);
   }
-  return {
+  const parsed: StabilityRow = {
     series_id: row.series_id,
     n_repeats: row.n_repeats,
     t_assay_C: row.t_assay_C,
@@ -163,15 +208,154 @@ function parseRow(value: unknown, index: number): StabilityRow {
     ),
     tm_interval_low: finiteNumber(row.tm_interval_low, `row ${index} tm_interval_low`),
     tm_interval_high: finiteNumber(row.tm_interval_high, `row ${index} tm_interval_high`),
+    tm_band_label: textOrNull(
+      "tm_band_label" in row ? row.tm_band_label : null,
+      `row ${index} tm_band_label`,
+    ),
+    tm_fit_form: textOrNull(
+      "tm_fit_form" in row ? row.tm_fit_form : null,
+      `row ${index} tm_fit_form`,
+    ),
     delta_g: finiteNumber(row.delta_g, `row ${index} delta_g`),
     delta_g_units: textOrNull(row.delta_g_units, `row ${index} delta_g_units`),
     delta_g_uncertainty: finiteNumber(
       row.delta_g_uncertainty,
       `row ${index} delta_g_uncertainty`,
     ),
+    delta_g_band_95_low: finiteNumber(
+      "delta_g_band_95_low" in row ? row.delta_g_band_95_low : null,
+      `row ${index} delta_g_band_95_low`,
+    ),
+    delta_g_band_95_high: finiteNumber(
+      "delta_g_band_95_high" in row ? row.delta_g_band_95_high : null,
+      `row ${index} delta_g_band_95_high`,
+    ),
+    delta_g_band_label: textOrNull(
+      "delta_g_band_label" in row ? row.delta_g_band_label : null,
+      `row ${index} delta_g_band_label`,
+    ),
+    delta_g_fit_form: textOrNull(
+      "delta_g_fit_form" in row ? row.delta_g_fit_form : null,
+      `row ${index} delta_g_fit_form`,
+    ),
+    comparison_uses_fit: row.comparison_uses_fit === true,
+    length_note: textOrNull(
+      "length_note" in row ? row.length_note : null,
+      `row ${index} length_note`,
+    ),
+    past_longest_cited_length: row.past_longest_cited_length === true,
     calibrated: row.calibrated,
     thermal_reason: textOrNull(row.thermal_reason, `row ${index} thermal_reason`),
   };
+  if ("paper_tm_C" in row) {
+    parsed.paper_tm_C = finiteNumber(row.paper_tm_C, `row ${index} paper_tm_C`);
+  }
+  if ("paper_delta_g" in row) {
+    parsed.paper_delta_g = finiteNumber(row.paper_delta_g, `row ${index} paper_delta_g`);
+  }
+  if ("paper_delta_g_units" in row) {
+    parsed.paper_delta_g_units = textOrNull(
+      row.paper_delta_g_units,
+      `row ${index} paper_delta_g_units`,
+    );
+  }
+  return parsed;
+}
+
+function parseParameter(value: unknown, index: number): FittedParameter {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`Fit parameter ${index} is not an object.`);
+  }
+  const row = value as Record<string, unknown>;
+  if (typeof row.name !== "string" || row.name.trim() === "") {
+    throw new Error(`Fit parameter ${index} is missing name.`);
+  }
+  if (typeof row.units !== "string") {
+    throw new Error(`Fit parameter ${index} is missing units.`);
+  }
+  if (typeof row.identifiable !== "boolean") {
+    throw new Error(`Fit parameter ${index} is missing identifiable.`);
+  }
+  const parameterValue = finiteNumber(row.value, `parameter ${index} value`);
+  if (parameterValue === null) {
+    throw new Error(`Fit parameter ${index} is missing value.`);
+  }
+  return {
+    name: row.name,
+    value: parameterValue,
+    units: row.units,
+    standard_error: finiteNumber(row.standard_error, `parameter ${index} standard_error`),
+    identifiable: row.identifiable,
+  };
+}
+
+function parseCurve(value: unknown, label: string): SeriesCurveFit {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} fit is not an object.`);
+  }
+  const row = value as Record<string, unknown>;
+  if (typeof row.form !== "string" || typeof row.equation !== "string") {
+    throw new Error(`${label} fit is missing form or equation.`);
+  }
+  if (typeof row.n_points !== "number" || !Number.isInteger(row.n_points)) {
+    throw new Error(`${label} fit is missing n_points.`);
+  }
+  if (!Array.isArray(row.n_repeats) || !Array.isArray(row.parameters) || !Array.isArray(row.warnings)) {
+    throw new Error(`${label} fit is missing points or parameters.`);
+  }
+  if (typeof row.units !== "string") {
+    throw new Error(`${label} fit is missing units.`);
+  }
+  return {
+    form: row.form,
+    equation: row.equation,
+    n_points: row.n_points,
+    n_repeats: row.n_repeats.map((item, index) => {
+      if (typeof item !== "number" || !Number.isInteger(item)) {
+        throw new Error(`${label} fit n_repeats ${index} is not an integer.`);
+      }
+      return item;
+    }),
+    units: row.units,
+    longest_cited_n:
+      row.longest_cited_n === null
+        ? null
+        : (() => {
+            const longest = finiteNumber(row.longest_cited_n, `${label} longest_cited_n`);
+            if (longest === null || !Number.isInteger(longest)) {
+              throw new Error(`${label} fit longest_cited_n is not an integer.`);
+            }
+            return longest;
+          })(),
+    warnings: row.warnings.map((item, index) => {
+      if (typeof item !== "string") {
+        throw new Error(`${label} fit warning ${index} is not text.`);
+      }
+      return item;
+    }),
+    parameters: row.parameters.map((item, index) => parseParameter(item, index)),
+  };
+}
+
+function parseSeriesFits(value: unknown): SeriesFitBlock[] | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value)) {
+    throw new Error("series_fits is not a list.");
+  }
+  return value.map((item, index) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new Error(`series_fits ${index} is not an object.`);
+    }
+    const row = item as Record<string, unknown>;
+    if (typeof row.series_id !== "string" || row.series_id.trim() === "") {
+      throw new Error(`series_fits ${index} is missing series_id.`);
+    }
+    return {
+      series_id: row.series_id,
+      tm: parseCurve(row.tm, `series_fits ${index} tm`),
+      delta_g: parseCurve(row.delta_g, `series_fits ${index} delta_g`),
+    };
+  });
 }
 
 export function parseStabilityPanel(body: unknown): StabilityPanel {
@@ -194,6 +378,11 @@ export function parseStabilityPanel(body: unknown): StabilityPanel {
     calibrated: record.calibrated,
     t_assay_C: record.t_assay_C,
     rows: rows.filter((row) => wanted.has(row.n_repeats)),
+    series_fits: parseSeriesFits(record.series_fits),
+    comparison: typeof record.comparison === "string" ? record.comparison : undefined,
+    equation_saturating:
+      typeof record.equation_saturating === "string" ? record.equation_saturating : undefined,
+    equation_line: typeof record.equation_line === "string" ? record.equation_line : undefined,
     note: typeof record.note === "string" ? record.note : undefined,
   };
 }
@@ -208,9 +397,9 @@ async function fetchLivePanel(path: string): Promise<StabilityPanel> {
 }
 
 export async function fetchStabilityPanel(): Promise<StabilityPanel> {
-  // The confirmation page reads the 12-row confirm payload first.
-  // The full panel is the same rows before that filter. Either source
-  // is the literature lookup. The snapshot is only the offline copy.
+  // The confirmation page reads the fit payload first. The panel and
+  // the snapshot are the literature lookup, used only if the fit route
+  // cannot be loaded.
   const livePaths = [
     "/api/stability/confirm?t_assay_C=37",
     "/api/stability/panel?t_assay_C=37",
@@ -239,17 +428,13 @@ export async function fetchStabilityPanel(): Promise<StabilityPanel> {
 }
 
 /**
- * Cited Tm that may be drawn. Extrapolated and omitted rows have no point.
- * A numeric 0 is not plotted: a missing Tm is the word "extrapolated".
+ * Melting temperature to show. A finite tm_C is the number, whether it
+ * came from the length fit or from a lookup row that has a table cell.
+ * A missing temperature stays missing. It is not replaced with 0.
  */
 export function citedTm(row: StabilityRow | null): number | null {
   if (!row) return null;
-  if (row.thermal_state === "extrapolated" || row.thermal_state === "omitted") {
-    return null;
-  }
-  if (row.thermal_state !== "pass" && row.thermal_state !== "fail") return null;
   if (typeof row.tm_C !== "number" || !Number.isFinite(row.tm_C)) return null;
-  if (row.tm_C === 0) return null;
   return row.tm_C;
 }
 

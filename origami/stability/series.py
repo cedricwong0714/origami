@@ -233,6 +233,18 @@ def load_named_series(
     )
 
 
+def companion_delta_g_rows(
+    series_id: str,
+    path: Path | None = None,
+) -> list[ThermalObservation]:
+    """Unfolding ΔG rows for one named series, or an empty list.
+
+    Cortajarena 2011 has no companion column. This does not borrow
+    ΔG rows from another DOI, method, or construct family.
+    """
+    return _companion_rows(series_id, path)
+
+
 def _companion_rows(
     series_id: str,
     path: Path | None = None,
