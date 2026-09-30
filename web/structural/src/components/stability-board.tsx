@@ -77,24 +77,57 @@ function paperLine(value: number | null | undefined, units: string): string | nu
   return unitText ? `Paper row: ${formatMeasure(value)} ${unitText}` : `Paper row: ${formatMeasure(value)}`;
 }
 
+/** 95% half-width is (high − low) / 2. It has to be finite and smaller than |value|. */
+function halfWidthSmallerThanAbs(value: number, low: number | null, high: number | null): boolean {
+  if (!Number.isFinite(value) || low === null || high === null) return false;
+  if (!Number.isFinite(low) || !Number.isFinite(high)) return false;
+  const half = (high - low) / 2;
+  return Number.isFinite(half) && half < Math.abs(value);
+}
+
+function saturatingDeltaGUnusable(row: StabilityRow): boolean {
+  if (row.delta_g_fit_form !== "saturating") return false;
+  if (typeof row.delta_g !== "number" || !Number.isFinite(row.delta_g)) return true;
+  return !halfWidthSmallerThanAbs(row.delta_g, row.delta_g_band_95_low, row.delta_g_band_95_high);
+}
+
+function rowsDoNotDetermineDeltaG(fit: SeriesCurveFit | null): boolean {
+  return fit?.warnings.some((warning) => warning.includes("do not determine ΔG(n)")) ?? false;
+}
+
 function deltaGCopy(
   row: StabilityRow | null,
   seriesId: string,
+  dgFit: SeriesCurveFit | null,
 ): { text: string; speech: string; paper: string | null; band: string | null } {
   const phillips = PHILLIPS_DSC.has(seriesId)
     ? ` The printed column is the table value at ${PHILLIPS_PRINTED_DELTA_G_T_C} °C.`
     : "";
+  const paperUnits = prettyUnits(row?.delta_g_units ?? row?.paper_delta_g_units ?? "");
+  const omitted = rowsDoNotDetermineDeltaG(dgFit) || (row ? saturatingDeltaGUnusable(row) : false);
+  if (omitted) {
+    return {
+      text: "Not determined",
+      speech: "The rows do not determine ΔG(n).",
+      paper: row?.comparison_uses_fit ? paperLine(row.paper_delta_g, paperUnits) : null,
+      band: null,
+    };
+  }
   if (row && typeof row.delta_g === "number" && Number.isFinite(row.delta_g)) {
     const units = prettyUnits(row.delta_g_units ?? "");
     const band = bandSpan(row.delta_g_band_95_low, row.delta_g_band_95_high, units);
+    const lineFallback =
+      row.delta_g_fit_form === "line" &&
+      (dgFit?.warnings.some((warning) => warning.includes("saturating form is non-identifiable")) ?? false);
+    const calculated = lineFallback
+      ? `Calculated from this series' printed unfolding ΔG values versus repeat count. The saturating form is non-identifiable, so this number is the straight line y = a + b n and its linearized 95% band. It is not a temperature correction, and it does not decide pass or fail.${phillips}`
+      : `Calculated from this series' printed unfolding ΔG values versus repeat count. It is not a temperature correction, and it does not decide pass or fail.${phillips}`;
     return {
       text: `${formatFit(row.delta_g)}${units ? ` ${units}` : ""}`,
       speech: row.comparison_uses_fit
-        ? `Calculated from this series' printed unfolding ΔG values versus repeat count. It is not a temperature correction, and it does not decide pass or fail.${phillips}`
+        ? calculated
         : `Unfolding free energy from the lookup.${phillips} It does not decide pass or fail.`,
-      paper: row.comparison_uses_fit
-        ? paperLine(row.paper_delta_g, units)
-        : null,
+      paper: row.comparison_uses_fit ? paperLine(row.paper_delta_g, units) : null,
       band: row.comparison_uses_fit ? band : null,
     };
   }
@@ -118,8 +151,9 @@ function emptyMelt(
   nRepeats: number,
   seriesId: string,
   reason: string,
+  dgFit: SeriesCurveFit | null,
 ): LengthView {
-  const deltaG = deltaGCopy(null, seriesId);
+  const deltaG = deltaGCopy(null, seriesId, dgFit);
   return {
     nRepeats,
     kind: "not_fit",
@@ -137,9 +171,14 @@ function emptyMelt(
   };
 }
 
-function lengthView(slot: LengthSlot, seriesId: string, assayC: number): LengthView {
+function lengthView(
+  slot: LengthSlot,
+  seriesId: string,
+  assayC: number,
+  dgFit: SeriesCurveFit | null,
+): LengthView {
   if (slot.rows.length > 1) {
-    const deltaG = deltaGCopy(null, seriesId);
+    const deltaG = deltaGCopy(null, seriesId, dgFit);
     return {
       nRepeats: slot.nRepeats,
       kind: "conflict",
@@ -163,15 +202,17 @@ function lengthView(slot: LengthSlot, seriesId: string, assayC: number): LengthV
       slot.nRepeats,
       seriesId,
       "This length has no calculated melting temperature.",
+      dgFit,
     );
   }
   const tm = citedTm(row);
-  const deltaG = deltaGCopy(row, seriesId);
+  const deltaG = deltaGCopy(row, seriesId, dgFit);
   if (tm === null) {
     const empty = emptyMelt(
       slot.nRepeats,
       seriesId,
       row.thermal_reason ?? "No melting-temperature curve was fit for this series.",
+      dgFit,
     );
     return {
       ...empty,
@@ -278,7 +319,15 @@ function LengthCard({ view }: { view: LengthView }) {
         </div>
         <div>
           <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Calculated ΔG</dt>
-          <dd className="mt-1 text-base font-medium text-[#242220]">{view.deltaGText}</dd>
+          <dd
+            className={
+              view.deltaGText === "Not determined" || view.deltaGText === "Not printed"
+                ? "mt-1 text-base font-medium text-[#5C564E]"
+                : "mt-1 text-base font-medium tabular-nums text-[#242220]"
+            }
+          >
+            {view.deltaGText}
+          </dd>
           {view.deltaGBandText ? (
             <p className="mt-1 text-sm tabular-nums text-[#242220]">95% band: {view.deltaGBandText}</p>
           ) : null}
@@ -302,16 +351,28 @@ function parameterLine(fit: SeriesCurveFit): string[] {
   });
 }
 
-function FitSummary({ fit, title }: { fit: SeriesCurveFit; title: string }) {
+function FitSummary({
+  fit,
+  title,
+  omitCoefficients = false,
+}: {
+  fit: SeriesCurveFit;
+  title: string;
+  omitCoefficients?: boolean;
+}) {
   const points = fit.n_repeats.length > 0 ? `Fit on n = ${fit.n_repeats.join(", ")}.` : "No points were fit.";
   return (
     <div className="mt-4">
       <h3 className="text-sm font-semibold text-[#242220]">{title}</h3>
-      {fit.equation ? (
+      {omitCoefficients ? null : fit.equation ? (
         <p className="mt-1 font-heading text-sm text-[#242220]">{fit.equation}</p>
       ) : null}
       <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{points}</p>
-      {parameterLine(fit).length > 0 ? (
+      {omitCoefficients ? (
+        <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+          The saturating coefficients are non-identifiable and are not shown as fitted values.
+        </p>
+      ) : parameterLine(fit).length > 0 ? (
         <ul className="mt-2 space-y-1 text-sm tabular-nums text-[#3F3A34]">
           {parameterLine(fit).map((line) => (
             <li key={line}>{line}</li>
@@ -337,7 +398,11 @@ function SeriesResult({
   fit: SeriesFitBlock | null;
 }) {
   const copy = seriesCopy(block.seriesId);
-  const views = block.slots.map((slot) => lengthView(slot, block.seriesId, assayC));
+  const dgFit = fit?.delta_g ?? null;
+  const hideSaturatingDeltaG = block.slots.some((slot) =>
+    slot.rows.some((row) => saturatingDeltaGUnusable(row)),
+  );
+  const views = block.slots.map((slot) => lengthView(slot, block.seriesId, assayC, dgFit));
   return (
     <section className="rounded-2xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 md:p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -364,7 +429,11 @@ function SeriesResult({
           {fit ? (
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <FitSummary fit={fit.tm} title="Calculated melt" />
-              <FitSummary fit={fit.delta_g} title="Calculated ΔG" />
+              <FitSummary
+                fit={fit.delta_g}
+                title="Calculated ΔG"
+                omitCoefficients={hideSaturatingDeltaG}
+              />
             </div>
           ) : null}
         </div>

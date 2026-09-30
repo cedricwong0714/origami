@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (ΔG length-fit identifiability)
+
+### Changed
+- A saturating length fit is not reported when any coefficient standard error is not finite, or when the prediction sigma at n = 3, 8, or 14 is larger than the absolute prediction. That observable falls back to `y(n) = a + b*n` on the same rows. The shown value and 95% band are that line. If the line is also non-identifiable, no point value is reported. For unfolding ΔG the warning is: the rows do not determine ΔG(n).
+- Phillips 2012 CTPRa DSC unfolding ΔG uses that line. The saturating coefficients are not shown. The Tm fit for that series stays the saturating form. `calibrated` stays false. Model version of `ctpr_length_curve` is 2.
+  Reason: the saturating ΔG covariance was not an interior estimate (`y_1` on the positivity floor; 95% bands thousands of kcal mol-1 wide). Non-identifiable parameters are not presented as fitted values.
+  ΔHcal and ΔCp were not added. `ctpr_thermal_literature.json` was not edited. Series are not averaged.
+  Reviewed by: not a human wet-lab review. A passing test of this fit is not scientific validation.
+
 ## Unreleased — 2026-09-30 (per-series length fit)
 
 ### Added

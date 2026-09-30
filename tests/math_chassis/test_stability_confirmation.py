@@ -316,9 +316,15 @@ def test_confirm_page_payload_evaluates_the_fit_at_n_14() -> None:
     )
     assert "extrapolated" not in row_14["length_note"]
     dg_fit = fit_named_delta_g(PHILLIPS_2012_CTPRA_DSC)
-    assert dg_fit.form == "saturating"
-    assert math.isfinite(row_14["delta_g"])
-    assert row_14["delta_g"] == dg_fit.predict(14).value
+    assert dg_fit.form == "line"
+    assert {parameter.name for parameter in dg_fit.parameters} == {"a", "b"}
+    for n_repeats, panel_row in ((3, row_3), (8, row_8), (14, row_14)):
+        assert math.isfinite(panel_row["delta_g"])
+        assert panel_row["delta_g"] == dg_fit.predict(n_repeats).value
+        assert panel_row["delta_g_fit_form"] == "line"
+        half = (panel_row["delta_g_band_95_high"] - panel_row["delta_g_band_95_low"]) / 2.0
+        assert math.isfinite(half)
+        assert half < abs(panel_row["delta_g"])
     assert row_14["paper_delta_g"] is None
     assert row_3["paper_delta_g"] == 4.8
 

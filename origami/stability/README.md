@@ -8,13 +8,15 @@ The length curve is not a rewrite of `thermal_gate`. The gate still looks up a c
 
 ## Scientific basis
 
-With at least four points of one series and one observable, the model is
+With at least four points of one series and one observable, the model tried first is
 
 ```text
 y(n) = y_inf - (y_inf - y_1) * exp(-(n-1)/lambda)
 ```
 
 `y_inf`, `y_1`, and `lambda` are positive. The shape is an assumption: a rod whose ends matter less as it gets longer, so the observable moves from `y_1` toward `y_inf`. It is not a parameter taken from a paper, and it is not a calibrated chassis model.
+
+That form is reported only when it is identifiable. After `curve_fit`, it is non-identifiable when any parameter standard error is not finite, or when the prediction sigma at n = 3, 8, or 14 is larger than the absolute value of the prediction. The same rows are then fit with `y(n) = a + b*n`, and the reported number is that line with its linearized 95% band. If the line is also non-identifiable, no point value is reported. For unfolding ΔG the warning is: the rows do not determine ΔG(n). The saturating coefficients are not shown as fitted values.
 
 With two or three points the three-parameter form is not fit. The model is the line `y(n) = a + b*n`. Two points determine that line, and a length far from those points is weakly constrained. With fewer than two points, no curve is invented.
 
@@ -37,7 +39,7 @@ A model value at a requested repeat count, a standard error for each identifiabl
 
 ## Known limitations
 
-Phillips CTPRa DSC unfolding ΔG is still rising across the cited lengths. The saturating form cannot follow a curve that keeps steepening, so those coefficients are weakly separated and the linearized band is wide. The reported ΔG is still the model at that n.
+Phillips CTPRa DSC unfolding ΔG is still rising across the cited lengths. The saturating form is non-identifiable for that column: the prediction sigma at n = 3, 8, and 14 is larger than the absolute prediction, and `y_1` sits on the positivity floor. The reported ΔG is the straight line fit to those same rows, with that line's linearized 95% band. The saturating coefficients are not reported. The Tm fit for that series stays the saturating form.
 
 Cortajarena and Regan 2011 has no ΔG rows in this file. That series stays without a calculated ΔG. The value is not borrowed from Phillips.
 

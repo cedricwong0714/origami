@@ -147,11 +147,92 @@ def test_cortajarena_delta_g_is_not_borrowed_from_phillips() -> None:
     assert cortajarena.n_points == 0
     assert cortajarena.predict(3).value is None
     assert cortajarena.predict(14).value is None
-    assert phillips.form == "saturating"
+    assert phillips.form == "line"
     assert phillips.n_points >= 4
+    assert {parameter.name for parameter in phillips.parameters} == {"a", "b"}
     assert phillips.predict(14).value is not None
     assert math.isfinite(phillips.predict(14).value or float("nan"))
     assert set(phillips.values).isdisjoint(set(cortajarena.values))
+
+
+def test_default_series_delta_g_shown_at_3_8_and_14_is_identifiable() -> None:
+    """The ΔG number on the confirmation payload has a usable 95% band.
+
+    Scientific basis: a saturating fit is non-identifiable when a
+    parameter standard error is not finite, or when the prediction
+    sigma at n = 3, 8, or 14 is larger than the absolute prediction.
+    Those coefficients must not be presented as fitted values.
+    Failure mode: a Phillips CTPRa DSC ΔG whose 95% half-width is
+    thousands of kcal mol-1, or a Tm fit that left the saturating form.
+    A passing test is not scientific validation.
+    """
+    from origami.api.stability import literature_confirm
+
+    body = literature_confirm(37.0)
+    assert body["calibrated"] is False
+    rows = [
+        row
+        for row in body["rows"]
+        if row["series_id"] == PHILLIPS_2012_CTPRA_DSC
+    ]
+    assert {row["n_repeats"] for row in rows} == {3, 8, 14}
+    assert {row["tm_fit_form"] for row in rows} == {"saturating"}
+    tm = fit_named_tm(PHILLIPS_2012_CTPRA_DSC)
+    assert tm.form == "saturating"
+    dg = fit_named_delta_g(PHILLIPS_2012_CTPRA_DSC)
+    fits = body["series_fits"]
+    block = next(item for item in fits if item["series_id"] == PHILLIPS_2012_CTPRA_DSC)
+    assert block["tm"]["form"] == "saturating"
+    for n_repeats in (3, 8, 14):
+        row = next(item for item in rows if item["n_repeats"] == n_repeats)
+        value = row["delta_g"]
+        low = row["delta_g_band_95_low"]
+        high = row["delta_g_band_95_high"]
+        if value is None:
+            assert row["delta_g_fit_form"] == "not_fit"
+            assert any(
+                "do not determine ΔG(n)" in warning for warning in dg.warnings
+            )
+            assert dg.predict(n_repeats).value is None
+            continue
+        assert isinstance(value, float)
+        assert low is not None and high is not None
+        half = (float(high) - float(low)) / 2.0
+        assert math.isfinite(half)
+        assert half < abs(float(value))
+        assert row["delta_g_fit_form"] == "line"
+        assert row["delta_g"] == dg.predict(n_repeats).value
+        assert row["calibrated"] is False
+    assert dg.form == "line"
+    assert block["delta_g"]["form"] == "line"
+    names = {parameter["name"] for parameter in block["delta_g"]["parameters"]}
+    assert names == {"a", "b"}
+    assert "y_inf" not in names
+
+
+def test_nonidentifiable_line_omits_the_delta_g_point_value() -> None:
+    """Both forms non-identifiable means no ΔG(n) point value.
+
+    Scientific basis: the same identifiability rule applies to the
+    straight-line fallback. Failure mode: a point value whose sigma
+    exceeds the absolute prediction. A passing test is not scientific
+    validation.
+    """
+    fit = fit_length_curve(
+        [2, 4, 6, 8],
+        [0.01, -0.02, 0.015, -0.01],
+        units="kcal mol-1",
+        undetermined_message="The rows do not determine ΔG(n).",
+    )
+    assert fit.form == "not_fit"
+    assert fit.parameters == ()
+    assert any("do not determine ΔG(n)" in warning for warning in fit.warnings)
+    for n_repeats in (3, 8, 14):
+        prediction = fit.predict(n_repeats)
+        assert prediction.value is None
+        assert prediction.band_95_low is None
+        assert prediction.band_95_high is None
+        assert prediction.calibrated is False
 
 
 def test_line_prediction_is_not_the_phillips_table_cells() -> None:

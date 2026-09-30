@@ -4,20 +4,28 @@ The literature rows of one series are the data. The number reported at
 a repeat count is this model evaluated at that count. It is not a copied
 table cell, and it is not an average of two papers.
 
-With at least four points the curve is
+With at least four points the curve tried first is
 
     y(n) = y_inf - (y_inf - y_1) * exp(-(n - 1) / lambda)
 
 with y_inf, y_1, and lambda positive. That is a rod whose ends matter
-less as it gets longer: the value moves from y_1 toward y_inf. With two
-or three points that three-parameter form is not fit. A straight line
-y(n) = a + b*n is fit instead. With fewer than two points, no curve is
-invented.
+less as it gets longer: the value moves from y_1 toward y_inf. That
+form is reported only when it is identifiable. After ``curve_fit`` it
+is non-identifiable when any parameter standard error is not finite,
+or when the prediction sigma at n = 3, 8, or 14 is larger than the
+absolute value of the prediction. The same rows are then fit with the
+straight line y(n) = a + b*n, and the reported number is that line
+with its linearized 95% band. If the line is also non-identifiable, no
+point value is reported. For unfolding ΔG the warning says the rows do
+not determine ΔG(n). With two or three points the three-parameter form
+is not fit, and the line is fit instead. With fewer than two points,
+no curve is invented.
 
 Parameters and the 95% band come from ``scipy.optimize.curve_fit``.
 The band is value ± 1.96 σ from the linearized covariance. It is a
 linear approximation, not a wet-lab confidence interval. A parameter
-whose covariance variance is not finite is non-identifiable.
+whose covariance variance is not finite is non-identifiable and is not
+presented as a fitted value.
 
 ΔHcal and ΔCp are not parameters of this fit. They are not read from
 the literature file, because that file does not contain them, and they
@@ -45,7 +53,7 @@ from origami.stability.table import ThermalObservation
 
 # Software identity of this length curve. Not a biological constant.
 MODEL_NAME = "ctpr_length_curve"
-MODEL_VERSION = "1"
+MODEL_VERSION = "2"
 
 # Standard-normal 97.5 percentile. The 95% band is value ± this factor
 # times the linearized standard deviation. It is not a biological
@@ -89,6 +97,22 @@ _BOUND_WARNING = (
     "The calculated value is still the model at n. "
     "The 95% band is a linear approximation of the fit covariance, "
     "not a wet-lab confidence interval."
+)
+# Confirmation lengths. They are page coordinates, not a measured
+# biological length. A saturating fit is judged at these three counts.
+_IDENTIFIABILITY_N = (3, 8, 14)
+_SATURATING_NONIDENTIFIABLE = (
+    "The saturating form is non-identifiable for these points. "
+    "A parameter standard error is not finite, or the prediction sigma "
+    "at n = 3, 8, or 14 is larger than the absolute value of the prediction. "
+    "The straight line y(n) = a + b*n was fit to the same rows. "
+    "The value and the 95% band are that line. "
+    "The band is a linear approximation, not a wet-lab confidence interval."
+)
+_DELTA_G_UNDETERMINED = "The rows do not determine ΔG(n)."
+_GENERIC_UNDETERMINED = (
+    "The saturating form is non-identifiable, and the straight line is also "
+    "non-identifiable. No point value is reported."
 )
 
 FitForm = Literal["saturating", "line", "not_fit"]
@@ -218,13 +242,20 @@ def fit_length_curve(
     values: Sequence[float],
     *,
     units: str,
+    undetermined_message: str | None = None,
 ) -> LengthFit:
     """Fit one observable against repeat count.
 
-    Four or more points use the saturating form. Two or three points
-    use a line. Fewer than two points, a duplicated repeat count, a
-    non-finite value, or a failed optimizer returns ``not_fit``.
-    Duplicate counts are not averaged.
+    Four or more points try the saturating form. That form is kept only
+    when every parameter standard error is finite and the prediction
+    sigma at n = 3, 8, and 14 is not larger than the absolute
+    prediction. Otherwise the same rows are fit with a straight line.
+    If that line is also non-identifiable, the result is ``not_fit``
+    and the warning is ``undetermined_message``, or a default sentence
+    when the caller does not pass one. Two or three points use a line
+    without that check. Fewer than two points, a duplicated repeat
+    count, a non-finite value, or a failed optimizer returns
+    ``not_fit``. Duplicate counts are not averaged.
     """
     if not isinstance(units, str) or units.strip() == "":
         raise ValueError("units must be a non-empty string")
@@ -259,7 +290,8 @@ def fit_length_curve(
         return _not_fit(units, (_NO_CURVE_WARNING,), ns, ys)
     if len(ns) < 4:
         return _fit_line(ns, ys, units)
-    return _fit_saturating(ns, ys, units)
+    message = _undetermined_message(undetermined_message)
+    return _fit_saturating(ns, ys, units, undetermined_message=message)
 
 
 def fit_named_tm(series_id: str, path: Path | None = None) -> LengthFit:
@@ -277,7 +309,11 @@ def fit_named_delta_g(series_id: str, path: Path | None = None) -> LengthFit:
     rows = companion_delta_g_rows(series_id, path)
     if not rows:
         return _not_fit("", (_NO_DELTA_G_WARNING,), (), ())
-    return _fit_rows(rows, units_if_empty="")
+    return _fit_rows(
+        rows,
+        units_if_empty="",
+        undetermined_message=_DELTA_G_UNDETERMINED,
+    )
 
 
 def fit_public_dict(fit: LengthFit) -> dict[str, object]:
@@ -323,7 +359,12 @@ def line_value(n_repeats: float, a: float, b: float) -> float:
     return float(a + b * float(n_repeats))
 
 
-def _fit_rows(rows: Sequence[ThermalObservation], *, units_if_empty: str) -> LengthFit:
+def _fit_rows(
+    rows: Sequence[ThermalObservation],
+    *,
+    units_if_empty: str,
+    undetermined_message: str | None = None,
+) -> LengthFit:
     if not rows:
         return _not_fit(units_if_empty, (_NO_CURVE_WARNING,), (), ())
     units = {row.units for row in rows}
@@ -336,6 +377,7 @@ def _fit_rows(rows: Sequence[ThermalObservation], *, units_if_empty: str) -> Len
         [int(row.n_repeats) for row in rows],
         [float(row.value) for row in rows],
         units=unit,
+        undetermined_message=undetermined_message,
     )
 
 
@@ -343,6 +385,8 @@ def _fit_saturating(
     ns: tuple[int, ...],
     ys: tuple[float, ...],
     units: str,
+    *,
+    undetermined_message: str,
 ) -> LengthFit:
     n_array = np.asarray(ns, dtype=float)
     y_array = np.asarray(ys, dtype=float)
@@ -358,7 +402,7 @@ def _fit_saturating(
     )
     warnings_out = [_weak_separation_warning(parameters, theta)]
     warnings_out = [item for item in warnings_out if item]
-    return LengthFit(
+    fit = LengthFit(
         form="saturating",
         equation=SATURATING_EQUATION,
         parameters=tuple(parameters),
@@ -371,9 +415,35 @@ def _fit_saturating(
         _theta=tuple(float(value) for value in theta),
         _pcov=_pcov_tuple(pcov),
     )
+    if _is_nonidentifiable(fit):
+        return _line_after_rejected_saturating(ns, ys, units, undetermined_message)
+    return fit
 
 
-def _fit_line(ns: tuple[int, ...], ys: tuple[float, ...], units: str) -> LengthFit:
+def _line_after_rejected_saturating(
+    ns: tuple[int, ...],
+    ys: tuple[float, ...],
+    units: str,
+    undetermined_message: str,
+) -> LengthFit:
+    """Fit y = a + b*n after the saturating form was refused.
+
+    The saturating coefficients are not returned. If the line is also
+    non-identifiable, no point value is returned.
+    """
+    line = _fit_line(ns, ys, units, warning=_SATURATING_NONIDENTIFIABLE)
+    if line.form != "line" or _is_nonidentifiable(line):
+        return _not_fit(units, (undetermined_message,), ns, ys)
+    return line
+
+
+def _fit_line(
+    ns: tuple[int, ...],
+    ys: tuple[float, ...],
+    units: str,
+    *,
+    warning: str | None = None,
+) -> LengthFit:
     n_array = np.asarray(ns, dtype=float)
     y_array = np.asarray(ys, dtype=float)
     try:
@@ -386,7 +456,9 @@ def _fit_line(ns: tuple[int, ...], ys: tuple[float, ...], units: str) -> LengthF
         pcov,
         [units, f"{units} per repeat"],
     )
-    if len(ns) == 2:
+    if warning is not None:
+        line_warning = warning
+    elif len(ns) == 2:
         line_warning = _TWO_POINT_WARNING
     else:
         line_warning = _SHORT_LINE_WARNING
@@ -544,14 +616,49 @@ def _variance_at(pcov: np.ndarray, index: int) -> float | None:
     return variance
 
 
+def _is_nonidentifiable(fit: LengthFit) -> bool:
+    """Return whether this curve must not be reported as a point value.
+
+    A parameter whose standard error is missing or not finite is
+    non-identifiable. So is a prediction whose linearized sigma at
+    n = 3, 8, or 14 is larger than the absolute value of the
+    prediction. A missing sigma is the same failure: the 95% band
+    cannot be shown. This does not apply to the two- and three-point
+    line, which is chosen before the saturating form is tried.
+    """
+    if fit.form == "not_fit" or not fit._theta:
+        return True
+    for parameter in fit.parameters:
+        error = parameter.standard_error
+        if error is None or not math.isfinite(error):
+            return True
+    for n_repeats in _IDENTIFIABILITY_N:
+        prediction = fit.predict(n_repeats)
+        value = prediction.value
+        sigma = prediction.sigma
+        if value is None or sigma is None:
+            return True
+        if not math.isfinite(value) or not math.isfinite(sigma):
+            return True
+        if sigma > abs(value):
+            return True
+    return False
+
+
+def _undetermined_message(message: str | None) -> str:
+    if isinstance(message, str) and message.strip() != "":
+        return message.strip()
+    return _GENERIC_UNDETERMINED
+
+
 def _weak_separation_warning(
     parameters: Sequence[FittedParameter],
     theta: np.ndarray,
 ) -> str | None:
-    """Warn when the positive saturating fit is not an interior estimate.
+    """Warn when an identifiable saturating fit is not an interior estimate.
 
-    The warning does not change the equation. A series with at least
-    four points stays on the saturating form.
+    The warning does not change the equation. A non-identifiable
+    saturating fit is replaced before this warning is shown.
     """
     for value in theta:
         if float(value) <= _POSITIVITY_FLOOR * (1.0 + 1e-6):
