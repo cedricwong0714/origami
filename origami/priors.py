@@ -8,8 +8,9 @@ explicit placeholders with uncertainty, to be replaced when assays exist.
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Optional
 
 from origami.linker_prior import ggggs_linker_rms_A
 from src.core.ctpr_geometry import (
@@ -30,7 +31,7 @@ class Parameter:
     name: str
     value: float
     units: str
-    sigma: float
+    sigma: float | None
     source: str
     system: str
     method: str
@@ -38,8 +39,29 @@ class Parameter:
     provenance: Provenance = "literature_placeholder"
     calibrated: bool = False
 
-    def interval_95(self) -> tuple[float, float]:
+    def interval_95(self) -> tuple[float, float] | None:
+        if self.sigma is None:
+            return None
         return (self.value - 1.96 * self.sigma, self.value + 1.96 * self.sigma)
+
+
+def get_parameter_or_warn(
+    name: str,
+    value: Optional[float],
+    source: Optional[str],
+) -> Optional[float]:
+    """Return a sourced biological value, or warn and return None if vacant."""
+    if value is None or source is None:
+        warnings.warn(
+            f"Biological parameter '{name}' has no verified "
+            f"source. This parameter must not be used in a "
+            f"production prediction or a wet-lab decision. "
+            f"Find a peer-reviewed source before proceeding.",
+            UserWarning,
+            stacklevel=2,
+        )
+        return None
+    return value
 
 
 # Canonical screw geometry from src.core.ctpr_geometry, stored in Å and radians.
@@ -204,6 +226,118 @@ CAM_M13_KD_M = Parameter(
     ),
 )
 
+# Parameter: SpyTag–SpyCatcher apparent second-order rate (parental pair)
+# Value: 1.4e3
+# Units: M^-1 s^-1
+# Source: Zakeri et al. (2012) PNAS 109:E690-E697, DOI: 10.1073/pnas.1115485109
+# System: SpyTag-MBP + SpyCatcher, 10 μM each, phosphate-citrate, 25 °C
+# Method: SDS-PAGE of unreacted SpyCatcher vs time; second-order plot
+# Notes: Apparent bimolecular rate of covalent adduct. Not k_on of a
+#        reversible complex, not SpyTag003, not this team's fusion.
+SPY_K_ON_PER_M_S = Parameter(
+    name="spy_k_on_per_M_s",
+    value=1.4e3,
+    units="M^-1 s^-1",
+    sigma=43.0,
+    source=(
+        "Zakeri et al. (2012) Proc Natl Acad Sci USA 109:E690–E697, "
+        "DOI: 10.1073/pnas.1115485109. "
+        "Second-order rate constant 1.4 × 10^3 ± 43 M^-1 s^-1 (SD, n = 3)."
+    ),
+    system=(
+        "SpyTag-MBP and SpyCatcher, 10 μM each, phosphate-citrate buffer, "
+        "25 °C; covalent product by SDS-PAGE"
+    ),
+    method=(
+        "Partners mixed 1, 3, or 5 min; 95 °C SDS quench; Coomassie band "
+        "of unreacted SpyCatcher; 1/[Catcher] vs time slope"
+    ),
+    notes=(
+        "Literature prior for the lumped irreversible bimolecular step in "
+        "origami.kinetics.covalent, mapped onto spy_k_on_per_M_s. "
+        "Not a three-step (k_on, k_rev, k_bond) decomposition. "
+        "Keeble et al. (2017) Angew Chem Int Ed, DOI: 10.1002/anie.201707623, "
+        "later report 1.7 ± 0.4 × 10^3 M^-1 s^-1 for the parental pair; "
+        "that re-measurement is not the canonical prior. "
+        "Do not use models/kinetic_models/covalent_capture.defaults.json "
+        "(unsourced relative k_rev=0.05, k_bond=2.0). "
+        "Do not use clasp_assembly k_lock=0.003 s^-1; that number is not "
+        "printed in Zakeri 2012. calibrated stays false."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
+)
+
+# Parameter: LgBiT–SmBiT (NanoBiT) intrinsic Kd
+# Value: 190e-6
+# Units: M
+# Source: Dixon et al. (2016) ACS Chem Biol 11:400-408, DOI: 10.1021/acschembio.5b00753
+# System: Isolated NanoBiT fragments (not a CLASP fusion)
+# Method: Intrinsic affinity of the complementation reporter
+NANOBIT_KD_M = Parameter(
+    name="nanobit_kd_M",
+    value=190e-6,
+    units="M",
+    sigma=None,
+    source=(
+        "Dixon et al. (2016) ACS Chem Biol 11:400–408, "
+        "DOI: 10.1021/acschembio.5b00753. Intrinsic Kd = 190 μM."
+    ),
+    system="Untethered LgBiT + SmBiT (NanoBiT) fragments, biochemical assay",
+    method="Intrinsic fragment affinity reported in the abstract and main text",
+    notes=(
+        "Already cited in src/evidence_engine/corpus.py and "
+        "src/core/nanobit_reporter.py. No printed sigma in the abstract; "
+        "sigma stays null (not stored as 0). Not used by stage-1 simulate "
+        "modes. Not a Hong Kong team fusion measurement."
+    ),
+    calibrated=False,
+)
+
+# Parameter: NanoBiT intrinsic association rate
+# Value: 500
+# Units: M^-1 s^-1
+# Source: Dixon et al. (2016) ACS Chem Biol, DOI: 10.1021/acschembio.5b00753
+# System: Isolated NanoBiT fragments
+# Method: Intrinsic kon (Figure s12); reported as approximately 500
+NANOBIT_K_ON_PER_M_S = Parameter(
+    name="nanobit_k_on_per_M_s",
+    value=500.0,
+    units="M^-1 s^-1",
+    sigma=None,
+    source=(
+        "Dixon et al. (2016) ACS Chem Biol 11:400–408, "
+        "DOI: 10.1021/acschembio.5b00753. "
+        "Intrinsic kon ≈ 500 M^-1 s^-1 (Figure s12)."
+    ),
+    system="Untethered LgBiT + SmBiT (NanoBiT) fragments",
+    method="Intrinsic association of the complementation reporter",
+    notes=(
+        "Tilde in the paper; sigma is null, not 0. "
+        "Stage-1 simulate does not run a NanoBiT ODE. Lab field stays empty."
+    ),
+    calibrated=False,
+)
+
+# Parameter: NanoBiT intrinsic dissociation rate
+# Value: 0.2
+# Units: s^-1
+# Source: Dixon et al. (2016) ACS Chem Biol, DOI: 10.1021/acschembio.5b00753
+NANOBIT_K_OFF_PER_S = Parameter(
+    name="nanobit_k_off_per_s",
+    value=0.2,
+    units="s^-1",
+    sigma=None,
+    source=(
+        "Dixon et al. (2016) ACS Chem Biol 11:400–408, "
+        "DOI: 10.1021/acschembio.5b00753. Intrinsic koff = 0.2 s^-1."
+    ),
+    system="Untethered LgBiT + SmBiT (NanoBiT) fragments",
+    method="Intrinsic dissociation of the complementation reporter",
+    notes="Not a fusion assay. Stage-1 simulate does not use this rate.",
+    calibrated=False,
+)
+
 N_REPEATS_MIN = 3
 N_REPEATS_MAX = 24
 
@@ -217,4 +351,8 @@ def all_priors() -> tuple[Parameter, ...]:
         DEFAULT_PAYLOAD_RADIUS_A,
         LINKER_SIGMA_A,
         CAM_M13_KD_M,
+        SPY_K_ON_PER_M_S,
+        NANOBIT_KD_M,
+        NANOBIT_K_ON_PER_M_S,
+        NANOBIT_K_OFF_PER_S,
     )

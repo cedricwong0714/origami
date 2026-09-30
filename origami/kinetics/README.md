@@ -2,31 +2,31 @@
 
 ## Purpose
 
-Stage-1 scaffold kinetics: literature CaM–M13 recruitment and vacant SpyTag rate slots until wet-lab ingestion.
+Stage-1 scaffold kinetics: literature CaM–M13 Kd and Zakeri Spy k_on so models can run; vacant lab k_rev/k_bond until ingestion.
 
 ## Scientific basis
 
-Langmuir recruitment (`origami.physical.recruitment`) and a two-step covalent mass-action ODE (`covalent.py`). SpyTag rates are not read from `models/kinetic_models/`.
+Langmuir recruitment and a lumped irreversible Spy adduct (or a 3-step ODE when lab rates are supplied). See `docs/kinetics-workflow.md`.
 
 ## Inputs
 
-See `docs/kinetics-workflow.md` and `GET /api/kinetics/schema`.
+See `GET /api/kinetics/schema`.
 
 ## Outputs
 
-Schema JSON and simulate payloads with `calibrated: false`.
+Schema JSON and simulate payloads with `calibrated: false` and `confidence_tier: hypothesis_only`.
 
 ## Assumptions
 
-Well-mixed compartments; explicit user rates for SpyTag time courses.
+Well-mixed compartments. Literature numbers are not fusion assays.
 
 ## Known limitations
 
-Three SpyTag slots vacant; no automatic defaults.
+Spy k_rev and k_bond vacant. NanoBiT listed, not integrated.
 
 ## Parameter sources
 
-`CAM_M13_KD_M` in `origami.priors`. SpyTag: none until stage-1 data.
+`CAM_M13_KD_M`, `SPY_K_ON_PER_M_S`, Dixon NanoBiT constants in `origami.priors`.
 
 ## Tests
 

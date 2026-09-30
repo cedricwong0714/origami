@@ -22,7 +22,8 @@ def get_kinetics_schema() -> dict[str, Any]:
 async def post_kinetics_simulate(request: Request) -> dict[str, Any]:
     """Run recruitment steady state or a covalent time course.
 
-    SpyTag rates are never invented. Missing vacant slots return HTTP 400.
+    Default covalent uses the Zakeri 2012 literature k_on (lumped path).
+    Clearing that prior without a lab rate returns HTTP 400.
     """
     try:
         body = await request.json()

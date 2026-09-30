@@ -12,7 +12,7 @@ from origami.kinetics.rates import (
 
 
 def kinetics_schema() -> dict[str, Any]:
-    """Describe vacant vs literature rate slots and what can be computed."""
+    """Describe literature priors vs vacant lab measurements."""
     slots = default_rate_slots()
     return {
         "workflow_id": "stage1_scaffold_kinetics",
@@ -29,15 +29,18 @@ def kinetics_schema() -> dict[str, Any]:
                 "units": "fraction",
                 "requires": ["c_free_M"],
                 "uses_slot": "cam_m13_kd_M",
-                "notes": "Langmuir steady state. Does not use vacant SpyTag rates.",
+                "notes": "Langmuir steady state. Peptide Kd, not a fusion Kd.",
             },
             {
                 "name": "k_off_from_k_on_kd",
-                "formula": "spy_k_on_per_M_s * cam_m13_kd_M",
+                "formula": "kon_per_M_s * cam_m13_kd_M",
                 "units": "s^-1",
-                "requires": ["spy_k_on_per_M_s"],
+                "requires": ["kon_per_M_s"],
                 "optional_slot": "cam_m13_kd_M",
-                "notes": "Derived only when the user supplies k_on in simulate; not a default.",
+                "notes": (
+                    "Derived only when the user supplies recruitment k_on. "
+                    "Not invented from Kd alone as a Spy rate."
+                ),
             },
         ],
         "simulate_modes": [
@@ -49,21 +52,29 @@ def kinetics_schema() -> dict[str, Any]:
             },
             {
                 "mode": "covalent_timecourse",
-                "description": "Tag/Catcher reversible complex plus locking ODE.",
-                "required_fields": [
+                "description": (
+                    "Default: lumped irreversible bimolecular adduct using "
+                    "Zakeri 2012 spy_k_on. Three-step ODE if lab supplies "
+                    "spy_k_rev and spy_k_bond."
+                ),
+                "required_fields": [],
+                "optional_fields": [
                     "tag0_M",
                     "catcher0_M",
                     "spy_k_on_per_M_s",
                     "spy_k_rev_per_s",
                     "spy_k_bond_per_s",
+                    "t_end_s",
+                    "num_points",
+                    "use_literature_priors",
                 ],
-                "optional_fields": ["t_end_s", "num_points"],
             },
         ],
         "note": (
-            "SpyTag association, off-rate, and lock-rate slots are vacant until "
-            "stage-1 ingestion. This API does not silently load "
-            "models/kinetic_models/covalent_capture.defaults.json. "
-            "calibrated stays false."
+            "Literature priors emulate a fusion path so the ODE can run. "
+            "They are not Hong Kong team measurements. Lab fields stay "
+            "null until stage-1 data. NanoBiT numbers are listed and not "
+            "integrated. calibrated stays false. confidence_tier is "
+            "hypothesis_only."
         ),
     }

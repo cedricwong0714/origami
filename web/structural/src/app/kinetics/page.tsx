@@ -4,7 +4,7 @@ import { KineticsBoard } from "@/components/kinetics-board";
 export const metadata: Metadata = {
   title: "Scaffold kinetics · ORIGAMI",
   description:
-    "Stage-1 kinetics schema with vacant SpyTag rates and CaM–M13 recruitment steady state. calibrated = false.",
+    "Literature-prior kinetics emulation with vacant lab Spy rates. calibrated = false, hypothesis_only.",
 };
 
 export default function KineticsPage() {

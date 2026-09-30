@@ -1,7 +1,6 @@
 """Stage-1 scaffold kinetics (recruitment + locking).
 
-Lab-measured SpyTag rates stay vacant until stage-1 ingestion.
-Literature Kd drives steady-state recruitment only.
+Literature Spy k_on emulates a fusion path. Lab k_rev/k_bond stay vacant.
 """
 
 from origami.kinetics.schema import kinetics_schema

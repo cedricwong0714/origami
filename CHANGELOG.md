@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-09-30 (kinetics literature priors)
+
+### Added
+- Stage-1 kinetics uses sourced literature priors so recruitment and covalent simulate can run before lab data. CaM–M13 Kd stays the Biochemistry 2006 peptide value (DOI 10.1021/bi060857u). Spy k_on is Zakeri et al. 2012 PNAS 1.4e3 ± 43 M^-1 s^-1 (DOI 10.1073/pnas.1115485109; SpyTag-MBP + SpyCatcher, 10 μM, 25 °C, SDS-PAGE). Default covalent path is lumped irreversible bimolecular adduct. spy_k_rev and spy_k_bond stay vacant until lab ingestion. NanoBiT Kd 190 μM, kon ≈ 500 M^-1 s^-1, koff 0.2 s^-1 from Dixon et al. 2016 (DOI 10.1021/acschembio.5b00753) are listed, not simulated. `calibrated` stays false. `confidence_tier` is `hypothesis_only`. Lab override fields are empty. Passing tests is not scientific validation.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-30 (ΔG length-fit identifiability)
 
 ### Changed

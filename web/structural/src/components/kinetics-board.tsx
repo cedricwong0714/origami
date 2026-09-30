@@ -6,24 +6,40 @@ import { Badge } from "@/components/ui/badge";
 import { StudioNav } from "@/components/studio-nav";
 import {
   fetchKineticsSchema,
+  simulateCovalent,
   simulateRecruitment,
+  type CovalentSim,
   type KineticsSchema,
   type RateSlot,
   type RecruitmentSim,
 } from "@/lib/kinetics";
 
 const DEFAULT_C_FREE = 1e-8;
+const DEFAULT_TAG = 10e-6;
 
-function slotBadge(status: RateSlot["status"]) {
-  if (status === "literature") return "Literature Kd";
-  if (status === "vacant") return "Vacant";
+function slotBadge(slot: RateSlot) {
+  if (slot.origin === "literature_prior" && slot.status === "literature") {
+    return "Literature prior (not our assay)";
+  }
+  if (slot.status === "vacant") return "Vacant lab field";
   return "User supplied";
+}
+
+function formatVal(slot: RateSlot) {
+  if (slot.value === null) return "—";
+  return `${slot.value.toExponential(2)} ${slot.units}`;
 }
 
 export function KineticsBoard() {
   const [schema, setSchema] = useState<KineticsSchema | null>(null);
   const [sim, setSim] = useState<RecruitmentSim | null>(null);
+  const [cov, setCov] = useState<CovalentSim | null>(null);
   const [cFree, setCFree] = useState(String(DEFAULT_C_FREE));
+  const [tag0, setTag0] = useState(String(DEFAULT_TAG));
+  const [catcher0, setCatcher0] = useState(String(DEFAULT_TAG));
+  const [labOn, setLabOn] = useState("");
+  const [labRev, setLabRev] = useState("");
+  const [labBond, setLabBond] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,6 +51,11 @@ export function KineticsBoard() {
         if (!cancelled) setSchema(s);
         const r = await simulateRecruitment(DEFAULT_C_FREE);
         if (!cancelled) setSim(r);
+        const c = await simulateCovalent({
+          tag0_M: DEFAULT_TAG,
+          catcher0_M: DEFAULT_TAG,
+        });
+        if (!cancelled) setCov(c);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Load failed");
       } finally {
@@ -46,7 +67,7 @@ export function KineticsBoard() {
     };
   }, []);
 
-  async function runSim() {
+  async function runRecruitment() {
     setError(null);
     const parsed = Number(cFree);
     if (!Number.isFinite(parsed) || parsed < 0) {
@@ -63,6 +84,51 @@ export function KineticsBoard() {
     }
   }
 
+  async function runCovalent() {
+    setError(null);
+    const t = Number(tag0);
+    const c = Number(catcher0);
+    if (!Number.isFinite(t) || t < 0 || !Number.isFinite(c) || c < 0) {
+      setError("Enter finite non-negative Tag0 and Catcher0 (M).");
+      return;
+    }
+    const body: {
+      tag0_M: number;
+      catcher0_M: number;
+      spy_k_on_per_M_s?: number;
+      spy_k_rev_per_s?: number;
+      spy_k_bond_per_s?: number;
+    } = { tag0_M: t, catcher0_M: c };
+    if (labOn.trim() !== "") {
+      const k = Number(labOn);
+      if (!Number.isFinite(k) || k <= 0) {
+        setError("Lab k_on must be a positive number if filled.");
+        return;
+      }
+      body.spy_k_on_per_M_s = k;
+    }
+    if (labRev.trim() !== "" || labBond.trim() !== "") {
+      const kr = Number(labRev);
+      const kb = Number(labBond);
+      if (!Number.isFinite(kr) || kr <= 0 || !Number.isFinite(kb) || kb <= 0) {
+        setError("Fill both lab k_rev and k_bond with positive numbers, or leave both empty.");
+        return;
+      }
+      body.spy_k_rev_per_s = kr;
+      body.spy_k_bond_per_s = kb;
+    }
+    setLoading(true);
+    try {
+      setCov(await simulateCovalent(body));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Simulate failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const spyOn = schema?.rate_slots.find((s) => s.name === "spy_k_on_per_M_s");
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
@@ -70,9 +136,15 @@ export function KineticsBoard() {
         <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
         <h1 className="mt-1 text-3xl font-semibold">Scaffold kinetics</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          CaM–M13 recruitment uses the published peptide K<sub>d</sub>. SpyTag association,
-          off-rate, and lock-rate slots stay vacant until stage-1 ingestion.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          These numbers let the models run so you can test the math. They are
+          literature priors, not our assay. In about two weeks, put lab rates in
+          the empty override boxes. CaM–M13 uses the peptide K<sub>d</sub>, not a
+          fusion K<sub>d</sub>. Spy locking uses Zakeri’s apparent second-order
+          rate as a lumped irreversible step. Reversible off-rate and lock-rate
+          stay vacant until you measure them. NanoBiT rates are listed below and
+          are not part of the simulate buttons.{" "}
+          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>,{" "}
+          <code className="rounded bg-[#F5F0E8] px-1">hypothesis_only</code>.
         </p>
       </header>
 
@@ -105,11 +177,8 @@ export function KineticsBoard() {
                   <p className="text-xs text-[#8A8278]">{slot.notes}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{slotBadge(slot.status)}</Badge>
-                  <span className="text-sm tabular-nums">
-                    {slot.value === null ? "—" : slot.value.toExponential(2)}{" "}
-                    {slot.units}
-                  </span>
+                  <Badge variant="outline">{slotBadge(slot)}</Badge>
+                  <span className="text-sm tabular-nums">{formatVal(slot)}</span>
                 </div>
               </li>
             ))}
@@ -117,11 +186,11 @@ export function KineticsBoard() {
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+      <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">Recruitment steady state</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          θ<sub>ss</sub> = C<sub>free</sub> / (C<sub>free</sub> + K<sub>d</sub>). No SpyTag
-          rates required.
+          θ<sub>ss</sub> = C<sub>free</sub> / (C<sub>free</sub> + K<sub>d</sub>).
+          Uses the Biochemistry 2006 peptide K<sub>d</sub> (DOI 10.1021/bi060857u).
         </p>
         <label className="mt-4 block text-sm">
           C<sub>free</sub> (M)
@@ -133,7 +202,7 @@ export function KineticsBoard() {
         </label>
         <button
           type="button"
-          onClick={() => void runSim()}
+          onClick={() => void runRecruitment()}
           className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
         >
           Run recruitment
@@ -157,7 +226,94 @@ export function KineticsBoard() {
             </div>
             <div>
               <dt className="text-[#8A8278]">Tier</dt>
-              <dd>{schema?.confidence_tier ?? "hypothesis_only"}</dd>
+              <dd>{sim.confidence_tier}</dd>
+            </div>
+          </dl>
+        ) : null}
+      </section>
+
+      <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-medium">Spy covalent time course</h2>
+        <p className="mt-1 text-sm text-[#5C564E]">
+          Pre-filled k<sub>on</sub> is the Zakeri 2012 literature prior (
+          {spyOn ? formatVal(spyOn) : "1.4e3 M^-1 s^-1"}), labeled as not our
+          assay. Leave lab boxes empty to run the lumped irreversible path.
+          Fill both k<sub>rev</sub> and k<sub>bond</sub> only when you have lab
+          numbers.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            Tag<sub>0</sub> (M)
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={tag0}
+              onChange={(e) => setTag0(e.target.value)}
+            />
+          </label>
+          <label className="block text-sm">
+            Catcher<sub>0</sub> (M)
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={catcher0}
+              onChange={(e) => setCatcher0(e.target.value)}
+            />
+          </label>
+          <label className="block text-sm">
+            Lab k<sub>on</sub> override (M⁻¹ s⁻¹), empty = literature
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={labOn}
+              onChange={(e) => setLabOn(e.target.value)}
+              placeholder="leave empty"
+            />
+          </label>
+          <label className="block text-sm">
+            Lab k<sub>rev</sub> (s⁻¹), empty = vacant
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={labRev}
+              onChange={(e) => setLabRev(e.target.value)}
+              placeholder="leave empty"
+            />
+          </label>
+          <label className="block text-sm sm:col-span-2">
+            Lab k<sub>bond</sub> (s⁻¹), empty = vacant
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={labBond}
+              onChange={(e) => setLabBond(e.target.value)}
+              placeholder="leave empty"
+            />
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={() => void runCovalent()}
+          className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
+        >
+          Run covalent
+        </button>
+        {cov ? (
+          <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-[#8A8278]">Path</dt>
+              <dd className="font-mono">{cov.rates_used.path}</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">k_on used</dt>
+              <dd className="font-mono">
+                {cov.rates_used.spy_k_on_per_M_s.toExponential(2)} M⁻¹ s⁻¹
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Final adduct</dt>
+              <dd className="font-mono">
+                {cov.series.adduct_M[cov.series.adduct_M.length - 1].toExponential(3)} M
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Tier</dt>
+              <dd>{cov.confidence_tier}</dd>
             </div>
           </dl>
         ) : null}
