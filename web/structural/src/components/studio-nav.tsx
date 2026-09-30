@@ -6,12 +6,13 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/", label: "Run" },
   { href: "/present", label: "Present" },
+  { href: "/stability", label: "Stability" },
 ];
 
 export function StudioNav() {
   const path = usePathname();
   return (
-    <nav className="mb-6 flex gap-2" aria-label="Structural screens">
+    <nav className="mb-6 flex flex-wrap gap-2" aria-label="Studio screens">
       {LINKS.map((link) => {
         const active = path === link.href;
         return (
