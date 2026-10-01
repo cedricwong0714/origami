@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/stability", label: "Stability check" },
   { href: "/stability/calculator", label: "Estimate ΔG" },
   { href: "/kinetics", label: "Kinetics" },
+  { href: "/ssdk", label: "SSDK" },
   { href: "/lab", label: "Lab chassis" },
   { href: "/learn", label: "Active learning" },
 ];

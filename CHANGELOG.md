@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-01 (SSDK chassis)
+
+### Added
+- `POST /api/ssdk/chassis` evaluates one repeat count across structure, stability, docking, and kinetics. The screw chord is always returned. Clash and Gaussian-chain C_eff run only when both payload radii are supplied; the 25 Å placeholder is not used. A typed lab Tm is compared with the assay temperature and does not refit the Phillips 2012 CTPRa DSC length model. Kinetics runs only from posted concentrations and rates. `calibrated` stays false.
+- The wiki page is `/ssdk`.
+  Reviewed by: not a human wet-lab review. A passing test is not scientific validation.
+
 ## Unreleased — 2026-10-01 (SSDK surrogate learning)
 
 ### Added

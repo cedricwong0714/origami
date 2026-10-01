@@ -1,7 +1,9 @@
 # SSDK surrogate learning
 
 ## Purpose
-Run structure, stability, docking, and kinetics as separate models, then let a small set of surrogate readouts update the residual on the docking score and recommend the next length.
+Run structure, stability, docking, and kinetics as separate chassis, then let a small set of surrogate readouts update the residual on the docking score and recommend the next length.
+
+`POST /api/ssdk/chassis` evaluates one length. `POST /api/ssdk/learn` recommends the next surrogate length. The wiki pages are `/ssdk` and `/learn`.
 
 ## Scientific basis
 The docking score is `(1 − P_instability) × log10(1 + C_eff / 1 mM)`. The 1 mM denominator is the ranking convention already in `origami.physical.score`, not a measured K_m. The residual model is `y = α S + β + r(n) + ε` with a Matérn-5/2 kernel. α stays 1 until three distinct lengths are present. Acquisition is constrained UCB, expected improvement, or posterior entropy over the discrete repeat counts.
