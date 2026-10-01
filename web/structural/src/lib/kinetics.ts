@@ -84,6 +84,40 @@ export async function simulateRecruitment(cFreeM: number): Promise<RecruitmentSi
   return res.json() as Promise<RecruitmentSim>;
 }
 
+export type NanoBitSim = {
+  mode: "nanobit_complementation";
+  calibrated: boolean;
+  confidence_tier: string;
+  equilibrium_complex_M: number;
+  equilibrium_uses: string;
+  warnings: string[];
+  rates_used: {
+    nanobit_k_on_per_M_s: number;
+    nanobit_k_off_per_s: number;
+    printed_kd_M: number;
+    kinetic_kd_M: number;
+  };
+  series: { complex_M: number[] };
+};
+
+export async function simulateNanoBit(lg0M: number, sm0M: number): Promise<NanoBitSim> {
+  const res = await fetch("/api/kinetics/simulate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mode: "nanobit_complementation",
+      lg0_M: lg0M,
+      sm0_M: sm0M,
+      num_points: 40,
+    }),
+  });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(detail || `simulate ${res.status}`);
+  }
+  return res.json() as Promise<NanoBitSim>;
+}
+
 export async function simulateCovalent(body: {
   tag0_M: number;
   catcher0_M: number;

@@ -286,10 +286,10 @@ NANOBIT_KD_M = Parameter(
     system="Untethered LgBiT + SmBiT (NanoBiT) fragments, biochemical assay",
     method="Intrinsic fragment affinity reported in the abstract and main text",
     notes=(
-        "Already cited in src/evidence_engine/corpus.py and "
-        "src/core/nanobit_reporter.py. No printed sigma in the abstract; "
-        "sigma stays null (not stored as 0). Not used by stage-1 simulate "
-        "modes. Not a Hong Kong team fusion measurement."
+        "No printed sigma in the abstract; sigma stays null (not stored as 0). "
+        "The complementation ODE uses k_on and k_off. This printed Kd is "
+        "reported beside k_off/k_on and is not substituted. "
+        "Not a Hong Kong team fusion measurement."
     ),
     calibrated=False,
 )
@@ -314,7 +314,8 @@ NANOBIT_K_ON_PER_M_S = Parameter(
     method="Intrinsic association of the complementation reporter",
     notes=(
         "Tilde in the paper; sigma is null, not 0. "
-        "Stage-1 simulate does not run a NanoBiT ODE. Lab field stays empty."
+        "nanobit_complementation integrates this rate with k_off. "
+        "It is not replaced by k_off / printed Kd."
     ),
     calibrated=False,
 )
@@ -334,7 +335,10 @@ NANOBIT_K_OFF_PER_S = Parameter(
     ),
     system="Untethered LgBiT + SmBiT (NanoBiT) fragments",
     method="Intrinsic dissociation of the complementation reporter",
-    notes="Not a fusion assay. Stage-1 simulate does not use this rate.",
+    notes=(
+        "Not a fusion assay. nanobit_complementation integrates this rate "
+        "with k_on. The quotient k_off/k_on is not overwritten by the printed Kd."
+    ),
     calibrated=False,
 )
 

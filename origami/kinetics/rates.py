@@ -21,7 +21,7 @@ RateStatus = Literal["literature", "vacant", "user_supplied"]
 RateOrigin = Literal["literature_prior", "lab_measurement"]
 
 MODEL_NAME = "origami_stage1_kinetics"
-MODEL_VERSION = "0.2.0"
+MODEL_VERSION = "0.3.0"
 
 
 @dataclass(frozen=True)

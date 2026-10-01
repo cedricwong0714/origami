@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-01 (docking and kinetics engine)
+
+### Added
+- Docking with both caller radii now returns `local_kinetics`. Spy uses `k_obs = k_on * C_eff` with the Zakeri et al. 2012 apparent rate (DOI 10.1073/pnas.1115485109). The half-life is omitted when the 95% band on `k_obs` reaches zero. NanoBiT occupancy uses the printed Dixon et al. 2016 Kd of 190 μM (DOI 10.1021/acschembio.5b00753). The relaxation rate uses that paper's k_on and k_off. `k_rev` and `k_bond` stay null. A missing radius still omits clash, C_eff, and this block. The 25 Å placeholder is not used.
+- `mode = nanobit_complementation` integrates d[complex]/dt = k_on [Lg][Sm] − k_off [complex]. Equilibrium uses k_off / k_on. The printed 190 μM Kd is not substituted. Both starting concentrations are required. `calibrated` stays false. `confidence_tier` is `hypothesis_only`.
+  Reviewed by: not a human wet-lab review. A passing test is not scientific validation.
+
 ## Unreleased — 2026-10-01 (literature residual training)
 
 ### Added

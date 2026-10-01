@@ -7,9 +7,11 @@ import { StudioNav } from "@/components/studio-nav";
 import {
   fetchKineticsSchema,
   simulateCovalent,
+  simulateNanoBit,
   simulateRecruitment,
   type CovalentSim,
   type KineticsSchema,
+  type NanoBitSim,
   type RateSlot,
   type RecruitmentSim,
 } from "@/lib/kinetics";
@@ -40,6 +42,9 @@ export function KineticsBoard() {
   const [labOn, setLabOn] = useState("");
   const [labRev, setLabRev] = useState("");
   const [labBond, setLabBond] = useState("");
+  const [nano, setNano] = useState<NanoBitSim | null>(null);
+  const [lg0, setLg0] = useState("");
+  const [sm0, setSm0] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -127,6 +132,24 @@ export function KineticsBoard() {
     }
   }
 
+  async function runNanoBit() {
+    setError(null);
+    const lg = Number(lg0);
+    const sm = Number(sm0);
+    if (!Number.isFinite(lg) || lg < 0 || !Number.isFinite(sm) || sm < 0) {
+      setError("Enter finite non-negative LgBiT and SmBiT concentrations (M).");
+      return;
+    }
+    setLoading(true);
+    try {
+      setNano(await simulateNanoBit(lg, sm));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Simulate failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const spyOn = schema?.rate_slots.find((s) => s.name === "spy_k_on_per_M_s");
 
   return (
@@ -141,8 +164,10 @@ export function KineticsBoard() {
           the empty override boxes. CaM–M13 uses the peptide K<sub>d</sub>, not a
           fusion K<sub>d</sub>. Spy locking uses Zakeri’s apparent second-order
           rate as a lumped irreversible step. Reversible off-rate and lock-rate
-          stay vacant until you measure them. NanoBiT rates are listed below and
-          are not part of the simulate buttons.{" "}
+          stay vacant until you measure them. NanoBiT complementation uses the
+          Dixon k<sub>on</sub> and k<sub>off</sub>. The printed 190 μM K<sub>d</sub>{" "}
+          is shown beside k<sub>off</sub>/k<sub>on</sub> and is not substituted
+          into that ODE.{" "}
           <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>,{" "}
           <code className="rounded bg-[#F5F0E8] px-1">hypothesis_only</code>.
         </p>
@@ -229,6 +254,70 @@ export function KineticsBoard() {
               <dd>{sim.confidence_tier}</dd>
             </div>
           </dl>
+        ) : null}
+      </section>
+
+      <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-medium">NanoBiT complementation</h2>
+        <p className="mt-1 text-sm text-[#5C564E]">
+          d[complex]/dt = k<sub>on</sub> [Lg][Sm] − k<sub>off</sub> [complex].
+          Both concentrations are required. There is no default mix. The
+          equilibrium uses k<sub>off</sub>/k<sub>on</sub> from Dixon et al. 2016
+          (DOI 10.1021/acschembio.5b00753).
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            LgBiT<sub>0</sub> (M)
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={lg0}
+              onChange={(e) => setLg0(e.target.value)}
+              placeholder="required"
+            />
+          </label>
+          <label className="block text-sm">
+            SmBiT<sub>0</sub> (M)
+            <input
+              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              value={sm0}
+              onChange={(e) => setSm0(e.target.value)}
+              placeholder="required"
+            />
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={() => void runNanoBit()}
+          className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
+        >
+          Run NanoBiT
+        </button>
+        {nano ? (
+          <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-[#8A8278]">Equilibrium complex</dt>
+              <dd className="font-mono">{nano.equilibrium_complex_M.toExponential(3)} M</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Uses</dt>
+              <dd className="font-mono">{nano.equilibrium_uses}</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">k_off / k_on</dt>
+              <dd className="font-mono">{nano.rates_used.kinetic_kd_M.toExponential(3)} M</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Printed K<sub>d</sub></dt>
+              <dd className="font-mono">{nano.rates_used.printed_kd_M.toExponential(3)} M</dd>
+            </div>
+          </dl>
+        ) : null}
+        {nano?.warnings?.length ? (
+          <ul className="mt-4 list-disc pl-5 text-sm text-[#5C564E]">
+            {nano.warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
         ) : null}
       </section>
 

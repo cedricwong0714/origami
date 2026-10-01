@@ -6,7 +6,7 @@ Run structure, stability, docking, and kinetics as separate chassis, then let a 
 `POST /api/ssdk/chassis` evaluates one length. `POST /api/ssdk/learn` recommends the next surrogate length and also returns a separate literature training block. The wiki pages are `/ssdk` and `/learn`.
 
 ## Scientific basis
-The docking score is `(1 − P_instability) × log10(1 + C_eff / 1 mM)`. The 1 mM denominator is the ranking convention already in `origami.physical.score`, not a measured K_m. The residual model is `y = α S + β + r(n) + ε` with a Matérn-5/2 kernel. α stays 1 until three distinct lengths are present. Acquisition is constrained UCB, expected improvement, or posterior entropy over the discrete repeat counts.
+The docking score is `(1 − P_instability) × log10(1 + C_eff / 1 mM)`. The 1 mM denominator is the ranking convention already in `origami.physical.score`, not a measured K_m. When both radii are posted, docking also reports tethered Spy `k_obs = k_on * C_eff` and NanoBiT occupancy at that C_eff. The residual model is `y = α S + β + r(n) + ε` with a Matérn-5/2 kernel. α stays 1 until three distinct lengths are present. Acquisition is constrained UCB, expected improvement, or posterior entropy over the discrete repeat counts.
 
 ## Inputs
 Surrogate rows: repeat count, readout, optional sigma. Optional payload radii in angstroms. Optional kinetics block with SpyTag and SpyCatcher concentrations and an optional lab k_lock.

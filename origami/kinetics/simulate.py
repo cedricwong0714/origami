@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from origami.kinetics.covalent import simulate_covalent_timecourse
+from origami.kinetics.nanobit import NanoBitError, simulate_nanobit_complementation
 from origami.kinetics.rates import apply_user_rates, default_rate_slots
 from origami.physical.recruitment import recruitment_occupancy
 from origami.priors import SPY_K_ON_PER_M_S, get_parameter_or_warn
@@ -38,9 +39,14 @@ def _numeric_from_slot(slot: Any, name: str) -> float | None:
 
 def simulate_kinetics(body: dict[str, Any]) -> dict[str, Any]:
     mode = body.get("mode")
-    if mode not in ("recruitment_steady", "covalent_timecourse"):
+    if mode not in (
+        "recruitment_steady",
+        "covalent_timecourse",
+        "nanobit_complementation",
+    ):
         raise KineticsSimError(
-            "mode must be 'recruitment_steady' or 'covalent_timecourse'"
+            "mode must be 'recruitment_steady', 'covalent_timecourse', "
+            "or 'nanobit_complementation'"
         )
 
     rate_overrides = body.get("rates")
@@ -53,13 +59,21 @@ def simulate_kinetics(body: dict[str, Any]) -> dict[str, Any]:
         "spy_k_rev_per_s",
         "spy_k_bond_per_s",
         "cam_m13_kd_M",
+        "nanobit_k_on_per_M_s",
+        "nanobit_k_off_per_s",
+        "nanobit_kd_M",
     ):
         if key in body and key not in merged:
             merged[key] = body[key]
 
     use_lit = body.get("use_literature_priors", True)
     if use_lit is False:
-        for key in ("spy_k_on_per_M_s", "cam_m13_kd_M"):
+        for key in (
+            "spy_k_on_per_M_s",
+            "cam_m13_kd_M",
+            "nanobit_k_on_per_M_s",
+            "nanobit_k_off_per_s",
+        ):
             if key not in merged:
                 merged[key] = None
 
@@ -125,6 +139,9 @@ def simulate_kinetics(body: dict[str, Any]) -> dict[str, Any]:
             "derived": derived,
         }
 
+    if mode == "nanobit_complementation":
+        return _nanobit(body, slots)
+
     by_name = _slot_map(slots)
     k_on = _numeric_from_slot(by_name["spy_k_on_per_M_s"], "spy_k_on_per_M_s")
     if k_on is None:
@@ -168,3 +185,39 @@ def simulate_kinetics(body: dict[str, Any]) -> dict[str, Any]:
         "literature_k_on_per_M_s": float(SPY_K_ON_PER_M_S.value),
     }
     return payload
+
+
+def _nanobit(body: dict[str, Any], slots: list[Any]) -> dict[str, Any]:
+    if "lg0_M" not in body or "sm0_M" not in body:
+        raise KineticsSimError("nanobit_complementation requires lg0_M and sm0_M")
+    lg0 = _require_positive("lg0_M", body["lg0_M"])
+    sm0 = _require_positive("sm0_M", body["sm0_M"])
+    by_name = _slot_map(slots)
+    kon_slot = by_name["nanobit_k_on_per_M_s"]
+    koff_slot = by_name["nanobit_k_off_per_s"]
+    kon = _numeric_from_slot(kon_slot, "nanobit_k_on_per_M_s")
+    koff = _numeric_from_slot(koff_slot, "nanobit_k_off_per_s")
+    if kon is None or koff is None:
+        raise KineticsSimError(
+            "nanobit k_on and k_off are vacant; supply both or leave literature priors on"
+        )
+    t_end = body.get("t_end_s")
+    if t_end is not None:
+        t_end = _require_positive("t_end_s", t_end)
+        if t_end == 0:
+            raise KineticsSimError("t_end_s must be > 0 when supplied")
+    num_points = int(body.get("num_points", 80))
+    try:
+        result = simulate_nanobit_complementation(
+            lg0_M=lg0,
+            sm0_M=sm0,
+            k_on_per_M_s=None if kon_slot.status == "literature" else kon,
+            k_off_per_s=None if koff_slot.status == "literature" else koff,
+            t_end_s=t_end,
+            num_points=num_points,
+        )
+    except NanoBitError as exc:
+        raise KineticsSimError(str(exc)) from exc
+    result["mode"] = "nanobit_complementation"
+    result["rate_slots"] = [slot.to_dict() for slot in slots]
+    return result

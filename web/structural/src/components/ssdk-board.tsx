@@ -37,6 +37,20 @@ type ChassisReport = {
     c_eff_95_lower_M?: number | null;
     c_eff_95_upper_M?: number | null;
     note?: string;
+    local_kinetics?: {
+      computable: boolean;
+      missing?: string[];
+      spy?: {
+        k_obs_per_s: number;
+        t_half_s: number | null;
+        t_half_note: string;
+      };
+      nanobit?: {
+        theta_ss: number;
+        printed_kd_M: number;
+        kinetic_kd_M: number;
+      };
+    };
   };
   kinetics: {
     computable: boolean;
@@ -45,6 +59,8 @@ type ChassisReport = {
     simulation?: {
       mode?: string;
       recruitment?: { theta_ss: number; theta_95_lower: number; theta_95_upper: number };
+      equilibrium_complex_M?: number;
+      rates_used?: { kinetic_kd_M?: number; printed_kd_M?: number; path?: string };
     };
   };
 };
@@ -75,6 +91,8 @@ export function SsdkBoard() {
   const [tag0, setTag0] = useState("1e-5");
   const [catcher0, setCatcher0] = useState("1e-5");
   const [kLock, setKLock] = useState("");
+  const [lg0, setLg0] = useState("");
+  const [sm0, setSm0] = useState("");
   const [report, setReport] = useState<ChassisReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
@@ -133,6 +151,15 @@ export function SsdkBoard() {
           kinetics.spy_k_on_per_M_s = rate;
         }
         body.kinetics = kinetics;
+      }
+      if (mode === "nanobit") {
+        const lg = optionalPositive(lg0, "LgBiT");
+        const sm = optionalPositive(sm0, "SmBiT");
+        if (lg === undefined || sm === undefined || lg < 0 || sm < 0) {
+          setError("NanoBiT needs both starting concentrations in molar.");
+          return;
+        }
+        body.kinetics = { mode: "nanobit_complementation", lg0_M: lg, sm0_M: sm };
       }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Check the inputs.");
@@ -198,6 +225,7 @@ export function SsdkBoard() {
             <option value="none">Do not run kinetics</option>
             <option value="recruitment">Recruitment steady state</option>
             <option value="covalent">Covalent lock time course</option>
+            <option value="nanobit">NanoBiT complementation</option>
           </select>
         </label>
         {mode === "recruitment" ? (
@@ -208,6 +236,12 @@ export function SsdkBoard() {
             <Field label="SpyTag (M)" value={tag0} onChange={setTag0} />
             <Field label="SpyCatcher (M)" value={catcher0} onChange={setCatcher0} />
             <Field label="Lab k_lock (M⁻¹ s⁻¹), optional" value={kLock} onChange={setKLock} />
+          </div>
+        ) : null}
+        {mode === "nanobit" ? (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Field label="LgBiT (M)" value={lg0} onChange={setLg0} />
+            <Field label="SmBiT (M)" value={sm0} onChange={setSm0} />
           </div>
         ) : null}
         <Button type="button" className="mt-4" onClick={onRun} disabled={running}>
@@ -273,13 +307,31 @@ function Results({ report }: { report: ChassisReport }) {
         ) : (
           <p>Clash and effective concentration were not computed. {docking.missing?.join(" ")}</p>
         )}
+        {docking.local_kinetics?.computable && docking.local_kinetics.spy ? (
+          <p>
+            Tethered Spy k_obs {formatNumber(docking.local_kinetics.spy.k_obs_per_s)} s⁻¹.
+            Half-life{" "}
+            {docking.local_kinetics.spy.t_half_s == null
+              ? docking.local_kinetics.spy.t_half_note
+              : `${formatNumber(docking.local_kinetics.spy.t_half_s)} s`}
+            . NanoBiT occupancy at this C_eff is{" "}
+            {formatNumber(docking.local_kinetics.nanobit?.theta_ss)}. Printed Kd{" "}
+            {formatNumber(docking.local_kinetics.nanobit?.printed_kd_M)} M. k_off/k_on{" "}
+            {formatNumber(docking.local_kinetics.nanobit?.kinetic_kd_M)} M. k_rev and k_bond
+            stay empty.
+          </p>
+        ) : (
+          <p>Tethered rates wait for an effective concentration.</p>
+        )}
       </Card>
       <Card title="Kinetics">
         {kinetics.computable ? (
           <p>
             {kinetics.simulation?.mode === "recruitment_steady"
               ? `Steady occupancy ${formatNumber(kinetics.simulation.recruitment?.theta_ss)} (95% band ${formatNumber(kinetics.simulation.recruitment?.theta_95_lower)} to ${formatNumber(kinetics.simulation.recruitment?.theta_95_upper)}).`
-              : "The covalent time course ran from the posted concentrations."}{" "}
+              : kinetics.simulation?.mode === "nanobit_complementation"
+                ? `Equilibrium complex ${formatNumber(kinetics.simulation.equilibrium_complex_M)} M. k_off/k_on ${formatNumber(kinetics.simulation.rates_used?.kinetic_kd_M)} M. Printed Kd ${formatNumber(kinetics.simulation.rates_used?.printed_kd_M)} M.`
+                : "The covalent time course ran from the posted concentrations."}{" "}
             {kinetics.note}
           </p>
         ) : (

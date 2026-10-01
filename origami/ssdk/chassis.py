@@ -38,6 +38,9 @@ def evaluate_chassis(body: dict[str, Any]) -> dict[str, Any]:
         raise ChassisError("n_repeats must be an integer")
     if n_repeats < N_REPEATS_MIN or n_repeats > N_REPEATS_MAX:
         raise ChassisError(f"n_repeats must be in [{N_REPEATS_MIN}, {N_REPEATS_MAX}]")
+    kinetics_body = (
+        body.get("kinetics") if isinstance(body.get("kinetics"), dict) else {}
+    )
     try:
         docking = evaluate_docking(
             n_repeats,
@@ -45,6 +48,12 @@ def evaluate_chassis(body: dict[str, Any]) -> dict[str, Any]:
             radii_A=_optional_radii(body.get("radii_A")),
             linker_sigma_A=_optional_float(
                 body.get("linker_sigma_A"), "linker_sigma_A"
+            ),
+            spy_k_on_per_M_s=_optional_float(
+                kinetics_body.get("spy_k_on_per_M_s"), "kinetics.spy_k_on_per_M_s"
+            ),
+            spy_k_on_sigma=_optional_float(
+                kinetics_body.get("spy_k_on_sigma"), "kinetics.spy_k_on_sigma"
             ),
         )
     except DockingError as exc:

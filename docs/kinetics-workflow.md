@@ -14,13 +14,15 @@ The structural-analysis API serves `GET /api/kinetics/schema` and `POST /api/kin
 | `spy_k_on_per_M_s` | Zakeri 2012 apparent second-order rate | Replace with SDS-PAGE / fluorescence fit on the CLASP fusions |
 | `spy_k_rev_per_s` | Vacant | Fill from a reversible-complex assay if the 3-step scheme is used |
 | `spy_k_bond_per_s` | Vacant | Fill from lock kinetics; switches simulate from lumped to 3-step |
-| NanoBiT Kd / k_on / k_off | Dixon 2016 listed in schema only | Not in simulate until a NanoBiT mode exists |
+| NanoBiT Kd / k_on / k_off | Dixon 2016. `nanobit_complementation` integrates k_on and k_off. The printed Kd is reported beside k_off/k_on and is not substituted. | Lab concentrations `lg0_M` and `sm0_M` replace the request concentrations. Rates stay the Dixon priors until a lab pair is posted. |
 
 `calibrated` stays false. `confidence_tier` is `hypothesis_only`. Passing pytest is not scientific validation.
 
 Default `POST` with `mode=covalent_timecourse` and no rates uses the lumped irreversible bimolecular path (`d[adduct]/dt = k_on [Tag][Catcher]`) at 10 μM starting concentrations (the Zakeri mixing condition). That is not a 3-parameter fit.
 
 `use_literature_priors: false` without lab rates returns HTTP 400.
+
+`mode=nanobit_complementation` requires `lg0_M` and `sm0_M`. It does not default those concentrations. The ODE parameter is k_off / k_on. The printed Kd stays a reported number.
 
 ## Scientific basis
 
@@ -52,7 +54,7 @@ Default `POST` with `mode=covalent_timecourse` and no rates uses the lumped irre
 ## Known limitations
 
 - `k_rev` and `k_bond` for the parental pair are not in Zakeri 2012.
-- NanoBiT is not simulated.
+- NanoBiT complementation is the untethered Dixon mass-action law. It is not a fusion measurement. k_on is approximate and has no printed standard error.
 - Residual GP is unfitted. No assay y was invented.
 
 ## Parameter sources
@@ -64,7 +66,7 @@ Default `POST` with `mode=covalent_timecourse` and no rates uses the lumped irre
 ## Tests
 
 ```bash
-PYTHONPATH=/workspace python -m pytest tests/math_chassis/test_kinetics.py -q
+PYTHONPATH=/workspace python -m pytest tests/math_chassis/test_kinetics.py tests/math_chassis/test_docking_kinetics_engine.py -q
 ```
 
 ## Owner

@@ -51,6 +51,22 @@ def kinetics_schema() -> dict[str, Any]:
                 "optional_fields": ["kon_per_M_s", "t_end_s"],
             },
             {
+                "mode": "nanobit_complementation",
+                "description": (
+                    "Reversible bimolecular LgBiT + SmBiT using Dixon 2016 "
+                    "k_on and k_off. The printed 190 μM Kd is reported beside "
+                    "k_off/k_on and is not substituted into the ODE."
+                ),
+                "required_fields": ["lg0_M", "sm0_M"],
+                "optional_fields": [
+                    "nanobit_k_on_per_M_s",
+                    "nanobit_k_off_per_s",
+                    "t_end_s",
+                    "num_points",
+                    "use_literature_priors",
+                ],
+            },
+            {
                 "mode": "covalent_timecourse",
                 "description": (
                     "Default: lumped irreversible bimolecular adduct using "
@@ -73,8 +89,9 @@ def kinetics_schema() -> dict[str, Any]:
         "note": (
             "Literature priors emulate a fusion path so the ODE can run. "
             "They are not Hong Kong team measurements. Lab fields stay "
-            "null until stage-1 data. NanoBiT numbers are listed and not "
-            "integrated. calibrated stays false. confidence_tier is "
-            "hypothesis_only."
+            "null until stage-1 data. NanoBiT complementation integrates "
+            "the Dixon k_on and k_off when lg0_M and sm0_M are posted. "
+            "The printed Kd is not substituted for k_off/k_on. "
+            "calibrated stays false. confidence_tier is hypothesis_only."
         ),
     }

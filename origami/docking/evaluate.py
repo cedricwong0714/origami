@@ -18,6 +18,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from origami.docking.local_kinetics import local_kinetics
 from origami.physical.backbone import m13_graft_index
 from origami.physical.geometry import build_ctpr
 from origami.physical.linkers import gaussian_chain_ceff
@@ -38,6 +39,8 @@ def evaluate_docking(
     indices: list[int] | None = None,
     radii_A: list[float] | None = None,
     linker_sigma_A: float | None = None,
+    spy_k_on_per_M_s: float | None = None,
+    spy_k_on_sigma: float | None = None,
 ) -> dict[str, Any]:
     """Return screw geometry, and clash plus C_eff when radii exist."""
     if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
@@ -78,6 +81,7 @@ def evaluate_docking(
             "clash_computable": False,
             "missing": ["both payload radii in angstroms"],
             "note": "The chord does not need a radius. Clash and C_eff do.",
+            "local_kinetics": local_kinetics(None, None),
         }
     if len(radii_A) != 2:
         raise DockingError("radii_A must contain two angstrom values")
@@ -111,6 +115,12 @@ def evaluate_docking(
         "note": (
             "The C_eff band propagates the junction-chord sigma through dC/dr. "
             "Linker-length uncertainty is omitted because the source printed none."
+        ),
+        "local_kinetics": local_kinetics(
+            ceff.C_eff_M,
+            ceff_sigma,
+            spy_k_on_per_M_s=spy_k_on_per_M_s,
+            spy_k_on_sigma=spy_k_on_sigma,
         ),
     }
 
