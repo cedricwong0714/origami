@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from origami.api.kinetics import router as kinetics_router
+from origami.api.lab import router as lab_router
 from origami.api.stability import router as stability_router
 from origami.linker_prior import ggggs_linker_rms_A
 from origami.physical.backbone import (
@@ -52,6 +53,7 @@ app.add_middleware(
 # stability_panel. It does not change scaffold prediction routes.
 app.include_router(stability_router)
 app.include_router(kinetics_router)
+app.include_router(lab_router)
 
 
 def _parse_n_list(raw: str | None) -> tuple[int, ...]:

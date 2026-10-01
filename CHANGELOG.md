@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-10-01 (lab chassis)
+
+### Added
+- Lab intake for the experiments in the current plan: prep concentration and gel calls, standard curve, furimazine half-life, CV, calcium logistic EC50, scrambled-M13 ratio, luminosities at 25 °C, 30 °C, and 37 °C, SpyCatcher lock progress curve, and four-tube bridging ratios.
+- `GET /api/lab/schema` and `POST /api/lab/run`. The wiki page is `/lab`.
+- EC50 does not replace the CaM–M13 peptide Kd. Lock fits one lumped rate or a caller-chosen pseudo-first-order rate. `k_rev` and `k_bond` are not fit. A rate whose 95% band reaches zero is omitted. Bridging ratios have no fold-change cutoff.
+- Melting temperature, payload radius, fusion Kd, and enzyme k_cat / K_m are not slots. The residual Gaussian process stays unfitted. `calibrated` stays false. A passing test is not scientific validation.
+  Reviewed by: not a human wet-lab review.
+
 ## Unreleased — 2026-09-30 (kinetics literature priors)
 
 ### Added

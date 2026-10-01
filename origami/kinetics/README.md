@@ -22,7 +22,7 @@ Well-mixed compartments. Literature numbers are not fusion assays.
 
 ## Known limitations
 
-Spy k_rev and k_bond vacant. NanoBiT listed, not integrated.
+Spy k_rev and k_bond stay vacant on the simulate path. A gel time course is fit separately by `origami.kinetics.lock_fit`, which reports one lumped k_lock or a caller-chosen pseudo-first-order rate and does not fit k_rev and k_bond. NanoBiT listed, not integrated.
 
 ## Parameter sources
 
