@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 
 from origami.design_engine.active_learning import NextExperiment, recommend
-from origami.design_engine.gp import GPPosterior, ResidualGP
+from origami.design_engine.gp import GPHyperparameters, GPPosterior, ResidualGP
 from origami.io.payloads import PayloadRecord, load_payloads
 from origami.io.signal_pairs import SignalPair, default_cam_m13_pair
 from origami.mechanisms.intermediate_transfer import simulate_from_ceff
@@ -51,7 +51,9 @@ _PRIOR_KD_ID = "cam_m13_peptide_0.19nM"
 # Same cutoff recommend() uses to mask a candidate. Read from that default so
 # this module does not introduce a second steric threshold. A length is
 # sterically allowed only when p_instability is strictly below this value.
-_STERIC_CLASH_LIMIT = float(inspect.signature(recommend).parameters["clash_limit"].default)
+_STERIC_CLASH_LIMIT = float(
+    inspect.signature(recommend).parameters["clash_limit"].default
+)
 
 _TIER_FOR_GATE_STATE = {
     "omitted": "omitted",
@@ -68,6 +70,7 @@ class Observation:
     source: str = "user_entered"
     units: str = "relative_output"
     notes: str = "Not a wet-lab record unless source='wet_lab'."
+    sigma: float | None = None
 
 
 @dataclass
@@ -116,7 +119,9 @@ class ClaspDesignEngine:
             # place payloads evenly along the solenoid
             k = len(self.payload_radii_A)
             indices = [int(round(i * (n_repeats - 1) / (k - 1))) for i in range(k)]
-        return physics_report(n_repeats, payload_indices=indices, radii_A=self.payload_radii_A)
+        return physics_report(
+            n_repeats, payload_indices=indices, radii_A=self.payload_radii_A
+        )
 
     def run(
         self,
@@ -154,10 +159,21 @@ class ClaspDesignEngine:
         X_all = np.array(candidates, dtype=float).reshape(-1, 1)
 
         gp = ResidualGP()
+        noise = _mean_positive_sigma(self.observations)
+        thermal_warnings_early: str | None = None
+        if noise is not None:
+            gp.hypers = GPHyperparameters(noise=noise)
+        elif self.observations:
+            thermal_warnings_early = (
+                "At least one surrogate sigma was omitted, so the GP noise "
+                "hyperparameter stays at its default. A missing sigma is not stored as zero."
+            )
         if self.observations:
             X = np.array([[o.n_repeats] for o in self.observations], dtype=float)
             y = np.array([o.y for o in self.observations], dtype=float)
-            S_obs = np.array([reports[o.n_repeats].physics_score for o in self.observations])
+            S_obs = np.array(
+                [reports[o.n_repeats].physics_score for o in self.observations]
+            )
             gp.fit(X, y, S_obs, optimize=len(self.observations) >= 3)
         posterior = gp.predict(X_all, S)
 
@@ -207,9 +223,15 @@ class ClaspDesignEngine:
         ]
         evidence = "literature_supported"
         if any(o.source == "wet_lab" for o in self.observations):
-            evidence = "parts_validated" if len(self.observations) >= 3 else "computationally_evaluated"
+            evidence = (
+                "parts_validated"
+                if len(self.observations) >= 3
+                else "computationally_evaluated"
+            )
         elif self.observations:
             evidence = "computationally_evaluated"
+        if thermal_warnings_early:
+            thermal_warnings.append(thermal_warnings_early)
         return EngineResult(
             candidates=candidates,
             reports=reports,
@@ -223,6 +245,27 @@ class ClaspDesignEngine:
             warnings=thermal_warnings,
             thermal_by_n=thermal_by_n,
         )
+
+
+def _mean_positive_sigma(observations: list[Observation]) -> float | None:
+    """Mean replicate sigma, or None when any observation omitted one.
+
+    A missing sigma does not become zero. A non-positive sigma is refused
+    because the GP noise term must be positive.
+    """
+    if not observations:
+        return None
+    sigmas: list[float] = []
+    for obs in observations:
+        if obs.sigma is None:
+            return None
+        if isinstance(obs.sigma, bool) or not isinstance(obs.sigma, (int, float)):
+            raise TypeError("observation sigma must be a real number or omitted")
+        sigma = float(obs.sigma)
+        if not math.isfinite(sigma) or sigma <= 0:
+            raise ValueError("observation sigma must be finite and > 0")
+        sigmas.append(sigma)
+    return sum(sigmas) / len(sigmas)
 
 
 def _as_assay_temperature_C(value: object) -> float:
@@ -409,7 +452,9 @@ def _recommend_thermally_feasible(
     warnings: list[str] = []
     feasible_idx: list[int] = []
     for index, n_repeats in enumerate(candidates):
-        warning = _infeasibility_warning(n_repeats, float(p_instability[index]), gates[n_repeats])
+        warning = _infeasibility_warning(
+            n_repeats, float(p_instability[index]), gates[n_repeats]
+        )
         if warning is None:
             feasible_idx.append(index)
         else:
@@ -495,7 +540,9 @@ def _one_turn_n(repeats_per_turn: float) -> int | None:
     return int(nearest)
 
 
-def _use_case_register(library: EngineResult, repeats_per_turn: float, next_n: int | None):
+def _use_case_register(
+    library: EngineResult, repeats_per_turn: float, next_n: int | None
+):
     """Team lengths beside this scan. Does not add an observation."""
     rows: list[dict[str, object]] = []
     for n_repeats, report in library.reports.items():
@@ -806,7 +853,9 @@ def _evaluate_occupancy(
                     "because c_free_M is missing."
                 )
         else:
-            occupancy = occupancy_for_pair(pair, c_free_M=float(c_free_M), signal_on=True)
+            occupancy = occupancy_for_pair(
+                pair, c_free_M=float(c_free_M), signal_on=True
+            )
         return occupancy, kon, notes
 
     kd_M, kd_sigma_M, kon, kd_notes = _signal_binding(signal_pair)
@@ -951,7 +1000,11 @@ def run_design(
             pair_ceffs.append(
                 gaussian_chain_ceff(distance_A, _pair_linker_sigma_A(sigmas, a, b))
             )
-    if sigmas is not None and any(s is None for s in sigmas) and any(s is not None for s in sigmas):
+    if (
+        sigmas is not None
+        and any(s is None for s in sigmas)
+        and any(s is not None for s in sigmas)
+    ):
         warnings.append(
             "Some payloads omitted linker_sigma_A. Those pairs use LINKER_SIGMA_A. "
             "The missing width was not invented."
@@ -1077,9 +1130,7 @@ def run_design(
         separation_thermal,
     )
     if separation is None:
-        warnings.append(
-            "Separation scan needs two payload radii. It was not run."
-        )
+        warnings.append("Separation scan needs two payload radii. It was not run.")
     else:
         warnings.extend(str(note) for note in separation["notes"])
 
@@ -1123,9 +1174,13 @@ def run_design(
         delta_g=None if dg_row is None else float(dg_row.value),
         delta_g_units=None if dg_row is None else dg_row.units,
         delta_g_uncertainty=(
-            None if dg_row is None or dg_row.uncertainty is None else float(dg_row.uncertainty)
+            None
+            if dg_row is None or dg_row.uncertainty is None
+            else float(dg_row.uncertainty)
         ),
-        highest_cited_delta_g_n=None if ranked_row is None else int(ranked_row.n_repeats),
+        highest_cited_delta_g_n=None
+        if ranked_row is None
+        else int(ranked_row.n_repeats),
         highest_cited_delta_g=None if ranked_row is None else float(ranked_row.value),
         highest_cited_delta_g_units=None if ranked_row is None else ranked_row.units,
         highest_cited_delta_g_uncertainty=(

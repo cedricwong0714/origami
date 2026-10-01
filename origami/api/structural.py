@@ -17,6 +17,7 @@ from pathlib import Path
 
 from origami.api.kinetics import router as kinetics_router
 from origami.api.lab import router as lab_router
+from origami.api.ssdk import router as ssdk_router
 from origami.api.stability import router as stability_router
 from origami.linker_prior import ggggs_linker_rms_A
 from origami.physical.backbone import (
@@ -54,6 +55,7 @@ app.add_middleware(
 app.include_router(stability_router)
 app.include_router(kinetics_router)
 app.include_router(lab_router)
+app.include_router(ssdk_router)
 
 
 def _parse_n_list(raw: str | None) -> tuple[int, ...]:

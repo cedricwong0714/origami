@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/stability/calculator", label: "Estimate ΔG" },
   { href: "/kinetics", label: "Kinetics" },
   { href: "/lab", label: "Lab chassis" },
+  { href: "/learn", label: "Active learning" },
 ];
 
 export function StudioNav() {

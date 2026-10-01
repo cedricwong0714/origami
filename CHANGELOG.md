@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-01 (SSDK surrogate learning)
+
+### Added
+- `POST /api/ssdk/learn` scores the CTPR library and recommends the next surrogate length. Surrogate rows are caller readouts. With fewer than three distinct lengths, α stays 1 and the Matérn hyperparameters are not optimized; the posterior still shifts by the observed residual. With three or more, `gp_fitted` is true. Structure contour and the Phillips 2012 CTPRa DSC length model are reported beside the recommendation and are not overwritten. Omitted payload radii use the 25 Å placeholder and are named as a placeholder. A missing observation sigma is not stored as zero. `calibrated` stays false.
+- The wiki page is `/learn`.
+  Reviewed by: not a human wet-lab review. A passing test of this loop is not scientific validation.
+
 ## Unreleased — 2026-10-01 (lab chassis)
 
 ### Added
