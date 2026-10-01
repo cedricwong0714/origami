@@ -15,6 +15,9 @@ Stability is reported from the Phillips 2012 CTPRa DSC length model.
 It does not remove a length from the surrogate search. Docking uses
 caller radii when both are supplied. Otherwise the existing 25 Å
 placeholder is named as a placeholder.
+
+``literature_training`` is computed from that DSC table alone. Surrogate
+rows are not an input to it.
 """
 
 from __future__ import annotations
@@ -27,6 +30,7 @@ from origami.kinetics.simulate import KineticsSimError, simulate_kinetics
 from origami.physical.geometry import build_ctpr
 from origami.physical.structure import structural_report
 from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, SPY_K_ON_PER_M_S
+from origami.ssdk.literature_train import train_literature
 from origami.stability.length_fit import fit_named_delta_g, fit_named_tm
 from origami.stability.series import PHILLIPS_2012_CTPRA_DSC
 
@@ -91,6 +95,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             "docking": _docking(result, highlighted, radius_origin),
             "kinetics": _kinetics(body.get("kinetics")),
         },
+        "literature_training": train_literature(),
     }
 
 

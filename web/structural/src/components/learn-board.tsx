@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudioNav } from "@/components/studio-nav";
@@ -17,6 +17,37 @@ type Candidate = {
   interpolated: boolean;
 };
 
+type LitPreview = {
+  n_repeats: number;
+  posterior_mean: number;
+  posterior_95_lower: number;
+  posterior_95_upper: number;
+  in_training_set: boolean;
+};
+
+type LitTrack = {
+  units: string;
+  gp_fitted: boolean;
+  training_lengths: number[];
+  alpha: number;
+  noise_note: string;
+  identifiability_note: string;
+  training_rows: { n_repeats: number; y: number; sigma: number | null; residual: number }[];
+  longest_cited_n: number | null;
+  next_n_if_this_observable_were_measured: number;
+  next_past_longest_cited_length: boolean;
+  next_reason: string;
+  preview: LitPreview[];
+};
+
+type LiteratureTraining = {
+  calibrated: false;
+  lab_will_measure_this: false;
+  reason: string;
+  tm: LitTrack;
+  delta_g: LitTrack;
+};
+
 type LearnReport = {
   calibrated: false;
   gp_fitted: boolean;
@@ -27,6 +58,7 @@ type LearnReport = {
   radius_origin: string;
   warnings: string[];
   candidates: Candidate[];
+  literature_training?: LiteratureTraining;
   slices: {
     structure: { rows: { n_repeats: number; contour_nm: number; rigid_screw: boolean }[] };
     stability: {
@@ -43,6 +75,70 @@ const STARTER: Row[] = [
   { n: "17", y: "", sigma: "" },
 ];
 
+function LiteraturePanel({ training }: { training: LiteratureTraining | null }) {
+  if (!training) {
+    return (
+      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm leading-relaxed text-[#5C564E]">
+        Loading the Phillips 2012 CTPRa DSC residual models.
+      </section>
+    );
+  }
+  return (
+    <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm leading-relaxed">
+      <h2 className="text-lg font-semibold">Literature models, already trained</h2>
+      <p className="mt-2 text-[#5C564E]">{training.reason}</p>
+      <p className="mt-2 text-[#5C564E]">
+        Each physics score is the length model fit to these same printed cells.
+        The Gaussian process learns the leftover of that fit.{" "}
+        <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+      </p>
+      <Track title="Melting temperature" track={training.tm} />
+      <Track title="Unfolding ΔG at 10 °C, as printed" track={training.delta_g} />
+    </section>
+  );
+}
+
+function Track({ title, track }: { title: string; track: LitTrack }) {
+  return (
+    <div className="mt-5">
+      <h3 className="font-medium">{title}</h3>
+      <p className="mt-1 text-[#5C564E]">
+        Trained on lengths {track.training_lengths.join(", ")}. Units: {track.units}.{" "}
+        {track.gp_fitted
+          ? "Three or more cited lengths, so the kernel was fit."
+          : "Fewer than three cited lengths, so the kernel was not optimized."}{" "}
+        Alpha is {formatNumber(track.alpha)}. {track.noise_note} {track.identifiability_note}{" "}
+        Longest cited length is{" "}
+        {track.longest_cited_n ?? "omitted"}.
+      </p>
+      <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+        {track.training_rows.map((row) => (
+          <li key={row.n_repeats}>
+            n = {row.n_repeats}: printed {formatNumber(row.y)}
+            {row.sigma == null ? ", sigma omitted" : ` ± ${formatNumber(row.sigma)}`}, residual{" "}
+            {formatNumber(row.residual)}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2">
+        If this observable were measured, the next length would be{" "}
+        <strong>{track.next_n_if_this_observable_were_measured}</strong>
+        {track.next_past_longest_cited_length ? " (past the longest cited length)" : ""}.{" "}
+        {track.next_reason}
+      </p>
+      <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+        {track.preview.map((row) => (
+          <li key={row.n_repeats}>
+            n = {row.n_repeats}: posterior {formatNumber(row.posterior_mean)} {track.units}, 95% band{" "}
+            {formatNumber(row.posterior_95_lower)} to {formatNumber(row.posterior_95_upper)}
+            {row.in_training_set ? " (in the Phillips table)" : " (not in the Phillips table)"}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function formatNumber(value: number): string {
   const abs = Math.abs(value);
   if (abs !== 0 && (abs < 0.01 || abs >= 1000)) return value.toExponential(3);
@@ -55,8 +151,33 @@ export function LearnBoard() {
   const [radiusB, setRadiusB] = useState("");
   const [acquisition, setAcquisition] = useState("ucb");
   const [report, setReport] = useState<LearnReport | null>(null);
+  const [literature, setLiterature] = useState<LiteratureTraining | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadLiterature() {
+      try {
+        const response = await fetch("/api/ssdk/learn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ observations: [] }),
+        });
+        if (!response.ok) return;
+        const payload = (await response.json()) as LearnReport;
+        if (!cancelled && payload.literature_training) {
+          setLiterature(payload.literature_training);
+        }
+      } catch {
+        // The surrogate form still works if this background load fails.
+      }
+    }
+    void loadLiterature();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function update(index: number, key: keyof Row, value: string) {
     setRows((current) => current.map((row, i) => (i === index ? { ...row, [key]: value } : row)));
@@ -114,7 +235,9 @@ export function LearnBoard() {
         const payload = (await response.json()) as { detail?: string };
         throw new Error(payload.detail || `Run failed (${response.status}).`);
       }
-      setReport((await response.json()) as LearnReport);
+      const payload = (await response.json()) as LearnReport;
+      setReport(payload);
+      if (payload.literature_training) setLiterature(payload.literature_training);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Run failed.");
     } finally {
@@ -142,10 +265,16 @@ export function LearnBoard() {
           the residual and leave the slope at 1. Three or more distinct lengths
           fit the kernel. The next length is the one to measure, not a validated
           design. Structure and the Phillips melting-temperature model are shown
-          beside that choice and are not overwritten by the surrogate.{" "}
+          beside that choice and are not overwritten by the surrogate. A second
+          pair of models, below, is already trained on the Phillips 2012 CTPRa
+          DSC table. That table is melting temperature and unfolding ΔG. This
+          lab plan does not measure either one, so those models are not a
+          request to run a melt, and they do not use the surrogate readout.{" "}
           <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
         </p>
       </header>
+
+      <LiteraturePanel training={literature} />
 
       {error ? (
         <div className="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">

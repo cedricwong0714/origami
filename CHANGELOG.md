@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-01 (literature residual training)
+
+### Added
+- `literature_training` on `POST /api/ssdk/learn` fits two residual Gaussian processes to the Phillips et al. 2012 CTPRa DSC table already in `data/stability/ctpr_thermal_literature.json` (DOI 10.1002/pro.2018). One track is printed Tm. One track is printed unfolding ΔG at 10 °C. The physics score is the existing length model of that same table. The lab plan has no DSC and no thermal shift, so `lab_will_measure_this` is false and the UCB length is labeled as not a wet-lab instruction. Surrogate luminescence is not mixed into these rows. A missing printed sigma stays omitted. `calibrated` stays false. `confidence_tier` is `hypothesis_only`.
+- The `/learn` page shows both tracks beside the surrogate form.
+  Reviewed by: not a human wet-lab review. A passing test is not scientific validation. This fit is not a measurement of the Hong Kong team fusion.
+
 ## Unreleased — 2026-10-01 (SSDK chassis)
 
 ### Added
