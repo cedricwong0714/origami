@@ -10,10 +10,10 @@ Audit date: 2026-10-02, branch `cursor/origami-math-engine-9d85` at the time of 
 
 | Slice | Engineering readiness | Present | Remaining |
 |---|---:|---|---|
-| Structure | 92% | Deposited Cα screw, chord, phase, WLC flexibility, Jacobian uncertainty, canonical payload library & Erickson 2009 scaling | Side-chain excluded volume, per-construct Cryo-EM coordinates |
+| Structure | 92% | Deposited Cα screw, chord, phase, WLC flexibility, Jacobian uncertainty | Side-chain excluded volume, per-construct Cryo-EM coordinates |
 | Stability | 80% | Phillips 2012 CTPRa Tm and ΔG length models, identifiability fallback, Gibbs–Helmholtz arithmetic | ΔHcal and ΔCp are absent from the checked-in table, so the full curve stays conditional |
-| Docking | 82% | Chord, clash, Gaussian-chain effective concentration, tethered Spy and NanoBiT outputs, structured payload lookup | Linker standard error was not printed in the source paper |
-| Kinetics | 75% | Peptide CaM–M13 occupancy, lumped Spy ODE, optional three-step Spy ODE, NanoBiT ODE, Damköhler transfer, OtsA/OtsB literature constants | Wet-lab recruitment kon and fusion Kd remain vacant until assay ingestion |
+| Docking | 82% | Chord, clash, Gaussian-chain effective concentration, tethered Spy and NanoBiT outputs | Linker standard error was not printed in the source paper |
+| Kinetics | 75% | Peptide CaM–M13 occupancy, lumped Spy ODE, optional three-step Spy ODE, NanoBiT ODE, Damköhler transfer | Payload radii, enzyme constants, recruitment kon, and fusion Kd remain vacant until sourced or measured |
 | SSDK orchestration | 85% | `POST /api/ssdk/chassis`, `POST /api/ssdk/learn`, residual Matérn GP, UCB / EI / entropy, lab intake GP wiring | Single unified CLI entry point across all four slices |
 | Gaussian process | 85% | Custom Cholesky Matérn GP, sklearn Matérn GP, and an older RBF time-series GP | Grouped validation across batch effects |
 | Bayesian optimization | 82% | Discrete UCB, EI, entropy, and continuous EIG / UCB / EI | Multi-objective Pareto frontier across stability vs throughput |

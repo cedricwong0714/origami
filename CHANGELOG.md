@@ -3,10 +3,8 @@
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
 ### Added
-- Sourced literature payload geometry library and scaling functions in `origami/priors.py`:
-  - Erickson (2009) minimal sphere radius formula \( R_{\min} = 0.66 M^{1/3} \) Å and hydrated hydrodynamic radius formula \( R_H = 0.78 M^{1/3} \) Å (DOI: 10.1007/s12575-009-9008-x).
-  - Empirical/structural payload library entries for SpyCatcher (18.5 Å, PDB 4MLS), SpyTag (10.0 Å, Zakeri 2012), LgBiT (20.0 Å, PDB 5IBO), SmBiT (8.0 Å, Dixon 2016), Calmodulin/CaM (20.5 Å, PDB 1PRW), OtsA (26.0 Å, PDB 1GZ5), and OtsB (22.0 Å, PDB 1U02).
-  - Kinetic literature constants for OtsA (k_cat = 50.0 s^-1, range 40–65 s^-1, Gibson 2002 / Giaever 1988) and OtsB (k_cat = 120.0 s^-1, range 100–140 s^-1, Rao 2004 / Giaever 1988), with literature reference annotations in `models/kinetic_models/intermediate_transfer.defaults.json`.
+- Reverted: an earlier entry in this release added payload radii and OtsA/OtsB k_cat and K_m values with citations written from model memory and not checked against the papers. They were removed. Payload radii and enzyme constants stay vacant until a human retrieves them from the cited sources.
+- Scaffold and lab changes:
   - Reconciled canonical scaffold registers in `origami/physical/registers.py`: `TEAM_ONE_TURN_N = 8`, `TEAM_LONG_N = 17`, `TEAM_GEOMETRY_SERIES = (8, 14, 17)`, and `TEAM_CANONICAL_LENGTHS = (3, 8, 14, 17)` with explicit experimental role mappings.
   - Support for 17-repeat construct graft in `origami/physical/backbone.py` (`M13_GRAFT_1BASED` with repeat 9 center graft).
   - `fit_residual_gp: True` in `origami/lab/run.py` to optionally connect wet-lab bridging/luminescence observations directly to the SSDK physics score and discrete active learning recommendations.
