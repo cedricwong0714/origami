@@ -5,14 +5,13 @@
 ### Added
 - Reverted: an earlier entry in this release added payload radii and OtsA/OtsB k_cat and K_m values with citations written from model memory and not checked against the papers. They were removed. Payload radii and enzyme constants stay vacant until a human retrieves them from the cited sources.
 - Scaffold and lab changes:
-  - Reconciled canonical scaffold registers in `origami/physical/registers.py`: `TEAM_ONE_TURN_N = 8`, `TEAM_LONG_N = 17`, `TEAM_GEOMETRY_SERIES = (8, 14, 17)`, and `TEAM_CANONICAL_LENGTHS = (3, 8, 14, 17)` with explicit experimental role mappings.
-  - Support for 17-repeat construct graft in `origami/physical/backbone.py` (`M13_GRAFT_1BASED` with repeat 9 center graft).
+  - Reconciled canonical scaffold registers in `origami/physical/registers.py`: `TEAM_ONE_TURN_N = 8`, `TEAM_GEOMETRY_SERIES = (8, 14)`, and `TEAM_CANONICAL_LENGTHS = (3, 8, 14)` with explicit experimental role mappings.
   - `fit_residual_gp: True` in `origami/lab/run.py` to optionally connect wet-lab bridging/luminescence observations directly to the SSDK physics score and discrete active learning recommendations.
   - Stacked ensemble predictive uncertainty propagation in `src/gp_model/stacked_ensemble.py`: Layer 3 (XGBoost) trains on the residual left after Layer 2 (GP) and combines GP variance with XGBoost cross-validation LOO RMSE (\( \sigma_{\text{total}} = \sqrt{\sigma_{\text{gp}}^2 + \text{loo\_rmse}^2} \)).
   - Comprehensive unit tests: `tests/unit_tests/test_payload_priors.py`, `tests/unit_tests/test_scaffold_registers.py`, and `tests/unit_tests/test_lab_gp_wiring.py`.
 
 ### Changed
-- `origami/lab/schema.py`: scaffold length slot description updated to reflect full canonical series (CTPR-8, 14, 17 with CTPR-3 baseline).
+- `origami/lab/schema.py`: scaffold length slot description updated to reflect full canonical series (CTPR-8 and 14 with CTPR-3 baseline).
 - `origami/lab/run.py`: `_PREP_FLAGS` includes `expressed_n3`.
 
 ## Unreleased — 2026-10-02 (SSDK baseline)

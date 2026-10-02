@@ -49,7 +49,7 @@ def lab_schema() -> dict[str, Any]:
             "n_repeats",
             "repeats",
             "prep",
-            "Scaffold length. The geometry series is CTPR-8, CTPR-14, and CTPR-17, with CTPR-3 as biomarker baseline.",
+            "Scaffold length. The geometry series is CTPR-8 and CTPR-14, with CTPR-3 as biomarker baseline.",
         ),
         _slot(
             "ca_M",
