@@ -127,7 +127,10 @@
       "data_class": "literature",
       "delta_Hcal": 44,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 4
+      "delta_Hcal_uncertainty": 4,
+      "delta_Cp": 0.7,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpra3_tm_dsc",
@@ -148,7 +151,10 @@
       "data_class": "literature",
       "delta_Hcal": 65,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 3
+      "delta_Hcal_uncertainty": 3,
+      "delta_Cp": 0.9,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpra4_tm_dsc",
@@ -169,7 +175,10 @@
       "data_class": "literature",
       "delta_Hcal": 73,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 7
+      "delta_Hcal_uncertainty": 7,
+      "delta_Cp": 0.9,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpra5_tm_dsc",
@@ -211,7 +220,10 @@
       "data_class": "literature",
       "delta_Hcal": 116,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 2
+      "delta_Hcal_uncertainty": 2,
+      "delta_Cp": 1.9,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpra8_tm_dsc",
@@ -232,7 +244,10 @@
       "data_class": "literature",
       "delta_Hcal": 178,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 8
+      "delta_Hcal_uncertainty": 8,
+      "delta_Cp": 2.7,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpra10_tm_dsc",
@@ -253,7 +268,10 @@
       "data_class": "literature",
       "delta_Hcal": 250,
       "delta_Hcal_units": "kcal mol-1",
-      "delta_Hcal_uncertainty": 11
+      "delta_Hcal_uncertainty": 11,
+      "delta_Cp": 2.8,
+      "delta_Cp_units": "kcal mol-1 K-1",
+      "delta_Cp_source": "Cortajarena AL, Regan L. Protein Sci 2011;20:336-340, DOI 10.1002/pro.564, Table I (measured in 150 mM NaCl, 50 mM phosphate, pH 6.8; no uncertainty printed in the table). Phillips 2012 states its dCp was obtained from Regan and co-workers (their ref. 20)."
     },
     {
       "record_id": "phillips2012_ctpr2_tm_dsc",

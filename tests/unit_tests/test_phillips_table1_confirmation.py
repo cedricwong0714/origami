@@ -64,4 +64,38 @@ def test_delta_hcal_matches_printed_table(construct):
     dh, err = TABLE_I_DH[construct]
     assert rows[0]["delta_Hcal"] == dh and rows[0]["delta_Hcal_uncertainty"] == err
     assert rows[0]["delta_Hcal_units"] == "kcal mol-1"
-    assert "delta_Cp" not in rows[0]
+
+
+# Cortajarena and Regan 2011 Table I dCp (kcal mol-1 K-1), the source Phillips 2012 cites (ref. 20)
+CORTAJARENA_DCP = {"CTPRa2": 0.7, "CTPRa3": 0.9, "CTPRa4": 0.9, "CTPRa6": 1.9, "CTPRa8": 2.7, "CTPRa10": 2.8}
+
+
+@pytest.mark.parametrize("construct", sorted(CORTAJARENA_DCP))
+def test_delta_cp_matches_cortajarena_table(construct):
+    row = next(
+        r for r in _rows()
+        if r["construct"] == construct and r["record_id"].startswith("phillips2012")
+        and r["record_id"].endswith("_tm_dsc")
+    )
+    assert row["delta_Cp"] == CORTAJARENA_DCP[construct]
+    assert "10.1002/pro.564" in row["delta_Cp_source"]
+
+
+def test_calculator_vs_printed_dg_gap_is_documented_not_closed():
+    """Gibbs-Helmholtz with printed dHcal, Tm and the cited dCp gives a dG(10 C)
+    that is higher than Phillips' printed dG by 0.5 to 5.0 kcal/mol for every
+    row. Phillips' exact inputs are not reproducible from the printed table
+    (the dCp came from a different buffer). This test pins the gap so a
+    change that silently closes or widens it is noticed; it is not a claim
+    that the calculator matches the paper.
+    """
+    from origami.stability.thermo import gibbs_helmholtz_report
+
+    rows = {  # construct: (Tm, dH, dCp, printed dG)
+        "CTPRa2": (53, 44, 0.7, 3.2), "CTPRa3": (63, 65, 0.9, 4.8),
+        "CTPRa4": (68, 73, 0.9, 4.2), "CTPRa6": (71, 116, 1.9, 7.7),
+        "CTPRa8": (74, 178, 2.7, 14.3), "CTPRa10": (74, 250, 2.8, 23.4),
+    }
+    for name, (tm, dh, cp, printed) in rows.items():
+        calc = gibbs_helmholtz_report(10.0, tm, dh, cp)["delta_g"]
+        assert 0.4 < calc - printed < 5.1, (name, calc, printed)

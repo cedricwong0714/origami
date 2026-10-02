@@ -304,10 +304,10 @@ def test_prefill_copies_cited_tm_and_does_not_invent_enthalpy() -> None:
     assert prefill["delta_g"] == dg_raw["value"]
     assert prefill["delta_g_units"] == dg_raw["units"]
 
-    assert has_any_dh and not has_any_dcp
+    assert has_any_dh and has_any_dcp
     assert prefill["delta_h"] == tm_raw["delta_Hcal"]
     assert prefill["delta_h_units"] == tm_raw["delta_Hcal_units"]
-    assert prefill["delta_cp"] is None
+    assert prefill["delta_cp"] == tm_raw["delta_Cp"]
     return
 
     groups: dict[tuple[object, object, object], dict[str, float]] = {}
@@ -506,9 +506,6 @@ def test_default_series_prefill_n3_and_n8_matches_literature_json() -> None:
     """Cited Tm and printed ΔG are copied. ΔHcal and ΔCp are not invented."""
     rows = _json_rows()
     enthalpy_keys = {
-        "delta_cp",
-        "delta_Cp",
-        "DeltaCp",
         "delta_s",
         "delta_S",
     }
@@ -544,7 +541,7 @@ def test_default_series_prefill_n3_and_n8_matches_literature_json() -> None:
         assert prefill["delta_g_t_c"] == 10.0
         assert prefill["delta_g_t_units"] == "C"
         assert prefill["delta_h"] == tm_raw["delta_Hcal"]
-        assert prefill["delta_cp"] is None
+        assert prefill["delta_cp"] == tm_raw["delta_Cp"]
         assert prefill["calibrated"] is False
         assert prefill["interpolated"] is False
         assert prefill["averaged"] is False
@@ -617,7 +614,7 @@ def test_http_thermo_and_existing_stability_routes() -> None:
     payload = prefill.json()
     assert payload["tm_c"] is not None
     assert payload["delta_h"] == 65.0
-    assert payload["delta_cp"] is None
+    assert payload["delta_cp"] == 0.9
     assert payload["calibrated"] is False
     assert payload["doi"] == "10.1002/pro.2018"
 
@@ -649,7 +646,7 @@ def test_http_thermo_and_existing_stability_routes() -> None:
         assert payload["delta_g_origin"] == "looked_up"
         assert payload["delta_g_t_c"] == 10.0
         assert payload["delta_h"] == raw_tm["delta_Hcal"]
-        assert payload["delta_cp"] is None
+        assert payload["delta_cp"] == raw_tm["delta_Cp"]
         assert payload["tm_status"] == "cited"
         assert payload["calibrated"] is False
 
@@ -799,7 +796,7 @@ def test_changing_tm_changes_effective_enthalpy_not_the_printed_cell() -> None:
     assert again["delta_g_t_c"] == 10.0
     assert again["tm_c"] == cited_tm
     assert again["delta_h"] == 65.0
-    assert again["delta_cp"] is None
+    assert again["delta_cp"] == 0.9
     raw = next(
         row for row in _json_rows() if row["record_id"] == "phillips2012_ctpra3_dg_dsc"
     )
