@@ -220,6 +220,7 @@ LINKER_SIGMA_A = Parameter(
 )
 
 # Kd only. Association rate is not in this paper; do not invent kon.
+# This is free peptide binding, not the fusion's Ca2+ affinity.
 CAM_M13_KD_M = Parameter(
     name="cam_m13_kd",
     value=0.19e-9,
@@ -236,6 +237,84 @@ CAM_M13_KD_M = Parameter(
         "kon is not reported; recruitment time course requires a user-supplied kon."
     ),
 )
+
+# Parameter: fusion CaM–M13 apparent Ca2+-binding Kd (2-aa linker)
+# Value: 80e-9
+# Units: M
+# Source: Nagai et al. (2014) Front Mol Neurosci 7:90, DOI 10.3389/fnmol.2014.00090,
+#         sentence verified in the full text, citing Porumb et al. (1994)
+#         Protein Eng 7:109-115, DOI 10.1093/protein/7.1.109.
+# System: CaM–M13 fusion linked by two amino acids (GECI / cameleon context)
+# Method: review restatement of an in vitro affinity; not re-measured here
+# Notes: Secondhand. The number "80 nM" is printed in Nagai 2014, which
+#        attributes it to Porumb 1994. It was not read in Porumb itself.
+#        It is an apparent Ca2+ affinity of the fusion, not the peptide Kd
+#        (CAM_M13_KD_M = 0.19 nM) and not a binding Kd of CaM for M13.
+FUSION_CAM_M13_CA_KD_M = Parameter(
+    name="fusion_cam_m13_ca_kd",
+    value=80e-9,
+    units="M",
+    sigma=None,
+    source=(
+        "Nagai et al. (2014) Front Mol Neurosci 7:90, "
+        "DOI: 10.3389/fnmol.2014.00090, citing Porumb et al. (1994) "
+        "Protein Eng 7:109–115, DOI: 10.1093/protein/7.1.109. "
+        "Printed sentence: fusion linked with two amino acid linkers, Kd of 80 nM."
+    ),
+    system="CaM and M13 fusion protein linked with two amino acids",
+    method="Secondhand citation of an in vitro Ca2+ affinity; sigma not printed",
+    notes=(
+        "Secondhand figure. Do not treat as a measurement read from Porumb 1994. "
+        "Not the free-peptide Kd in CAM_M13_KD_M. calibrated stays false."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
+)
+
+# SpyTag/SpyCatcher reverse rate. Zakeri 2012: after the covalent complex,
+# a 20-fold excess of competing peptide overnight gave no decrease in the
+# covalent complex and no new adduct. No numerical k_rev was measured.
+# Do not store 0 as a rate. Callers must treat reversal as unobserved.
+SPY_REVERSAL_OBSERVED = False
+SPY_REVERSAL_SOURCE = (
+    "Zakeri et al. (2012) PNAS 109:E690–E697, DOI 10.1073/pnas.1115485109. "
+    "20-fold excess competing peptide, overnight: no reversal observed. "
+    "No numerical k_rev is reported."
+)
+
+# Parameter: recruitment kon for CaM–M13
+# Value: 1e6
+# Units: M^-1 s^-1
+# Source: NONE. Team prior choice, 2026-10-02. Bayley 1996 does not print
+#         a single usable kon.
+# System: assumed protein–peptide association
+# Method: assumption
+# Notes: Range stated by the team: 1e5 to 1e7. Not a measurement.
+RECRUITMENT_KON_RANGE_PER_M_S = (1e5, 1e7)
+
+
+def assumed_recruitment_kon_per_M_s() -> float | None:
+    """Team assumption 1e6 M^-1 s^-1. Warns every call. Not a measurement."""
+    warnings.warn(
+        "recruitment kon = 1e6 M^-1 s^-1 is an unsourced prior choice "
+        "(stated range 1e5–1e7). Bayley 1996 does not print this number. "
+        "Do not use it for a wet-lab decision.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return 1.0e6
+
+
+def derived_recruitment_koff_per_s() -> float | None:
+    """koff = Kd * kon using the 80 nM fusion figure and the assumed kon.
+
+    Origin: derived, not literature. Returns None (and warns) because kon
+    has no source, so the product must not be used silently.
+    """
+    kon = assumed_recruitment_kon_per_M_s()
+    if kon is None:
+        return None
+    return FUSION_CAM_M13_CA_KD_M.value * kon
 
 # Parameter: SpyTag–SpyCatcher apparent second-order rate (parental pair)
 # Value: 1.4e3
@@ -438,6 +517,7 @@ def all_priors() -> tuple[Parameter, ...]:
         DEFAULT_PAYLOAD_RADIUS_A,
         LINKER_SIGMA_A,
         CAM_M13_KD_M,
+        FUSION_CAM_M13_CA_KD_M,
         SPY_K_ON_PER_M_S,
         NANOBIT_KD_M,
         NANOBIT_K_ON_PER_M_S,

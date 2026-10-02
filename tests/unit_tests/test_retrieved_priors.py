@@ -3,7 +3,9 @@
 import pytest
 
 from origami.priors import (
-    OTSA_KCAT_PER_S, OTSA_RECOMBINANT_MW_DA, OTSB_KCAT_PER_S, OTSB_KM_T6P_M,
+    FUSION_CAM_M13_CA_KD_M, OTSA_KCAT_PER_S, OTSA_RECOMBINANT_MW_DA,
+    OTSB_KCAT_PER_S, OTSB_KM_T6P_M, SPY_REVERSAL_OBSERVED,
+    assumed_recruitment_kon_per_M_s, derived_recruitment_koff_per_s,
     all_priors, erickson_rmin_A,
 )
 
@@ -22,6 +24,18 @@ def test_erickson_rejects_bad_mass():
 
 def test_otsa_rmin_is_a_lower_bound_near_25_angstrom():
     assert erickson_rmin_A(OTSA_RECOMBINANT_MW_DA) == pytest.approx(25.0, abs=0.3)
+
+
+def test_fusion_kd_is_secondhand_and_kon_is_an_assumption():
+    assert FUSION_CAM_M13_CA_KD_M.value == pytest.approx(80e-9)
+    assert FUSION_CAM_M13_CA_KD_M.sigma is None
+    assert "10.3389/fnmol.2014.00090" in FUSION_CAM_M13_CA_KD_M.source
+    assert FUSION_CAM_M13_CA_KD_M in all_priors()
+    assert SPY_REVERSAL_OBSERVED is False
+    with pytest.warns(UserWarning, match="unsourced"):
+        assert assumed_recruitment_kon_per_M_s() == 1e6
+    with pytest.warns(UserWarning):
+        assert derived_recruitment_koff_per_s() == pytest.approx(0.08)
 
 
 def test_enzyme_priors_are_uncalibrated_and_carry_sigma():

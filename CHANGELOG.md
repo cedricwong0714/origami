@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — 2026-10-02 (two-fidelity GP and adopted kinetics figures)
+
+### Added
+- `src/gp_model/multifidelity.py`: two-fidelity GP, dry=0 / wet=1, Matern-5/2 with per-feature length scales, 2x2 coregionalization. Dry noise fixed at 0.1 (prior choice, no replicates). Bounds are prior choices.
+- `src/gp_model/sequence_encoding.py`: ESM-2 preferred; falls back to one-hot when torch/transformers are absent, and records which method ran.
+- `src/experiment_design/frozen_table.py`: pass iff mu - 1.96 sigma >= threshold; cost-weighted EI; frozen table that refuses overwrite.
+- `data/config/active_learning_config.json`: thresholds, CVs and costs, all tagged unmeasured or prior choice.
+- Priors: fusion CaM–M13 apparent Ca2+ Kd 80 nM (Nagai 2014 citing Porumb 1994; secondhand, sigma unknown). Spy reversal recorded as unobserved, with no numeric k_rev. Recruitment kon 1e6 M^-1 s^-1 is an explicit assumption that warns on every call; derived koff = 0.08 s^-1.
+
+### Unchanged
+- Free-peptide CaM–M13 Kd stays 0.19 nM. Spy lumped rate stays 1.4e3 M^-1 s^-1. Repeat count stays any integer the user enters (n=17 is computable, not a calibrated point).
+
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
 ### Changed / added 2026-10-02 (user decisions)

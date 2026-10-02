@@ -1,0 +1,37 @@
+{
+  "version": "al-config-0.1",
+  "note": "Every value here is a placeholder. Replace with measured values and change status to 'measured'.",
+  "thresholds": {
+    "luminescence": {"value": 5.0, "units": "x background RLU", "status": "unmeasured"},
+    "locking_fraction": {"value": 0.6, "units": "fraction at 60 min", "status": "unmeasured"},
+    "solubility": {"value": 0.5, "units": "fraction", "status": "unmeasured"},
+    "purity": {"value": 0.7, "units": "fraction", "status": "unmeasured"}
+  },
+  "assay_cvs": {
+    "luminescence": {"value": 0.08, "status": "unmeasured"},
+    "locking_fraction": {"value": 0.10, "status": "unmeasured"},
+    "expression": {"value": 0.10, "status": "unmeasured"},
+    "solubility": {"value": 0.15, "status": "unmeasured"},
+    "purity": {"value": 0.12, "status": "unmeasured"}
+  },
+  "costs": {
+    "status": "prior_choice",
+    "unit": "arbitrary",
+    "values": {
+      "dry_docking": 0.01,
+      "dry_structure": 0.05,
+      "wet_BCA": 1,
+      "wet_SDS_PAGE": 2,
+      "wet_Native_PAGE": 3,
+      "wet_NanoBiT": 5,
+      "wet_locking_kin": 5,
+      "wet_full_panel": 10
+    }
+  },
+  "groups": {
+    "geometry_group": "CTPR<n>, any repeat count n the user enters (3..24); not restricted to calibrated points",
+    "architecture_group": ["CaM_on_scaffold", "CaM_on_payload"],
+    "application_group": ["salinity_response", "Alzheimer_surrogate", "general_platform"],
+    "application_group_note": "metadata only, not used in kernel"
+  }
+}
