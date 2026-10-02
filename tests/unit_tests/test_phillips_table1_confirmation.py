@@ -43,3 +43,25 @@ def test_dsc_rows_match_printed_table(construct):
     got = {r["observable"]: r for r in mine}
     assert got["Tm_C"]["value"] == tm and got["Tm_C"]["uncertainty"] == tm_err
     assert got["delta_G"]["value"] == dg and got["delta_G"]["uncertainty"] == dg_err
+
+
+# construct: (dH_cal kcal/mol, +/-) from Phillips 2012 Table I, DSC model-free column
+TABLE_I_DH = {
+    "CTPRa2": (44, 4), "CTPRa3": (65, 3), "CTPRa4": (73, 7), "CTPRa5": (95, 5),
+    "CTPRa6": (116, 2), "CTPRa8": (178, 8), "CTPRa10": (250, 11),
+    "CTPR2": (73, 0.4), "CTPR3": (108, 1),
+}
+
+
+@pytest.mark.parametrize("construct", sorted(TABLE_I_DH))
+def test_delta_hcal_matches_printed_table(construct):
+    rows = [
+        r for r in _rows()
+        if r["construct"] == construct and r["record_id"].startswith("phillips2012")
+        and r["record_id"].endswith("_tm_dsc")
+    ]
+    assert len(rows) == 1
+    dh, err = TABLE_I_DH[construct]
+    assert rows[0]["delta_Hcal"] == dh and rows[0]["delta_Hcal_uncertainty"] == err
+    assert rows[0]["delta_Hcal_units"] == "kcal mol-1"
+    assert "delta_Cp" not in rows[0]

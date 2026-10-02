@@ -124,7 +124,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 44,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 4
     },
     {
       "record_id": "phillips2012_ctpra3_tm_dsc",
@@ -142,7 +145,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 65,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 3
     },
     {
       "record_id": "phillips2012_ctpra4_tm_dsc",
@@ -160,7 +166,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 73,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 7
     },
     {
       "record_id": "phillips2012_ctpra5_tm_dsc",
@@ -178,7 +187,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 95,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 5
     },
     {
       "record_id": "phillips2012_ctpra6_tm_dsc",
@@ -196,7 +208,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 116,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 2
     },
     {
       "record_id": "phillips2012_ctpra8_tm_dsc",
@@ -214,7 +229,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 178,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 8
     },
     {
       "record_id": "phillips2012_ctpra10_tm_dsc",
@@ -232,7 +250,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 250,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 11
     },
     {
       "record_id": "phillips2012_ctpr2_tm_dsc",
@@ -250,7 +271,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 73,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 0.4
     },
     {
       "record_id": "phillips2012_ctpr3_tm_dsc",
@@ -268,7 +292,10 @@
       "pH": 7.0,
       "figure_or_table": "Table I",
       "peer_reviewed": true,
-      "data_class": "literature"
+      "data_class": "literature",
+      "delta_Hcal": 108,
+      "delta_Hcal_units": "kcal mol-1",
+      "delta_Hcal_uncertainty": 1
     },
     {
       "record_id": "phillips2012_ctpra2_tm_cd",

@@ -2,6 +2,14 @@
 
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
+### Changed / added 2026-10-02 (user decisions)
+- Default payload radius: 25.0 A (MW-scaling placeholder, sigma 8.0) changed to 22.513 A (sigma 4.763), PDB 2BBM CaM-M13 complex, sqrt(5/3) x C-alpha Rg; sigma is the SD of the three CaM states 1PRW/2BBM/1CLL. Reason: CaM-M13 is the only payload in the lab plan. Old source: order-of-magnitude MW heuristic. New source: `scripts/derive_payload_radii.py`. Impact: every default-radius clash and effective-concentration result. Reviewed by: user instruction; not independently reviewed.
+- `data/stability/ctpr_thermal_literature.json`: added `delta_Hcal` (kcal mol-1) with uncertainty on the nine Phillips 2012 DSC rows, from Table I (retrieved text). `thermo_prefill` now returns them. No dCp in the table, so the calculator still cannot draw the ΔG(T) curve from prefill alone. With dCp = 0 the printed dHcal gives ΔG(10 C) of 10.3 (n=3) and 32.8 (n=8) kcal mol-1 against printed 4.8 and 14.3, so dCp matters. `origami/stability/implied_cp.py` back-calculates the self-consistent dCp (derived, not literature).
+- `steric_report` and `scaffold_overlap_probability` accept `ca_exclusion_A` (default 0.0, unchanged behaviour) for side-chain exclusion. No sourced value was found, so none is defaulted. Correction: an earlier note said the scaffold was not modelled; it is, as a placed C-alpha cloud.
+- LgBiT added to `payload_radii.json` (7SNY 22.5 A, 7SNX chain A 20.4 A). Titles and resolutions verified through the RCSB core API.
+- Not adopted: a pasted "fusion CaM-M13 Kd about 80 nM" (cited source is a Ca-indicator review with no such number) and "k_on = 1e6 central estimate" (a modelling assumption, not a measurement).
+- `docs/DATA_DEPENDENCY_MATRIX.md` added.
+
 ### Added (software, no biological constants changed)
 - `src/gp_model/ablation.py`: grouped leave-one-group-out ablation of physics, physics+GP, physics+GP+XGBoost (RMSE, MAE, 95% coverage, Spearman). CLI: `origami ablation`.
 - `origami/lab/plate_reader.py`: long-format plate CSV import with per-batch blank subtraction and SEM; records input SHA-256. CLI: `origami import-plate`.
