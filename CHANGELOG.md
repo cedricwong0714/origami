@@ -9,6 +9,8 @@
 - LgBiT added to `payload_radii.json` (7SNY 22.5 A, 7SNX chain A 20.4 A). Titles and resolutions verified through the RCSB core API.
 - Not adopted: a pasted "fusion CaM-M13 Kd about 80 nM" (cited source is a Ca-indicator review with no such number) and "k_on = 1e6 central estimate" (a modelling assumption, not a measurement).
 - `docs/DATA_DEPENDENCY_MATRIX.md` added.
+- Phillips dCp source resolved to Cortajarena and Regan 2011 (DOI 10.1002/pro.564, Table I). Added `delta_Cp` (kcal mol-1 K-1, no uncertainty printed) to the Phillips DSC rows for n = 2, 3, 4, 6, 8, 10; none for n = 5. Buffer differs from Phillips (150 mM NaCl, pH 6.8 vs 50 mM phosphate, pH 7). Calculator dG(10 C) is 0.5 to 5.0 kcal mol-1 above the printed dG; pinned by a test.
+- API: `POST /api/lab/plate`, `POST /api/lab/ablation`. UI: `/intake` page (plate import table, ablation table). Browser-tested; typecheck and lint clean.
 
 ### Added (software, no biological constants changed)
 - `src/gp_model/ablation.py`: grouped leave-one-group-out ablation of physics, physics+GP, physics+GP+XGBoost (RMSE, MAE, 95% coverage, Spearman). CLI: `origami ablation`.

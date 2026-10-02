@@ -41,3 +41,14 @@ Scope decisions (user, 2026-10-02):
 - Fusion CaM-M13 Kd: no value found. An attempted source (a Ca-indicator review) contained no such measurement; a CaM-M13 hybrid paper reports Ca binding constants, not a tethered Kd. Slot stays vacant.
 - Recruitment k_on: the existing 1e6 M-1 s-1 in `CLASPParameters` has no citation. Sensitivity analysis shows how much it matters.
 - Errey 2010 OtsA assay details: SI not retrieved. Out of lab scope.
+
+## Dry-lab inputs the math chassis is waiting on (from the team)
+1. Frozen predictions: run `origami freeze` for CTPR-3, -8, -14 before any plate is read, plus the written pass/fail rule for each.
+2. Group labels for the ablation (batch or construct names) and the planned replicate count per design.
+3. Assay noise or CV from the plate-reader specification, and a cost per experiment (hours or wells), for the replicate-versus-new and cost-aware ranking.
+4. A decision on fidelity levels for the multi-fidelity model, and on the feature representation for non-Euclidean kernels.
+5. A decision on whether n = 17 is in scope (Phase 2 lists it; the earlier instruction excluded it).
+6. A sourced side-chain exclusion radius, or approval to use a named van der Waals convention.
+
+## Resolved by literature
+- Phillips 2012 dCp: taken from Cortajarena and Regan 2011, DOI 10.1002/pro.564, Table I (dCp 0.7, 0.9, 0.9, 1.9, 2.7, 2.8 kcal mol-1 K-1 for CTPRa2, 3, 4, 6, 8, 10), measured in 150 mM NaCl, pH 6.8. Verified against the Phillips text: "dCp ... obtained from Regan and co-workers (ref. 20)". With these inputs the calculator gives dG(10 C) 0.5 to 5.0 kcal mol-1 above the printed values, so Phillips' exact inputs are not reproducible from the tables.
