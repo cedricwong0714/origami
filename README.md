@@ -123,6 +123,8 @@ Static demos only: landing page + CTPR optimizer. The full chassis (SSDK learn, 
 
 Wiki UI includes **Dependencies** (`/guide`), **SSDK** luminescence gates, **Data intake**, and **Active learning** with multi-fidelity output when the API is running.
 
+**User manual:** [docs/USER_MANUAL.md](docs/USER_MANUAL.md).
+
 ### Validate a Learn Mode data package
 
 ```bash
