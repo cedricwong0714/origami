@@ -140,6 +140,23 @@ def _cmd_import_plate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_learn_plate(args: argparse.Namespace) -> int:
+    """Run the SSDK learner on a plate-reader CSV."""
+    import json
+
+    from origami.lab.plate_reader import PlateReaderError
+    from origami.ssdk.learn import SsdkLearnError
+    from origami.ssdk.plate_pipeline import learn_from_plate
+
+    try:
+        result = learn_from_plate(args.csv, n_min=args.n_min, n_max=args.n_max)
+    except (PlateReaderError, SsdkLearnError, OSError, UnicodeDecodeError) as exc:
+        print(f"learn-plate failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def _cmd_ablation(args: argparse.Namespace) -> int:
     """Print the grouped ablation report for a JSON dataset."""
     import json
@@ -347,6 +364,15 @@ def main() -> None:
     )
     plate.add_argument("csv", help="Long-format CSV: well,construct,n_repeats,batch,role,rlu")
     plate.set_defaults(func=_cmd_import_plate)
+
+    lp = sub.add_parser(
+        "learn-plate",
+        help="Run the SSDK learner on a plate-reader CSV",
+    )
+    lp.add_argument("csv")
+    lp.add_argument("--n-min", type=int, default=3)
+    lp.add_argument("--n-max", type=int, default=24)
+    lp.set_defaults(func=_cmd_learn_plate)
 
     ablate = sub.add_parser(
         "ablation",

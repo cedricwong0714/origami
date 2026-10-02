@@ -44,3 +44,20 @@ def test_ablation_cli(tmp_path):
     r = _run("ablation", str(f))
     assert r.returncode == 0, r.stderr
     assert json.loads(r.stdout)["calibrated"] is False
+
+
+def test_learn_plate_cli(tmp_path):
+    f = tmp_path / "p.csv"
+    f.write_text(
+        "well,construct,n_repeats,batch,role,rlu\n"
+        "A1,x,3,b1,blank,10\nB1,x,3,b1,sample,110\nC1,x,8,b1,sample,310\nD1,x,14,b1,sample,210\n"
+    )
+    r = _run("learn-plate", str(f))
+    assert r.returncode == 0, r.stderr
+    assert json.loads(r.stdout)["plate_provenance"]["n_rows"] == 3
+
+
+def test_learn_plate_cli_bad_file(tmp_path):
+    f = tmp_path / "p.csv"
+    f.write_text("well,rlu\n")
+    assert _run("learn-plate", str(f)).returncode == 2
