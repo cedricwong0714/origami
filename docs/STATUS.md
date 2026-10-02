@@ -1,5 +1,7 @@
 # ORIGAMI status and next build
 
+Planning status after 2026-10-02 lives in [SSDK_ROADMAP.md](SSDK_ROADMAP.md). The table below is the earlier slice note.
+
 ## What is in place now
 
 Runnable Python engine (not a calibrated biological predictor).

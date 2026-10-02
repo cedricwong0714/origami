@@ -238,6 +238,7 @@ tests/
   physical_invariants/
   golden_references/     Regression fixtures for Design Mode
 docs/
+  SSDK_ROADMAP.md             Engineering-readiness plan for SSDK, GP, BO, XGBoost
   ORIGAMI_UI_UX_Guide.md
   Verification_Checklists.md
   DEMO.md                 5-minute judge walkthrough
