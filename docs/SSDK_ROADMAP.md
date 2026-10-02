@@ -52,7 +52,9 @@ Literature or structure has to carry every quantity on that second list. The lum
 
 ## Known duplication
 
-`origami.design_engine.gp.ResidualGP` and `src.gp_model.residual_gp.ResidualGP` are separate implementations. A third RBF GP still serves the older Learn time-series path. Acquisition is likewise split between `origami.design_engine.active_learning` and `src.experiment_design`. Consolidation is a later change. This roadmap does not merge them in place.
+Expected Improvement now has one implementation (`origami/acquisition_core.py`). Both old entry points keep their signatures and give bit-identical output; their two differences (exploration offset 0 versus 0.01, and tiny-std handling) are explicit arguments. The 0.01 offset has no cited source.
+
+The two `ResidualGP` classes are different models (affine physics map plus Cholesky Matern-5/2, versus additive residual with sklearn Matern-2.5). They are not numerically interchangeable, so they are not merged. `origami/gp_protocol.py` gives one read interface and reports whether noise is included in the std. A third RBF GP still serves the older Learn time-series path. Merging the models would change predictions and needs a decision on which one is canonical.
 
 ## Owner
 

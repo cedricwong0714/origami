@@ -32,11 +32,9 @@ class NextExperiment:
 
 def expected_improvement(mean: np.ndarray, std: np.ndarray, best: float) -> np.ndarray:
     """EI for maximization. Uses the Gaussian tail (calculus on the posterior)."""
-    from scipy.stats import norm
+    from origami.acquisition_core import expected_improvement_core
 
-    std = np.maximum(std, 1e-12)
-    z = (mean - best) / std
-    return (mean - best) * norm.cdf(z) + std * norm.pdf(z)
+    return expected_improvement_core(mean, std, best, xi=0.0, std_floor=1e-12)
 
 
 def entropy(std: np.ndarray) -> np.ndarray:

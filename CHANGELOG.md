@@ -8,6 +8,7 @@
 - `origami/ssdk/plate_pipeline.py`: plate CSV to SSDK learner. CLI: `origami learn-plate`.
 - `src/predictions/sensitivity.py`: parameter elasticities, recorded in `origami freeze` output. These are not uncertainty; the +/-30% placeholder band is unchanged.
 - `src/experiment_design/cost_aware.py` and `replicate_choice.py`: cost-aware, pending-aware ranking and replicate-versus-new choice, each with a generated reason.
+- `origami/acquisition_core.py`: single Expected Improvement used by both acquisition stacks, bit-identical to the previous outputs (tests compare against the old formulas). `origami/gp_protocol.py`: common read interface over both ResidualGP classes; models not merged.
 - Removed the unsourced `expressed_n17` lab prep flag.
 - Known: `BayesianExperimentSelector.expected_information_gain` uses an unsourced noise = 0.1 and a fantasy loop that returns the same value each pass. Not changed.
 
