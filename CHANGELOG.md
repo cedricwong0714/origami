@@ -3,6 +3,9 @@
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
 ### Added (retrieved from papers, 2026-10-02)
+- `scripts/derive_payload_radii.py` downloads deposited C-alpha coordinates from RCSB and writes `data/structures/payload_radii.json`. Clash radius = sqrt(5/3) x C-alpha Rg (solid-sphere equivalent). Results: SpyCatcher 4MLI 16.7 A, NanoLuc 5IBO 20.4 A (PROXY for LgBiT; no LgBiT structure found), Ca-CaM compact 1PRW 18.9 A, extended 1CLL 28.3 A, CaM in 2BBM 22.5 A, E. coli OtsA 1GZ5 28.8 A. Side chains ignored; flexible termini inflate Rg; between-copy SD understates uncertainty.
+- E. coli OtsB has no PDB entry (RCSB search on UniProt P31678 is empty). PDB 1U02 is Thermoplasma acidophilum and is not used. OtsB gets only an Erickson lower bound from UniProt mass 29175 Da, flagged not usable as a clash radius.
+- `POST /api/ssdk/learn` accepts `payload_names` (two keys) as an alternative to `payload_radii_A`; `radius_origin` is `pdb_derived`.
 - `erickson_rmin_A`: R_min = 0.066 M^(1/3) nm (Erickson 2009, Eq. 2.2, DOI 10.1007/s12575-009-9008-x, PMC3055910). A lower bound, not a payload radius.
 - OtsA k_cat 34 +/- 1 s^-1, K_m(UDP-Glc) 1.7 +/- 0.3 mM, K_m(G6P) 7.3 +/- 0.6 mM; OtsB k_cat 286 +/- 34 s^-1, K_m(T6P) 3.6 +/- 0.8 mM. Source: Khan et al. (2024) Nat Commun, DOI 10.1038/s41467-024-48691-6, Table 1. The OtsA values are taken there from Errey et al. (2010) Angew Chem 49:1234-1237; their conditions were not retrieved. The OtsB footnote says NMR at 37 C and the Methods mention malachite green; this is unresolved. `calibrated` stays false.
 - OtsA recombinant mass about 54.7 kDa (Acta Crystallogr D 58:349-351, 2002 abstract).

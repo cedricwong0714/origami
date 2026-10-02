@@ -28,6 +28,7 @@ from typing import Any
 from origami.engine import ClaspDesignEngine, Observation
 from origami.kinetics.simulate import KineticsSimError, simulate_kinetics
 from origami.physical.geometry import build_ctpr
+from origami.physical.payload_radii import radii_for
 from origami.physical.structure import structural_report
 from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, SPY_K_ON_PER_M_S
 from origami.ssdk.literature_train import train_literature
@@ -50,7 +51,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     acquisition = body.get("acquisition", "ucb")
     if acquisition not in ("ucb", "ei", "entropy"):
         raise SsdkLearnError("acquisition must be ucb, ei, or entropy")
-    radii, radius_origin = _radii(body.get("payload_radii_A"))
+    radii, radius_origin = _radii(body.get("payload_radii_A"), body.get("payload_names"))
     observations = _observations(body.get("observations") or [], n_min, n_max)
     engine = ClaspDesignEngine(
         payload_radii_A=radii,
@@ -288,7 +289,16 @@ def _observations(rows: object, n_min: int, n_max: int) -> list[Observation]:
     return parsed
 
 
-def _radii(value: object) -> tuple[list[float], str]:
+def _radii(value: object, names: object = None) -> tuple[list[float], str]:
+    if names is not None:
+        if value is not None:
+            raise SsdkLearnError("give payload_radii_A or payload_names, not both")
+        if not isinstance(names, list) or not all(isinstance(n, str) for n in names):
+            raise SsdkLearnError("payload_names must be a list of two strings")
+        try:
+            return radii_for(names), "pdb_derived"
+        except (KeyError, ValueError) as exc:
+            raise SsdkLearnError(str(exc)) from exc
     if value is None:
         radius = DEFAULT_PAYLOAD_RADIUS_A.value
         return [radius, radius], "placeholder"

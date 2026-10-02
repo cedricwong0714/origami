@@ -1,0 +1,178 @@
+{
+  "method": "Derive payload size scales from deposited C-alpha coordinates.\n\nNetwork script. Run once; the result is checked in as\ndata/structures/payload_radii.json so the engine never needs the network.\n\nFor each chain (and each NMR model) the script computes, from C-alpha atoms\nonly:\n  rg_A          radius of gyration about the C-alpha centroid\n  r_sphere_A    sqrt(5/3) * rg, radius of a uniform solid sphere with that Rg\n  r_max_A       largest C-alpha distance from the centroid\nThese are geometric descriptors of the deposited coordinates. They are not\nhydrodynamic radii, they ignore side chains, and flexible termini inflate them.",
+  "entries": {
+    "spycatcher": {
+      "pdb_id": "4MLI",
+      "chains": [
+        "A",
+        "C"
+      ],
+      "description": "SpyCatcher (S. pyogenes FbaB-derived), complex with SpyTag",
+      "note": "Li et al. (2014) J Mol Biol, DOI 10.1016/j.jmb.2013.10.021",
+      "n_samples": 2,
+      "n_ca_first": 82,
+      "rg_A": {
+        "mean": 12.917631642968379,
+        "sample_sd": 0.03618918012943336,
+        "min": 12.892042028293275,
+        "max": 12.943221257643483
+      },
+      "r_sphere_A": {
+        "mean": 16.67659074188616,
+        "sample_sd": 0.046720030651399604,
+        "min": 16.643554691395313,
+        "max": 16.70962679237701
+      },
+      "r_max_A": {
+        "mean": 21.67689945827992,
+        "sample_sd": 1.0176677712739866,
+        "min": 20.957299676217083,
+        "max": 22.396499240342756
+      }
+    },
+    "nanoluc_proxy_for_lgbit": {
+      "pdb_id": "5IBO",
+      "chains": [
+        "A",
+        "B"
+      ],
+      "description": "NanoLuc luciferase (full, unsplit)",
+      "note": "PROXY ONLY: no LgBiT or NanoBiT structure was found; LgBiT is an engineered NanoLuc fragment",
+      "n_samples": 2,
+      "n_ca_first": 171,
+      "rg_A": {
+        "mean": 15.779713563080264,
+        "sample_sd": 0.007279957980147534,
+        "min": 15.774565855425749,
+        "max": 15.78486127073478
+      },
+      "r_sphere_A": {
+        "mean": 20.37152261257772,
+        "sample_sd": 0.009398385339401998,
+        "min": 20.364876950572025,
+        "max": 20.378168274583416
+      },
+      "r_max_A": {
+        "mean": 26.52720046950906,
+        "sample_sd": 0.7852525965269813,
+        "min": 25.97194303356049,
+        "max": 27.082457905457634
+      }
+    },
+    "calmodulin_compact": {
+      "pdb_id": "1PRW",
+      "chains": [
+        "A"
+      ],
+      "description": "Bovine Ca2+-calmodulin, compact form",
+      "note": "Fallon and Quiocho (2003) Structure, DOI 10.1016/j.str.2003.09.004",
+      "n_samples": 1,
+      "n_ca_first": 147,
+      "rg_A": {
+        "mean": 14.639825953615349,
+        "sample_sd": null,
+        "min": 14.639825953615349,
+        "max": 14.639825953615349
+      },
+      "r_sphere_A": {
+        "mean": 18.899934036575786,
+        "sample_sd": null,
+        "min": 18.899934036575786,
+        "max": 18.899934036575786
+      },
+      "r_max_A": {
+        "mean": 22.72955511879171,
+        "sample_sd": null,
+        "min": 22.72955511879171,
+        "max": 22.72955511879171
+      }
+    },
+    "calmodulin_extended": {
+      "pdb_id": "1CLL",
+      "chains": [
+        "A"
+      ],
+      "description": "Ca2+-calmodulin, extended dumbbell form",
+      "note": "Chattopadhyaya et al. 1992 entry; citation not retrieved",
+      "n_samples": 1,
+      "n_ca_first": 144,
+      "rg_A": {
+        "mean": 21.95253996395891,
+        "sample_sd": null,
+        "min": 21.95253996395891,
+        "max": 21.95253996395891
+      },
+      "r_sphere_A": {
+        "mean": 28.340607229121872,
+        "sample_sd": null,
+        "min": 28.340607229121872,
+        "max": 28.340607229121872
+      },
+      "r_max_A": {
+        "mean": 34.34800502079509,
+        "sample_sd": null,
+        "min": 34.34800502079509,
+        "max": 34.34800502079509
+      }
+    },
+    "calmodulin_m13_complex": {
+      "pdb_id": "2BBM",
+      "chains": [
+        "A"
+      ],
+      "description": "Calmodulin chain of CaM-skeletal-MLCK-peptide NMR complex",
+      "note": "Ikura et al. 1992 entry; citation not retrieved; peptide chain excluded",
+      "n_samples": 1,
+      "n_ca_first": 148,
+      "rg_A": {
+        "mean": 17.438592454302423,
+        "sample_sd": null,
+        "min": 17.438592454302423,
+        "max": 17.438592454302423
+      },
+      "r_sphere_A": {
+        "mean": 22.513126052270536,
+        "sample_sd": null,
+        "min": 22.513126052270536,
+        "max": 22.513126052270536
+      },
+      "r_max_A": {
+        "mean": 29.71040485563466,
+        "sample_sd": null,
+        "min": 29.71040485563466,
+        "max": 29.71040485563466
+      }
+    },
+    "otsa_ecoli": {
+      "pdb_id": "1GZ5",
+      "chains": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "description": "E. coli OtsA monomer",
+      "note": "Gibson et al. (2002) Chem Biol, DOI 10.1016/S1074-5521(02)00292-2",
+      "n_samples": 4,
+      "n_ca_first": 452,
+      "rg_A": {
+        "mean": 22.307309771072024,
+        "sample_sd": 0.02011279620127898,
+        "min": 22.27960232221059,
+        "max": 22.322554885287733
+      },
+      "r_sphere_A": {
+        "mean": 28.798613080683978,
+        "sample_sd": 0.025965508244405824,
+        "min": 28.762842918015235,
+        "max": 28.8182944385068
+      },
+      "r_max_A": {
+        "mean": 38.10120959477243,
+        "sample_sd": 0.053926062905887216,
+        "min": 38.05212912535323,
+        "max": 38.17653071604506
+      }
+    }
+  }
+}
