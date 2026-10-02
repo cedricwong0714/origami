@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/kinetics", label: "Kinetics" },
   { href: "/ssdk", label: "SSDK" },
   { href: "/lab", label: "Lab chassis" },
+  { href: "/intake", label: "Data intake" },
   { href: "/learn", label: "Active learning" },
 ];
 

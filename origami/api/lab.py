@@ -35,3 +35,52 @@ async def post_lab_run(request: Request) -> dict[str, Any]:
         return run_lab(body)
     except LabRunError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/lab/plate")
+async def post_lab_plate(request: Request) -> dict[str, Any]:
+    """Blank-correct plate-reader CSV text into observation rows.
+
+    Body: ``{"csv_text": "...", "source": "plate1.csv"}``. Nothing is stored.
+    """
+    from origami.lab.plate_reader import PlateReaderError, parse_plate_csv
+
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict) or not isinstance(body.get("csv_text"), str):
+        raise HTTPException(status_code=400, detail="csv_text (string) is required")
+    source = body.get("source")
+    if not isinstance(source, str) or not source.strip():
+        source = "uploaded.csv"
+    import hashlib
+
+    digest = hashlib.sha256(body["csv_text"].encode("utf-8")).hexdigest()
+    try:
+        return parse_plate_csv(body["csv_text"], source=source.strip(), sha256=digest)
+    except PlateReaderError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/lab/ablation")
+async def post_lab_ablation(request: Request) -> dict[str, Any]:
+    """Grouped leave-one-group-out ablation of physics, GP and XGBoost."""
+    import numpy as np
+
+    from src.gp_model.ablation import grouped_ablation
+
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    try:
+        return grouped_ablation(
+            np.asarray(body["X"], dtype=float),
+            np.asarray(body["y_obs"], dtype=float),
+            np.asarray(body["y_mech"], dtype=float),
+            list(body["groups"]),
+            body.get("feature_names"),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"invalid ablation input: {exc!r}") from exc
