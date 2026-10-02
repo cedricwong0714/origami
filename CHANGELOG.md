@@ -2,6 +2,12 @@
 
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
+### Added (retrieved from papers, 2026-10-02)
+- `erickson_rmin_A`: R_min = 0.066 M^(1/3) nm (Erickson 2009, Eq. 2.2, DOI 10.1007/s12575-009-9008-x, PMC3055910). A lower bound, not a payload radius.
+- OtsA k_cat 34 +/- 1 s^-1, K_m(UDP-Glc) 1.7 +/- 0.3 mM, K_m(G6P) 7.3 +/- 0.6 mM; OtsB k_cat 286 +/- 34 s^-1, K_m(T6P) 3.6 +/- 0.8 mM. Source: Khan et al. (2024) Nat Commun, DOI 10.1038/s41467-024-48691-6, Table 1. The OtsA values are taken there from Errey et al. (2010) Angew Chem 49:1234-1237; their conditions were not retrieved. The OtsB footnote says NMR at 37 C and the Methods mention malachite green; this is unresolved. `calibrated` stays false.
+- OtsA recombinant mass about 54.7 kDa (Acta Crystallogr D 58:349-351, 2002 abstract).
+- The values removed earlier (k_cat 50 and 120, K_m 0.5, 2.4, 0.15) disagreed with these papers.
+
 ### Added
 - Reverted: an earlier entry in this release added payload radii and OtsA/OtsB k_cat and K_m values with citations written from model memory and not checked against the papers. They were removed. Payload radii and enzyme constants stay vacant until a human retrieves them from the cited sources.
 - Scaffold and lab changes:

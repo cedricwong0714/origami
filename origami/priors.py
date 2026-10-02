@@ -342,6 +342,78 @@ NANOBIT_K_OFF_PER_S = Parameter(
     calibrated=False,
 )
 
+# Parameter: Erickson minimal radius of a protein sphere (lower bound, not a payload radius)
+# Value: R_min [nm] = 0.066 * M^(1/3), M in Da
+# Source: Erickson HP (2009) Biol Proced Online 11:32-51, DOI: 10.1007/s12575-009-9008-x, Eq. 2.2
+# Notes: Retrieved from PMC3055910. Smooth unhydrated sphere containing mass M
+#        (v2 = 0.73 cm^3/g). Real proteins are larger; do not use as a clash radius.
+#        Paper Table 1 lists 2.4 nm at 50 kDa, which this formula reproduces.
+_ERICKSON_RMIN_NM_PER_DA_THIRD = 0.066
+
+
+def erickson_rmin_A(mw_da: float) -> float:
+    """Minimal sphere radius in angstroms for a protein of mass ``mw_da`` in Da."""
+    if not math.isfinite(mw_da) or mw_da <= 0:
+        raise ValueError("mw_da must be finite and > 0")
+    return _ERICKSON_RMIN_NM_PER_DA_THIRD * (mw_da ** (1.0 / 3.0)) * _NM_TO_A
+
+
+# Parameter: recombinant E. coli OtsA mass
+# Value: 54700 Da (abstract: "approximately 54.7 kDa")
+# Source: Characterization of Escherichia coli OtsA, a trehalose-6-phosphate synthase
+#         from glycosyltransferase family 20. Acta Crystallogr D 58:349-351 (2002).
+#         Abstract retrieved via web search; DOI not retrieved.
+# Notes: Construct-specific (recombinant, pET expression). Approximate.
+OTSA_RECOMBINANT_MW_DA = 54700.0
+
+_KHAN_2024 = (
+    "Khan RMN et al. (2024) Nat Commun, DOI: 10.1038/s41467-024-48691-6, Table 1"
+)
+
+
+def _enzyme_param(
+    name: str, value: float, sigma: float, units: str, source: str, system: str,
+    method: str, notes: str,
+) -> Parameter:
+    return Parameter(
+        name=name, value=value, units=units, sigma=sigma, source=source,
+        system=system, method=method, notes=notes,
+    )
+
+
+OTSA_KCAT_PER_S = _enzyme_param(
+    "otsa_kcat_per_s", 34.0, 1.0, "s^-1",
+    _KHAN_2024 + ' (footnote "taken from reference 46": Errey et al. (2010) '
+    "Angew Chem Int Ed 49:1234-1237).",
+    "E. coli OtsA, UDP-Glc and G6P substrates",
+    "Reported as taken from Errey 2010; assay conditions for this value were not retrieved",
+    "Printed as 34 +/- 1 for both substrates. Temperature and buffer unknown. "
+    "Not measured in this team's lysate or fusion.",
+)
+OTSA_KM_UDPGLC_M = _enzyme_param(
+    "otsa_km_udp_glucose_M", 1.7e-3, 0.3e-3, "M",
+    _KHAN_2024 + " (taken from Errey et al. 2010).", "E. coli OtsA",
+    "As above; conditions not retrieved", "Printed as 1.7 +/- 0.3 mM.",
+)
+OTSA_KM_G6P_M = _enzyme_param(
+    "otsa_km_g6p_M", 7.3e-3, 0.6e-3, "M",
+    _KHAN_2024 + " (taken from Errey et al. 2010).", "E. coli OtsA",
+    "As above; conditions not retrieved", "Printed as 7.3 +/- 0.6 mM.",
+)
+OTSB_KCAT_PER_S = _enzyme_param(
+    "otsb_kcat_per_s", 286.0, 34.0, "s^-1", _KHAN_2024 + ".",
+    "E. coli OtsB, substrate trehalose-6-phosphate",
+    'Table footnote: "continuous 1H NMR assay at 37 C". The Methods text '
+    "also mentions a malachite-green assay; the two descriptions were not reconciled.",
+    "Printed as 286 +/- 34. Soluble OtsB needed an MBP-His tag per the text. "
+    "Not measured in this team's system.",
+)
+OTSB_KM_T6P_M = _enzyme_param(
+    "otsb_km_t6p_M", 3.6e-3, 0.8e-3, "M", _KHAN_2024 + ".",
+    "E. coli OtsB, substrate trehalose-6-phosphate", "As OtsB k_cat",
+    "Printed as 3.6 +/- 0.8 mM.",
+)
+
 N_REPEATS_MIN = 3
 N_REPEATS_MAX = 24
 
@@ -359,4 +431,9 @@ def all_priors() -> tuple[Parameter, ...]:
         NANOBIT_KD_M,
         NANOBIT_K_ON_PER_M_S,
         NANOBIT_K_OFF_PER_S,
+        OTSA_KCAT_PER_S,
+        OTSA_KM_UDPGLC_M,
+        OTSA_KM_G6P_M,
+        OTSB_KCAT_PER_S,
+        OTSB_KM_T6P_M,
     )
