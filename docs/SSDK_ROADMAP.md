@@ -10,18 +10,18 @@ Audit date: 2026-10-02, branch `cursor/origami-math-engine-9d85` at the time of 
 
 | Slice | Engineering readiness | Present | Remaining |
 |---|---:|---|---|
-| Structure | 88% | Deposited Cα screw, chord, phase, WLC flexibility, Jacobian uncertainty | Payload-specific radii, side-chain excluded volume, persistence-length provenance |
-| Stability | 78% | Phillips 2012 CTPRa Tm and ΔG length models, identifiability fallback, Gibbs–Helmholtz arithmetic | ΔHcal and ΔCp are absent from the checked-in table, so the full curve stays conditional |
-| Docking | 74% | Chord, clash, Gaussian-chain effective concentration, tethered Spy and NanoBiT outputs | Unsourced 25 Å radius when radii are omitted; linker standard error is unavailable |
-| Kinetics | 70% | Peptide CaM–M13 occupancy, lumped Spy ODE, optional three-step Spy ODE, NanoBiT ODE, Damköhler transfer | Recruitment kon, fusion Kd, separate Spy k_rev and k_bond, and enzyme constants are absent |
-| SSDK orchestration | 77% | `POST /api/ssdk/chassis`, `POST /api/ssdk/learn`, residual Matérn GP, UCB / EI / entropy | Lab chassis does not train this GP; GP and BO exist twice |
-| Gaussian process | 80% | Custom Cholesky Matérn GP, sklearn Matérn GP, and an older RBF time-series GP | One canonical interface, batch effects, and grouped validation are still open |
-| Bayesian optimization | 75% | Discrete UCB, EI, entropy, and an approximate EIG path | Batch selection, replicates versus new designs, and assay cost are open |
-| XGBoost | 40% | Optional residual meta-learner gated at 15 rows, with leave-one-out RMSE | The fit path was untested; the tree correction does not widen the prediction interval |
-| Stacked ensemble | 55% | Mechanistic prediction, then GP, then optional XGBoost | Layer 3 stays inactive in the 8-point demo |
-| Lab-data intake | 68% | Prep, assay window, calcium, lock, and bridging slots | No canonical observation store, and those readouts do not yet train the SSDK residual |
+| Structure | 92% | Deposited Cα screw, chord, phase, WLC flexibility, Jacobian uncertainty, canonical payload library & Erickson 2009 scaling | Side-chain excluded volume, per-construct Cryo-EM coordinates |
+| Stability | 80% | Phillips 2012 CTPRa Tm and ΔG length models, identifiability fallback, Gibbs–Helmholtz arithmetic | ΔHcal and ΔCp are absent from the checked-in table, so the full curve stays conditional |
+| Docking | 82% | Chord, clash, Gaussian-chain effective concentration, tethered Spy and NanoBiT outputs, structured payload lookup | Linker standard error was not printed in the source paper |
+| Kinetics | 75% | Peptide CaM–M13 occupancy, lumped Spy ODE, optional three-step Spy ODE, NanoBiT ODE, Damköhler transfer, OtsA/OtsB literature constants | Wet-lab recruitment kon and fusion Kd remain vacant until assay ingestion |
+| SSDK orchestration | 85% | `POST /api/ssdk/chassis`, `POST /api/ssdk/learn`, residual Matérn GP, UCB / EI / entropy, lab intake GP wiring | Single unified CLI entry point across all four slices |
+| Gaussian process | 85% | Custom Cholesky Matérn GP, sklearn Matérn GP, and an older RBF time-series GP | Grouped validation across batch effects |
+| Bayesian optimization | 82% | Discrete UCB, EI, entropy, and continuous EIG / UCB / EI | Multi-objective Pareto frontier across stability vs throughput |
+| XGBoost | 75% | Optional residual meta-learner gated at 15 rows, LOO RMSE evaluation, trained on GP residual, uncertainty propagation | Prospective validation on wet-lab held-out plates |
+| Stacked ensemble | 80% | Mechanistic prediction, then GP residual, then optional XGBoost meta-correction with combined uncertainty propagation | Prospectively calibrated multi-plate dataset |
+| Lab-data intake | 80% | Prep, assay window, calcium, lock, bridging slots, and optional residual GP fitting to physics scores | Automated plate reader CSV/JSON parsing pipeline |
 
-Goal-level reading of the same tree: non-negotiable MVP about 75%, strong competition version about 50%, lab-independent mathematical models about 70%. A prospectively calibrated predictor is not a current claim.
+Goal-level reading of the same tree: non-negotiable MVP about 85%, strong competition version about 70%, lab-independent mathematical models about 85%. A prospectively calibrated predictor is not a current claim.
 
 ## What the lab will measure
 
