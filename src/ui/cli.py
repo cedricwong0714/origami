@@ -131,6 +131,7 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
 
     from src.core.clasp_assembly import CLASPParameters, predict_luminescence
     from src.predictions.freeze import freeze_prediction
+    from src.predictions.sensitivity import parameter_elasticities
 
     params = CLASPParameters()
     ca_grid = [float(x) for x in args.calcium_uM.split(",")]
@@ -145,7 +146,12 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
     predictions = {}
     for c_uM, y in zip(ca_grid, values):
         value = float(y)
+        sens = parameter_elasticities(
+            c_uM * 1e-6, params, E_T=args.e_t, M_T=args.m_t, t_end=args.t_end
+        )
         predictions[f"ca_{c_uM:g}uM"] = {
+            "most_sensitive_parameter": sens["most_sensitive_parameter"],
+            "parameter_elasticities": sens["elasticities"],
             "predicted_value": value,
             # predict_luminescence does not propagate parameter error.
             # The band stays a fixed relative placeholder until that exists.
