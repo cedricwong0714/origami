@@ -72,7 +72,7 @@ with st.sidebar:
     supply_payloads = st.checkbox(
         "Supply two payload rows",
         value=False,
-        help="Off: end-pair default 25 Å heuristic radii.",
+        help="Off: end-pair default CaM-M13 radii (PDB 2BBM-derived).",
     )
     payloads: list[dict] | None = None
     if supply_payloads:
@@ -88,7 +88,7 @@ with st.sidebar:
             a_role = st.text_input("A role", value="enzyme")
             a_term = st.selectbox("A fusion_terminus", ["N", "C"], index=1)
             a_idx = st.number_input("A repeat_index (0-based)", 0, int(n_repeats) - 1, 0)
-            a_r = st.number_input("A radius_A", min_value=0.1, value=25.0, step=0.5)
+            a_r = st.number_input("A radius_A", min_value=0.1, value=round(DEFAULT_PAYLOAD_RADIUS_A.value, 1), step=0.5)
             a_s = st.number_input(
                 "A linker_sigma_A",
                 min_value=0.0,
@@ -110,7 +110,7 @@ with st.sidebar:
                 int(n_repeats) - 1,
                 int(n_repeats) - 1,
             )
-            b_r = st.number_input("B radius_A", min_value=0.1, value=25.0, step=0.5, key="b_r")
+            b_r = st.number_input("B radius_A", min_value=0.1, value=round(DEFAULT_PAYLOAD_RADIUS_A.value, 1), step=0.5, key="b_r")
             b_s = st.number_input(
                 "B linker_sigma_A",
                 min_value=0.0,
@@ -129,7 +129,7 @@ with st.sidebar:
     else:
         st.info(
             f"Default payload radius is {DEFAULT_PAYLOAD_RADIUS_A.value} Å "
-            "(unsourced hydrodynamic heuristic). Default linker is "
+            "(CaM-M13, PDB 2BBM-derived). Default linker is "
             f"{LINKER_SIGMA_A.value:.3f} Å."
         )
 

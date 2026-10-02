@@ -47,3 +47,18 @@ def test_learn_uses_named_payloads_and_rejects_double_input():
         learn_ssdk({"payload_names": ["spycatcher", "otsa_ecoli"], "payload_radii_A": [10, 10]})
     with pytest.raises(SsdkLearnError):
         learn_ssdk({"payload_names": ["spycatcher", "nope"]})
+
+
+def test_default_payload_radius_matches_cam_m13_derivation():
+    """The default clash radius is the PDB 2BBM-derived CaM-M13 value, not a placeholder."""
+    from origami.priors import DEFAULT_PAYLOAD_RADIUS_A
+
+    assert DEFAULT_PAYLOAD_RADIUS_A.value == pytest.approx(
+        payload_radius("calmodulin_m13_complex").clash_radius_A, abs=1e-9
+    )
+    assert DEFAULT_PAYLOAD_RADIUS_A.calibrated is False
+
+
+def test_lgbit_structures_present():
+    assert payload_radius("lgbit").pdb_id == "7SNY"
+    assert payload_radius("lgbit_in_nanobit_complex").pdb_id == "7SNX"

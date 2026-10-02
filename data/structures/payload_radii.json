@@ -59,6 +59,62 @@
         "max": 27.082457905457634
       }
     },
+    "lgbit": {
+      "pdb_id": "7SNY",
+      "chains": [
+        "A"
+      ],
+      "description": "NanoBiT large subunit LgBiT alone, 2.10 A",
+      "note": "Verified title and resolution via RCSB core API; citation not retrieved",
+      "n_samples": 1,
+      "n_ca_first": 159,
+      "rg_A": {
+        "mean": 17.454441186390024,
+        "sample_sd": null,
+        "min": 17.454441186390024,
+        "max": 17.454441186390024
+      },
+      "r_sphere_A": {
+        "mean": 22.53358667741513,
+        "sample_sd": null,
+        "min": 22.53358667741513,
+        "max": 22.53358667741513
+      },
+      "r_max_A": {
+        "mean": 36.86350062253423,
+        "sample_sd": null,
+        "min": 36.86350062253423,
+        "max": 36.86350062253423
+      }
+    },
+    "lgbit_in_nanobit_complex": {
+      "pdb_id": "7SNX",
+      "chains": [
+        "A"
+      ],
+      "description": "LgBiT chain of LgBiT-SmBiT complex, 1.70 A",
+      "note": "Verified title and resolution via RCSB core API; entity map checked via RCSB: chain A LgBiT, chain B the 11-mer SmBiT peptide",
+      "n_samples": 1,
+      "n_ca_first": 157,
+      "rg_A": {
+        "mean": 15.801944923358851,
+        "sample_sd": null,
+        "min": 15.801944923358851,
+        "max": 15.801944923358851
+      },
+      "r_sphere_A": {
+        "mean": 20.400223175285223,
+        "sample_sd": null,
+        "min": 20.400223175285223,
+        "max": 20.400223175285223
+      },
+      "r_max_A": {
+        "mean": 25.35675038457974,
+        "sample_sd": null,
+        "min": 25.35675038457974,
+        "max": 25.35675038457974
+      }
+    },
     "calmodulin_compact": {
       "pdb_id": "1PRW",
       "chains": [

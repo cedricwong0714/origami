@@ -173,16 +173,27 @@ CTPR_SCAFFOLD_RADIUS_A = Parameter(
     calibrated=False,
 )
 
-# Globular-protein size scale, not a measured OtsA/OtsB radius.
+# Parameter: default payload clash radius
+# Value: 22.513126 (2BBM chain A; equals data/structures/payload_radii.json)
+# Units: Å
+# Source: derived by scripts/derive_payload_radii.py from deposited PDB 2BBM,
+#   the CaM-skeletal-MLCK-peptide complex (entry citation not retrieved)
+# System: calmodulin in the CaM-M13 complex, the only payload in the lab plan
+# Method: sqrt(5/3) x C-alpha radius of gyration, one NMR model set, side chains ignored
+# Notes: sigma 4.76 Å is the sample SD (n-1) of the three CaM states in the same
+#   file (compact 1PRW 18.9, complex 2BBM 22.5, extended 1CLL 28.3). It is a
+#   conformational spread, not a measurement error. Replaces the 25 Å MW-scaling
+#   placeholder on 2026-10-02 at the user's instruction that CaM-M13 is the only
+#   payload. SpyTag/SpyCatcher and LgBiT/SmBiT are core modules, not payloads.
 DEFAULT_PAYLOAD_RADIUS_A = Parameter(
     name="default_payload_radius",
-    value=25.0,
+    value=22.513126052270536,
     units="Å",
-    sigma=8.0,
-    source="Order-of-magnitude hydrodynamic radius for a ~40–60 kDa globular enzyme",
-    system="Unspecified globular payload",
-    method="MW scaling heuristic, not scattering or structure of CLASP payloads",
-    notes="Per-payload radii should replace this when structures exist.",
+    sigma=4.763419705374408,
+    source="PDB 2BBM via scripts/derive_payload_radii.py; spread from 1PRW, 2BBM, 1CLL",
+    system="Calmodulin in CaM-M13 complex",
+    method="sqrt(5/3) x C-alpha Rg; side chains ignored; flexible termini inflate it",
+    notes="calibrated stays False. Not a hydrodynamic radius.",
 )
 
 # σ = sqrt(<R²>) of one (GGGGS)3 chain. See origami.linker_prior.

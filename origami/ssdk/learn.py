@@ -199,8 +199,8 @@ def _docking(result: Any, lengths: list[int], radius_origin: str) -> dict[str, A
         "Caller radii were used for clash and effective concentration."
         if radius_origin == "caller"
         else (
-            "Both payload radii were omitted. Clash uses the 25 Å placeholder "
-            "in origami.priors.DEFAULT_PAYLOAD_RADIUS_A. It is not a measured radius."
+            "Both payload radii were omitted. Clash uses the CaM-M13 default (PDB 2BBM-derived) "
+            "in origami.priors.DEFAULT_PAYLOAD_RADIUS_A. It is a structure-derived size scale, not a measured radius."
         )
     )
     return {

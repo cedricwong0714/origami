@@ -78,8 +78,8 @@ def run_sandbox(request: dict[str, Any]) -> dict[str, Any]:
     if payloads is None:
         notes.append(
             "No payloads were supplied. run_design places the default "
-            f"{DEFAULT_PAYLOAD_RADIUS_A.value} Å heuristic radius on each end "
-            "repeat. That radius is not a measured OtsA/OtsB size."
+            f"{DEFAULT_PAYLOAD_RADIUS_A.value} Å CaM-M13 radius on each end "
+            "repeat. That radius is structure-derived, not measured."
         )
         notes.append(
             f"Default linker width is {LINKER_SIGMA_A.value:.6f} Å "
