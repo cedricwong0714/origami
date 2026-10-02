@@ -45,5 +45,9 @@ def test_stacked_ensemble_activates_xgb_at_fifteen_rows():
     assert report["gp_fitted"] is True
     prediction = predictor.predict(float(calcium[7]))
     assert prediction.xgb_active is True
+    assert isinstance(prediction.xgb_correction, float)
     assert prediction.uncertainty_95_lower <= prediction.predicted_value
     assert prediction.predicted_value <= prediction.uncertainty_95_upper
+    feat_imp = predictor.get_xgb_feature_importance()
+    assert isinstance(feat_imp, dict)
+    assert len(feat_imp) > 0

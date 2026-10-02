@@ -25,6 +25,7 @@ class StackedPrediction(BaseModel):
     confidence_tier: str
     mechanistic_prediction: float
     gp_correction: float
+    xgb_correction: float = 0.0
     xgb_active: bool
     model_version: str = "stacked_ensemble_1.0.0"
     warnings: list[str] = Field(default_factory=list)
@@ -96,8 +97,10 @@ class StackedEnsemblePredictor:
         xgb_status = "inactive"
         if try_xgb and len(y_obs) >= XGBoostMetaPredictor.MIN_SAMPLES_REQUIRED:
             try:
-                residuals = y_obs - y_mech
-                self.xgb.fit(X, residuals, feature_names=self._feature_names[: X.shape[1]])
+                # Train Layer 3 on the residual remaining after Layer 2 (GP)
+                y_gp_pred, _ = self.gp.predict(X, y_mech)
+                residuals_l2 = y_obs - y_gp_pred
+                self.xgb.fit(X, residuals_l2, feature_names=self._feature_names[: X.shape[1]])
                 xgb_status = "fitted"
             except (InsufficientDataError, ImportError) as exc:
                 xgb_status = f"skipped: {exc}"
@@ -120,14 +123,22 @@ class StackedEnsemblePredictor:
         X = self.to_features(calcium_M, E_T, M_T)
         y_corrected, unc = self.gp.predict(X, np.asarray([y_mech]))
         y_corr = float(y_corrected[0])
-        half = float(unc[0])
+        half_gp = float(unc[0])
+        sigma_gp = half_gp / 1.96
 
         warnings_list: list[str] = []
+        xgb_corr = 0.0
         if self.xgb.is_fitted:
             meta = float(self.xgb.predict(X)[0])
+            xgb_corr = meta
             y_final = y_corr + meta
+            # Propagate uncertainty from GP and XGBoost LOO RMSE
+            loo_rmse = self.xgb.loo_rmse or 0.0
+            sigma_total = float(np.sqrt(sigma_gp**2 + loo_rmse**2))
+            half = 1.96 * sigma_total
         else:
             y_final = y_corr
+            half = half_gp
             if self.n_observations < XGBoostMetaPredictor.MIN_SAMPLES_REQUIRED:
                 warnings_list.append(
                     f"XGBoost Layer 3 inactive ({self.n_observations}/"
@@ -142,7 +153,12 @@ class StackedEnsemblePredictor:
             confidence_tier=tier,
             mechanistic_prediction=y_mech,
             gp_correction=y_corr - y_mech,
+            xgb_correction=xgb_corr,
             xgb_active=self.xgb.is_fitted,
             model_version=f"stacked_ensemble_{self.version}",
             warnings=warnings_list,
         )
+
+    def get_xgb_feature_importance(self) -> dict[str, float]:
+        """Return feature importance from the XGBoost layer if fitted."""
+        return self.xgb.get_feature_importance()
