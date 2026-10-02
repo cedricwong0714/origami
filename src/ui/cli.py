@@ -125,6 +125,46 @@ def _cmd_optimize(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_import_plate(args: argparse.Namespace) -> int:
+    """Print blank-corrected observation rows from a plate-reader CSV."""
+    import json
+
+    from origami.lab.plate_reader import PlateReaderError, load_plate_csv
+
+    try:
+        result = load_plate_csv(args.csv)
+    except (PlateReaderError, OSError, UnicodeDecodeError) as exc:
+        print(f"import-plate failed: {exc}", file=sys.stderr)
+        return 2
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+def _cmd_ablation(args: argparse.Namespace) -> int:
+    """Print the grouped ablation report for a JSON dataset."""
+    import json
+
+    import numpy as np
+
+    from src.gp_model.ablation import grouped_ablation
+
+    try:
+        with open(args.data, encoding="utf-8") as fh:
+            d = json.load(fh)
+        report = grouped_ablation(
+            np.asarray(d["X"], dtype=float),
+            np.asarray(d["y_obs"], dtype=float),
+            np.asarray(d["y_mech"], dtype=float),
+            list(d["groups"]),
+            d.get("feature_names"),
+        )
+    except (KeyError, ValueError, OSError) as exc:
+        print(f"ablation failed: {exc!r}", file=sys.stderr)
+        return 2
+    print(json.dumps(report, indent=2))
+    return 0
+
+
 def _cmd_freeze(args: argparse.Namespace) -> int:
     """Freeze a prospective CLASP dose-response prediction (Docs §1.6)."""
     import json
@@ -300,6 +340,22 @@ def main() -> None:
     compare.add_argument("--comparison-id", type=str, default=None)
     compare.add_argument("--overwrite", action="store_true")
     compare.set_defaults(func=_cmd_compare)
+
+    plate = sub.add_parser(
+        "import-plate",
+        help="Blank-correct a plate-reader CSV into observation rows (JSON)",
+    )
+    plate.add_argument("csv", help="Long-format CSV: well,construct,n_repeats,batch,role,rlu")
+    plate.set_defaults(func=_cmd_import_plate)
+
+    ablate = sub.add_parser(
+        "ablation",
+        help="Grouped leave-one-group-out ablation of physics, GP and XGBoost",
+    )
+    ablate.add_argument(
+        "data", help='JSON with keys "X", "y_obs", "y_mech", "groups" (and optional "feature_names")'
+    )
+    ablate.set_defaults(func=_cmd_ablation)
 
     # Back-compat: `origami --design-id X` runs pipeline without subcommand
     parser.add_argument("--design-id", type=str, default="CLI_DESIGN_001")
