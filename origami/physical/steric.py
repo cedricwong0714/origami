@@ -93,8 +93,15 @@ def scaffold_overlap_probability(
     payload_radius_A: float,
     cloud_A: np.ndarray,
     standoff_A: float | None = None,
+    ca_exclusion_A: float = 0.0,
 ) -> float:
     """P(a deposited Cα lies inside the payload sphere).
+
+    ``ca_exclusion_A`` inflates every Cα into a sphere of that radius to
+    stand in for side chains and backbone atoms, so the payload surface must
+    clear the scaffold by ``payload_radius_A + ca_exclusion_A``. The default
+    0.0 keeps the Cα-point behaviour. No sourced value for this radius has
+    been retrieved, so it is a caller choice and is never defaulted here.
 
     ``cloud_A`` is the placed consensus repeat, in Å. The comparison is
     the distance from the payload center to the nearest Cα. Side chains
@@ -111,7 +118,9 @@ def scaffold_overlap_probability(
     unit = direction / dist
     variance = float(unit @ site.covariance_A2 @ unit)
     std = np.sqrt(max(variance, 1e-12))
-    return float(norm.cdf((payload_radius_A - dist) / std))
+    if ca_exclusion_A < 0:
+        raise ValueError("ca_exclusion_A must be non-negative")
+    return float(norm.cdf((payload_radius_A + ca_exclusion_A - dist) / std))
 
 
 @dataclass
@@ -138,6 +147,7 @@ def steric_report(
     indices: list[int],
     radii_A: list[float],
     standoff_A: list[float] | None = None,
+    ca_exclusion_A: float = 0.0,
 ) -> StericReport:
     if len(indices) != len(radii_A):
         raise ValueError("indices and radii must match")
@@ -181,7 +191,7 @@ def steric_report(
             p_survive *= 1.0 - p
     p_scaf = [
         scaffold_overlap_probability(
-            site, radius, cloud, standoff_A=offset + radius
+            site, radius, cloud, standoff_A=offset + radius, ca_exclusion_A=ca_exclusion_A
         )
         for site, radius, offset in zip(sites, radii_A, standoffs)
     ]
