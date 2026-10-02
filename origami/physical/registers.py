@@ -15,7 +15,21 @@ from __future__ import annotations
 TEAM_LOWER_N = 2
 TEAM_UPPER_N = 20
 TEAM_BIOMARKER_N = 3
+TEAM_ONE_TURN_N = 8
 TEAM_CHANNELING_N = 14
+TEAM_LONG_N = 17
+
+TEAM_GEOMETRY_SERIES = (8, 14, 17)
+TEAM_CANONICAL_LENGTHS = (3, 8, 14, 17)
+
+CANONICAL_LENGTH_ROLES = {
+    TEAM_LOWER_N: "Lower screening bound",
+    TEAM_BIOMARKER_N: "Biomarker POC baseline (compact sub-turn construct)",
+    TEAM_ONE_TURN_N: "One complete superhelical turn (8 repeats * 45° = 360°)",
+    TEAM_CHANNELING_N: "Model-predicted optimum for intermediate transfer channeling",
+    TEAM_LONG_N: "Extended geometry series candidate (lower-density construct)",
+    TEAM_UPPER_N: "Upper screening bound",
+}
 
 REGISTER_KEYS = frozenset(
     {

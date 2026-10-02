@@ -108,11 +108,12 @@ CONSTRUCT_N_TO_C = (
     "LgBiT",
 )
 CONSTRUCT_N_VALUES = (3, 8, 14)
+CANONICAL_CONSTRUCT_N_VALUES = (3, 8, 14, 17)
 
 # Team-supplied m13 loop position, counted from the SpyCatcher-side end.
 # Repeat 1 is index 0. These are not a fit and not a sequence.
-# n=3: 2nd repeat. n=8: 3rd repeat. n=14: 7th repeat.
-M13_GRAFT_1BASED: dict[int, int] = {3: 2, 8: 3, 14: 7}
+# n=3: 2nd repeat. n=8: 3rd repeat. n=14: 7th repeat. n=17: 9th repeat (central repeat).
+M13_GRAFT_1BASED: dict[int, int] = {3: 2, 8: 3, 14: 7, 17: 9}
 
 
 def m13_graft_index(n_repeats: int) -> int | None:
@@ -242,7 +243,8 @@ def backbone_constructs(
         "payloads": False,
         "m13_graft_repeat_index_by_n": {
             str(n_repeats): M13_GRAFT_1BASED[n_repeats] - 1
-            for n_repeats in M13_GRAFT_1BASED
+            for n_repeats in n_values
+            if n_repeats in M13_GRAFT_1BASED
         },
         "n_to_c": list(CONSTRUCT_N_TO_C),
         "measured_block": "CTPR",
