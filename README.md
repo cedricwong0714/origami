@@ -119,7 +119,9 @@ web/ctpr_scaffold_optimizer.html
 ```
 
 **GitLab Pages** (after CI deploy on `main`): project **Deploy → Pages** in GitLab shows the public URL.
-Static demos: landing page + CTPR optimizer.
+Static demos only: landing page + CTPR optimizer. The full chassis (SSDK learn, lab quality, multi-fidelity gates) needs `host_sa.py` + Next.js dev or Streamlit as above.
+
+Wiki UI includes **Dependencies** (`/guide`), **SSDK** luminescence gates, **Data intake**, and **Active learning** with multi-fidelity output when the API is running.
 
 ### Validate a Learn Mode data package
 
