@@ -58,6 +58,24 @@ type LearnReport = {
   radius_origin: string;
   warnings: string[];
   candidates: Candidate[];
+  multifidelity_luminescence?: {
+    fitted: boolean;
+    model_version: string;
+    threshold_luminescence: { value: number; status: string };
+    recommended_evaluation: {
+      n_repeats: number;
+      evaluation_type: string;
+      acquisition_score: number;
+    } | null;
+    candidates: {
+      n_repeats: number;
+      mu_luminescence: number;
+      sigma_luminescence: number;
+      pass_luminescence: boolean;
+      acquisition_wet_NanoBiT: number | null;
+    }[];
+    note: string;
+  };
   literature_training?: LiteratureTraining;
   slices: {
     structure: { rows: { n_repeats: number; contour_nm: number; rigid_screw: boolean }[] };
@@ -194,10 +212,17 @@ export function LearnBoard() {
         setError("Each filled row needs an integer length and a finite surrogate reading.");
         return;
       }
-      const item: { n_repeats: number; y: number; sigma?: number; source: string } = {
+      const item: {
+        n_repeats: number;
+        y: number;
+        sigma?: number;
+        source: string;
+        fidelity: number;
+      } = {
         n_repeats: n,
         y,
         source: "surrogate",
+        fidelity: 1,
       };
       if (row.sigma.trim()) {
         const sigma = Number(row.sigma);
@@ -426,6 +451,23 @@ export function LearnBoard() {
               );
             })}
           </ul>
+          {report.multifidelity_luminescence ? (
+            <div className="mt-6 border-t border-[#E3D9CC] pt-4">
+              <h3 className="font-medium">Multi-fidelity luminescence gates</h3>
+              <p className="mt-1 text-[#5C564E]">{report.multifidelity_luminescence.note}</p>
+              {report.multifidelity_luminescence.recommended_evaluation ? (
+                <p className="mt-2">
+                  EI/cost → n ={" "}
+                  {report.multifidelity_luminescence.recommended_evaluation.n_repeats} (
+                  {report.multifidelity_luminescence.recommended_evaluation.evaluation_type})
+                </p>
+              ) : null}
+              <p className="mt-1 text-xs text-[#8A8278]">
+                Threshold {report.multifidelity_luminescence.threshold_luminescence.value} (
+                {report.multifidelity_luminescence.threshold_luminescence.status})
+              </p>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </main>

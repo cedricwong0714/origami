@@ -134,6 +134,96 @@ def lab_schema() -> dict[str, Any]:
         _slot(
             "rlu_high", "RLU", "assay_window", "Upper end of the NanoBiT linear range."
         ),
+        _slot(
+            "inter_day_rlu",
+            "RLU",
+            "quality",
+            "Phase 3 / T4.11: replicate RLU across days (same construct, same operator optional).",
+        ),
+        _slot(
+            "inter_operator_rlu",
+            "RLU",
+            "quality",
+            "Replicate RLU across operators.",
+        ),
+        _slot(
+            "plate_reader_reference_rlu",
+            "RLU",
+            "quality",
+            "Instrument calibration check (Phase 3 exp 1).",
+        ),
+        _slot(
+            "normalization_a_rlu",
+            "RLU",
+            "quality",
+            "Normalization comparison method A (Phase 3 exp 3).",
+        ),
+        _slot(
+            "normalization_b_rlu",
+            "RLU",
+            "quality",
+            "Normalization comparison method B.",
+        ),
+        _slot(
+            "fluo3_free_ca_M",
+            "M",
+            "quality",
+            "Fluo-3 inferred free Ca2+ (Phase 3 exp 4).",
+        ),
+        _slot(
+            "background_rlu",
+            "RLU",
+            "quality",
+            "Empty-vector or lysis background (Phase 3 exp 5).",
+        ),
+        _slot(
+            "expressed_rlu",
+            "RLU",
+            "quality",
+            "Construct luminescence for signal/background (Phase 3 exp 5).",
+        ),
+        _slot(
+            "linearity_amount",
+            "caller amount unit",
+            "quality",
+            "NanoBiT linearity series amount (Phase 3 exp 6).",
+        ),
+        _slot(
+            "linearity_rlu",
+            "RLU",
+            "quality",
+            "NanoBiT linearity series RLU.",
+        ),
+        _slot(
+            "freeze_thaw_rlu",
+            "RLU",
+            "quality",
+            "Replicate RLU after freeze-thaw cycles (Phase 3 exp 8).",
+        ),
+        _slot(
+            "lysis_soluble_fraction",
+            "fraction",
+            "quality",
+            "Soluble fraction after lysis protocol (Phase 3 exp 9).",
+        ),
+        _slot(
+            "negative_control_rlu",
+            "RLU",
+            "quality",
+            "List of negative-control wells (Phase 3 exp 10).",
+        ),
+        _slot(
+            "competitor_fold",
+            "fold",
+            "quality",
+            "Spy competitor excess for irreversibility check (Phase 3 exp 11).",
+        ),
+        _slot(
+            "complex_fraction_after_h",
+            "fraction",
+            "quality",
+            "Covalent complex fraction after competition overnight.",
+        ),
     ]
     return {
         "schema_version": SCHEMA_VERSION,
@@ -147,9 +237,8 @@ def lab_schema() -> dict[str, Any]:
             "size-exclusion elution volume",
             "cryo-EM coordinates",
             "payload radius",
-            "fusion CaM–M13 Kd",
-            "SpyCatcher k_rev",
-            "SpyCatcher k_bond",
+            "SpyCatcher k_rev (literature: no reversal observed; no numeric rate)",
+            "SpyCatcher k_bond separate from lumped k_on",
             "enzyme k_cat and K_m",
         ],
         "sections": {
@@ -158,6 +247,10 @@ def lab_schema() -> dict[str, Any]:
             "calcium": "Logistic EC50. Hill slope fixed at 1 when it is not identifiable. Three temperatures are ratios, not an activation energy.",
             "lock": "Lumped d[adduct]/dt = k_lock [Tag][Catcher], or a caller-chosen pseudo-first-order form. k_rev and k_bond are not fit.",
             "bridging": "tube2/tube1, tube3/tube2, and tube4/tube2. No fold-change cutoff.",
+            "quality": (
+                "Phase 3 calibration: CV budgets, linearity, Fluo-3, background, "
+                "freeze-thaw, lysis, negative panel, Spy irreversibility. Vacant until posted."
+            ),
         },
         "residual_gp": {
             "fitted": False,

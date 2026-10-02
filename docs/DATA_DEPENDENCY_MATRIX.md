@@ -31,7 +31,16 @@ Scope decisions (user, 2026-10-02):
 | T4.8 Ca dose-response | `calcium`, `calcium_rlu`, `wt_rlu` | residual GP, EC50 estimate, ablation |
 | T4.9 NanoLuc standard curve | `assay_window` slots | absolute quantification, not yet connected to the GP target |
 | T4.10 Scrambled M13 | `scrambled_rlu` | specificity ratio |
-| T4.11 Inter-day CV | not a slot | needs an uncertainty-budget module (error propagation) |
+| T4.11 Inter-day CV | `quality.inter_day_rlu`, `quality.inter_operator_rlu` | `origami/lab/uncertainty_budget.py` → suggested GP σ |
+| P3 Exp 1 instrument | `quality.plate_reader_reference_rlu` | recorded; no auto-calibration |
+| P3 Exp 3 normalization | `quality.normalization_a_rlu`, `normalization_b_rlu` | ratio only |
+| P3 Exp 4 Fluo-3 | `quality.fluo3_free_ca_M` | compare to calcium titration |
+| P3 Exp 5 background | `quality.background_rlu`, `expressed_rlu` | signal/background |
+| P3 Exp 6 linearity | `quality.linearity_amount`, `linearity_rlu` | same line fit as assay window |
+| P3 Exp 8 freeze-thaw | `quality.freeze_thaw_rlu` | CV budget |
+| P3 Exp 9 lysis | `quality.lysis_soluble_fraction` | fraction only |
+| P3 Exp 10 negative panel | `quality.negative_control_rlu` | max RLU over list |
+| P3 Exp 11 irreversibility | `quality.competitor_fold`, `complex_fraction_after_h` | reversal flag |
 | P3 Exp 7 temperature | `rlu_25_C`, `rlu_30_C`, `rlu_37_C` | temperature sensitivity only |
 | P3 Exp 12 locking kinetics | `time_min`, `fraction_locked` | k_lock fit (lumped Spy rate) |
 | P4 4-tube bridging | `tube1_rlu` to `tube4_rlu` | bridging verdict |

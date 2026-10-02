@@ -24,6 +24,7 @@ from origami.assay.window import (
 )
 from origami.bridging.ratios import bridging_ratios
 from origami.kinetics.lock_fit import fit_lock
+from origami.lab.quality import run_quality
 from origami.lab.schema import lab_schema
 from origami.physical.geometry import build_ctpr
 from origami.physical.structure import structural_report
@@ -66,6 +67,9 @@ def run_lab(body: dict[str, Any]) -> dict[str, Any]:
         "bridging": bridging_ratios(body["bridging"])
         if isinstance(body.get("bridging"), dict)
         else _absent("bridging"),
+        "quality": run_quality(body["quality"])
+        if isinstance(body.get("quality"), dict)
+        else _absent("quality"),
         "residual_gp": _residual_gp(body),
     }
 
@@ -109,6 +113,7 @@ def _residual_gp(body: dict[str, Any]) -> dict[str, Any]:
             "next_reason": res["next_reason"],
             "acquisition": res["acquisition"],
             "candidates": res["candidates"],
+            "multifidelity_luminescence": res.get("multifidelity_luminescence"),
             "warnings": [
                 "Residual GP fitted using lab observations against SSDK physics scores.",
                 "calibrated stays false. A passing GP fit is not wet-lab validation.",

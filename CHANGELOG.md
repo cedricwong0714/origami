@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-02 (finish: quality slots, guide UI, meta API)
+
+### Added
+- Phase 3 **quality** schema slots and `run_quality` / `uncertainty_budget` (inter-day CV → suggested GP noise).
+- `GET /api/meta/dependencies`, `GET /api/meta/active-learning-config`.
+- Next.js **`/guide`** (Dependencies) page; Learn page shows multi-fidelity gates; lab residual GP returns `multifidelity_luminescence`.
+
 ## Unreleased — 2026-10-02 (multi-fidelity learn wired + SSDK gates UI)
 
 ### Added
