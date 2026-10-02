@@ -35,7 +35,6 @@ _PREP_FLAGS = (
     "expressed_n3",
     "expressed_n8",
     "expressed_n14",
-    "expressed_n17",
 )
 
 

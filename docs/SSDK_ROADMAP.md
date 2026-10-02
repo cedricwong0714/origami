@@ -34,7 +34,7 @@ Literature or structure has to carry every quantity on that second list. The lum
 ## Short term
 
 1. Keep one model matrix: equation, units, source, uncertainty, interpolation domain, lab or literature status, confidence tier, entry point, and test.
-2. Scaffold-length lists are reconciled: canonical lengths are 3, 8, and 14, with 2 and 20 as bounds (`origami/physical/registers.py`). The pre-existing `expressed_n17` lab prep flag is still present and has no source.
+2. Scaffold-length lists are reconciled: canonical lengths are 3, 8, and 14, with 2 and 20 as bounds (`origami/physical/registers.py`).
 3. Keep the test suite installable from `pip install -e ".[dev]"`. API tests need FastAPI and an HTTP client. The XGBoost fit needs the optional package in that same extra until CI grows a separate ML job.
 4. Keep numeric goldens aligned with sourced parameter changes. The calcium occupancy golden was realigned to the Biochemistry 2006 peptide Kd already in `CAM_M13_KD_CA_SAT_M`. The constant was not edited again.
 5. Retrieve, rather than invent, payload radii, Phillips ΔHcal and ΔCp where the paper prints them, and enzyme constants for the exact constructs and conditions. Leave a slot null when the source does not print the number.
