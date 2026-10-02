@@ -2,6 +2,15 @@
 
 ## Unreleased — 2026-10-02 (SSDK literature priors, scaffold registers, and stacked ensemble uncertainty)
 
+### Added (software, no biological constants changed)
+- `src/gp_model/ablation.py`: grouped leave-one-group-out ablation of physics, physics+GP, physics+GP+XGBoost (RMSE, MAE, 95% coverage, Spearman). CLI: `origami ablation`.
+- `origami/lab/plate_reader.py`: long-format plate CSV import with per-batch blank subtraction and SEM; records input SHA-256. CLI: `origami import-plate`.
+- `origami/ssdk/plate_pipeline.py`: plate CSV to SSDK learner. CLI: `origami learn-plate`.
+- `src/predictions/sensitivity.py`: parameter elasticities, recorded in `origami freeze` output. These are not uncertainty; the +/-30% placeholder band is unchanged.
+- `src/experiment_design/cost_aware.py` and `replicate_choice.py`: cost-aware, pending-aware ranking and replicate-versus-new choice, each with a generated reason.
+- Removed the unsourced `expressed_n17` lab prep flag.
+- Known: `BayesianExperimentSelector.expected_information_gain` uses an unsourced noise = 0.1 and a fantasy loop that returns the same value each pass. Not changed.
+
 ### Added (retrieved from papers, 2026-10-02)
 - `scripts/derive_payload_radii.py` downloads deposited C-alpha coordinates from RCSB and writes `data/structures/payload_radii.json`. Clash radius = sqrt(5/3) x C-alpha Rg (solid-sphere equivalent). Results: SpyCatcher 4MLI 16.7 A, NanoLuc 5IBO 20.4 A (PROXY for LgBiT; no LgBiT structure found), Ca-CaM compact 1PRW 18.9 A, extended 1CLL 28.3 A, CaM in 2BBM 22.5 A, E. coli OtsA 1GZ5 28.8 A. Side chains ignored; flexible termini inflate Rg; between-copy SD understates uncertainty.
 - E. coli OtsB has no PDB entry (RCSB search on UniProt P31678 is empty). PDB 1U02 is Thermoplasma acidophilum and is not used. OtsB gets only an Erickson lower bound from UniProt mass 29175 Da, flagged not usable as a clash radius.
