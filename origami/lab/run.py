@@ -32,6 +32,7 @@ _PREP_FLAGS = (
     "expresses",
     "mass_within_10_percent",
     "native_page_shift",
+    "expressed_n3",
     "expressed_n8",
     "expressed_n14",
     "expressed_n17",
@@ -66,15 +67,61 @@ def run_lab(body: dict[str, Any]) -> dict[str, Any]:
         "bridging": bridging_ratios(body["bridging"])
         if isinstance(body.get("bridging"), dict)
         else _absent("bridging"),
-        "residual_gp": {
+        "residual_gp": _residual_gp(body),
+    }
+
+
+def _residual_gp(body: dict[str, Any]) -> dict[str, Any]:
+    n_rows = _observation_count(body.get("observations"))
+    if not body.get("fit_residual_gp", False):
+        return {
             "fitted": False,
-            "n_rows": _observation_count(body.get("observations")),
+            "n_rows": n_rows,
             "reason": (
                 "The residual Gaussian process stays unfitted. "
                 "This chassis has no physics score on the luminescence scale."
             ),
-        },
-    }
+        }
+    if n_rows == 0:
+        return {
+            "fitted": False,
+            "n_rows": 0,
+            "calibrated": False,
+            "reason": "fit_residual_gp is True but no observations were supplied.",
+        }
+    try:
+        from origami.ssdk.learn import learn_ssdk
+
+        learn_body: dict[str, Any] = {
+            "observations": body.get("observations"),
+            "acquisition": body.get("acquisition", "ucb"),
+        }
+        if "payload_radii_A" in body:
+            learn_body["payload_radii_A"] = body["payload_radii_A"]
+        res = learn_ssdk(learn_body)
+        return {
+            "fitted": res["gp_fitted"],
+            "calibrated": False,
+            "n_rows": res["n_observations"],
+            "alpha": res["alpha"],
+            "beta": res["beta"],
+            "distinct_lengths": res["distinct_lengths"],
+            "next_n": res["next_n"],
+            "next_reason": res["next_reason"],
+            "acquisition": res["acquisition"],
+            "candidates": res["candidates"],
+            "warnings": [
+                "Residual GP fitted using lab observations against SSDK physics scores.",
+                "calibrated stays false. A passing GP fit is not wet-lab validation.",
+            ],
+        }
+    except Exception as exc:
+        return {
+            "fitted": False,
+            "n_rows": n_rows,
+            "calibrated": False,
+            "reason": f"Residual GP fitting failed: {exc}",
+        }
 
 
 class LabRunError(ValueError):

@@ -255,7 +255,8 @@ def _observations(rows: object, n_min: int, n_max: int) -> list[Observation]:
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise SsdkLearnError(f"observations[{index}] must be an object")
-        n_repeats = _int_field(row.get("n_repeats"), f"observations[{index}].n_repeats")
+        n_raw = row.get("n_repeats") if "n_repeats" in row else row.get("n")
+        n_repeats = _int_field(n_raw, f"observations[{index}].n_repeats")
         if n_repeats < n_min or n_repeats > n_max:
             raise SsdkLearnError(
                 f"observations[{index}].n_repeats is outside {n_min}–{n_max}"
