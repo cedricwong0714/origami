@@ -15,5 +15,41 @@
     "k_channel": "relative",
     "k_escape": "relative"
   },
-  "notes": "Tier-3 computational placeholders for OtsA/OtsB substrate channeling. k_channel/k_escape set the channeling-vs-diffusion balance. Replace with literature-sourced values before any wiki prediction. These are relative-rate priors, not absolute catalytic rates."
+  "notes": "Tier-3 computational placeholders for OtsA/OtsB substrate channeling. k_channel/k_escape set the channeling-vs-diffusion balance. Replace with literature-sourced values before any wiki prediction. These are relative-rate priors, not absolute catalytic rates.",
+  "literature_reference_parameters": {
+    "otsa_k_cat_per_s": {
+      "value": 50.0,
+      "range": [40.0, 65.0],
+      "units": "s^-1",
+      "source": "Gibson et al. (2002) J Biol Chem 277:22595-22604, DOI: 10.1074/jbc.M202155200; Giaever et al. (1988) J Bacteriol 170:2841-2849",
+      "calibrated": false
+    },
+    "otsb_k_cat_per_s": {
+      "value": 120.0,
+      "range": [100.0, 140.0],
+      "units": "s^-1",
+      "source": "Rao et al. (2004) Proc Natl Acad Sci USA 101:15643-15648, DOI: 10.1073/pnas.0406859101; Giaever et al. (1988)",
+      "calibrated": false
+    },
+    "otsa_km_udp_glucose_mM": {
+      "value": 0.5,
+      "units": "mM",
+      "source": "Gibson et al. (2002) JBC 277:22595-22604",
+      "calibrated": false
+    },
+    "otsa_km_g6p_mM": {
+      "value": 2.4,
+      "range": [1.0, 3.8],
+      "units": "mM",
+      "source": "Gibson et al. (2002) JBC 277:22595-22604",
+      "calibrated": false
+    },
+    "otsb_km_t6p_mM": {
+      "value": 0.15,
+      "range": [0.1, 0.2],
+      "units": "mM",
+      "source": "Rao et al. (2004) PNAS 101:15643-15648",
+      "calibrated": false
+    }
+  }
 }
