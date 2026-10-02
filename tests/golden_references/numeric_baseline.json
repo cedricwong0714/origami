@@ -1,8 +1,8 @@
 {
   "golden_id": "numeric_baseline",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "synthetic_fixture": true,
-  "description": "Numeric baseline locking intermediate_transfer ODE and calcium recruitment outputs before Stream 1 rigor refactors.",
+  "description": "Numeric baseline. intermediate_transfer is unchanged from version 1.0.0. calcium_occupancy was realigned to recruitment_occupancy after CAM_M13_KD_CA_SAT_M changed from 1e-7 M to 0.19e-9 M (Biochemistry 2006, DOI 10.1021/bi060857u). The constant was not changed again.",
   "intermediate_transfer": {
     "time": [
       0.0,
@@ -46,13 +46,14 @@
     "occupancy_fraction": [
       0.0,
       0.0,
-      5.681818130238634e-09,
-      1.7967448259847846e-06,
-      0.0005677976011460725,
-      0.14769702063696769,
-      0.7231046706235577,
-      0.7298224409304586,
-      0.7298437206222599
+      6.2488126677682425e-09,
+      1.9760441822654675e-06,
+      0.0006244908915745423,
+      0.16498864746268976,
+      0.976393379063305,
+      0.9862854780707688,
+      0.9863105444317706
     ]
-  }
+  },
+  "calcium_kd_M": 1.9e-10
 }

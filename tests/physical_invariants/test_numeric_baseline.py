@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from src.core.asset_paths import GOLDEN_DIR
-from src.core.calcium_kinetics import recruitment_occupancy
+from src.core.calcium_kinetics import CAM_M13_KD_CA_SAT_M, recruitment_occupancy
 from src.core.schema import MechanismType
 from src.ode_model.solver import run_system_simulation
 
@@ -66,6 +66,11 @@ def test_numeric_baseline_locked():
         )
 
     golden = json.loads(NUMERIC_GOLDEN.read_text(encoding="utf-8"))
+    assert golden["calcium_kd_M"] == CAM_M13_KD_CA_SAT_M, (
+        "The occupancy golden is locked to CAM_M13_KD_CA_SAT_M. "
+        "If that peptide Kd changes, update numeric_baseline.json and "
+        "document the source in CHANGELOG.md."
+    )
 
     np.testing.assert_allclose(
         current["intermediate_transfer"]["product"],

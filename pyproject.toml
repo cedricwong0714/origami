@@ -17,7 +17,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.4"]
+dev = [
+  "pytest>=7.4",
+  # API tests construct FastAPI TestClient at import time.
+  "fastapi>=0.115",
+  "httpx2>=2",
+  # The 15-row XGBoost gate is part of the math stack and is tested here.
+  "xgboost>=2.0",
+]
 ui = [
   "streamlit>=1.30",
   "plotly>=5.18",

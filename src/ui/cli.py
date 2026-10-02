@@ -144,10 +144,14 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
     )
     predictions = {}
     for c_uM, y in zip(ca_grid, values):
+        value = float(y)
         predictions[f"ca_{c_uM:g}uM"] = {
-            "predicted_value": float(y),
-            "uncertainty_95_lower": float(y) * 0.7,
-            "uncertainty_95_upper": float(y) * 1.3,
+            "predicted_value": value,
+            # predict_luminescence does not propagate parameter error.
+            # The band stays a fixed relative placeholder until that exists.
+            "uncertainty_95_lower": value * 0.7,
+            "uncertainty_95_upper": value * 1.3,
+            "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
             "confidence_tier": "hypothesis_only",
             "units": "RLU",
         }
@@ -164,13 +168,20 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
         model_version="clasp_assembly_1.0.0",
         dataset_version="literature_only_v1",
         parameter_sources=[
-            "Ikura et al. (1992) Science — k_on/k_off",
-            "Zakeri et al. (2012) PNAS — k_lock",
-            "AGENTS.md §15.1 — Hill n / EC50 invariants",
+            "CLASPParameters in src/core/clasp_assembly.py",
+            (
+                "k_lock=0.003 s^-1 is the existing ODE prior. "
+                "origami.priors records that this value is not printed "
+                "in Zakeri et al. 2012."
+            ),
         ],
         assumptions=[
             "Fixed free calcium per condition",
-            "Hill n=4 ORIGAMI invariant (not Linse n_h=2.5)",
+            "Hill n=4 is the four-site value already stored on CLASPParameters",
+            (
+                "The reported interval is predicted_value multiplied by 0.7 and 1.3. "
+                "It is a fixed relative placeholder, not a propagated 95% interval."
+            ),
             "Tier-3 until wet-lab calibrated",
         ],
         overwrite=args.overwrite,

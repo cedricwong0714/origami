@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased — 2026-10-02 (SSDK baseline)
+
+### Added
+- `docs/SSDK_ROADMAP.md` records engineering readiness for the four SSDK chassis and for the GP, Bayesian optimization, and XGBoost layers. The percentages are software readiness. They are not calibration.
+- `tests/unit_tests/test_xgb_meta.py` fits the XGBoost residual layer on 15 synthetic rows when the package is installed.
+- `tests/unit_tests/test_cli_freeze.py` checks `origami freeze` and `origami compare`.
+
+### Changed
+- `tests/golden_references/numeric_baseline.json` calcium occupancy now matches `recruitment_occupancy` at `CAM_M13_KD_CA_SAT_M` = 0.19 nM.
+  Reason: commit c35a643 changed that constant from 1e-7 M to the Biochemistry 2006 peptide Kd (DOI 10.1021/bi060857u) and left the golden on the old curve. This update does not change the constant again. The intermediate-transfer product series is unchanged.
+  Old source of the golden curve: unsourced 1e-7 M Kd previously hardcoded in `src/core/calcium_kinetics.py`.
+  New source of the locked curve: Biochemistry 2006, 45(41):12547-12559, DOI 10.1021/bi060857u, already cited on the constant.
+  Impact: `test_numeric_baseline_locked` occupancy only.
+  Reviewed by: not a human wet-lab review. A passing golden test is not scientific validation.
+- `origami freeze` keeps the same ±30% band and labels it `fixed_relative_placeholder_pm_30_percent`. The command no longer attributes `k_lock=0.003 s^-1` to Zakeri et al. 2012. `origami.priors` already records that this rate is not printed in that paper. The ODE value was not changed.
+- The `dev` extra now installs FastAPI, HTTPX2, and XGBoost so `pip install -e ".[dev]"` can collect the API tests and run the 15-row tree fit. No biological parameter was added.
+
 ## Unreleased — 2026-10-01 (docking and kinetics engine)
 
 ### Added
