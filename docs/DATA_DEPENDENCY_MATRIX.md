@@ -5,9 +5,9 @@ Maps the wet-lab plan (Phases 2 to 4) onto the math chassis. "Intake" means a sl
 Scope decisions (user, 2026-10-02):
 - The only payload is CaM-M13. SpyTag/SpyCatcher and LgBiT/SmBiT are core modules, not payloads.
 - Enzymes (OtsA/OtsB) are not tested in the lab. Their priors stay in `origami/priors.py` as literature entries and are out of scope for the design engine.
-- Canonical GP is the sklearn one (`src/gp_model/residual_gp.py`).
+- Legacy learner still uses `origami.design_engine` GP on physics scores. **Multi-fidelity luminescence** (dry=0 / wet=1) is wired on `POST /api/ssdk/learn` via `multifidelity_luminescence` (`src/gp_model/multifidelity.py` + `origami/ssdk/multifidelity_luminescence.py`). Sklearn residual GP remains for other paths.
 - No CD, thermal shift, SEC or cryo-EM. Stability therefore stays literature-only (Phillips 2012, Cortajarena 2011) for the whole project.
-- The Phase 2 list names CTPR-8, -14 and -17. The earlier instruction was not to use n = 17. The code uses 3, 8, 14 until this is settled.
+- **n = 17** is not a calibrated design point but any repeat count the user enters (3–24) is computable, including n = 17.
 
 ## Needs no lab data (code or literature only)
 
@@ -19,8 +19,8 @@ Scope decisions (user, 2026-10-02):
 | LgBiT size (7SNY 22.5 A alone, 7SNX 20.4 A in complex) | Derived and stored; not used as a clash radius because it is a core module |
 | Kinetics: Spy lumped rate (Zakeri 2012), CaM-M13 peptide Kd 0.19 nM | In priors |
 | Sensitivity (elasticities), ablation, cost-aware ranking, replicate choice | Done |
-| Multi-fidelity model (dry lab vs wet lab) | Not built; needs a design decision on fidelity levels (see below) |
-| Non-Euclidean kernels (sequence or graph) | Not built; needs a decision on the feature representation |
+| Multi-fidelity luminescence (dry physics + wet y) | Done on `/api/ssdk/learn`; luminescence only; thresholds/CVs from `data/config/active_learning_config.json` (unmeasured) |
+| Non-Euclidean kernels (ESM-2 / sequence) | Library in `src/gp_model/sequence_encoding.py`; SSDK MF path uses geometry features only |
 
 ## Needs lab data
 
@@ -38,17 +38,16 @@ Scope decisions (user, 2026-10-02):
 | P3 Exp 1, 2, 3, 4, 5, 6, 8, 9, 10, 11 | no slots yet | add after the protocols are fixed (instrument calibration, furimazine decay, normalization comparison, Fluo-3 free Ca, background vs expression, linearity, freeze-thaw, lysis, negative panel, irreversibility) |
 
 ## Open items that block a number
-- Fusion CaM-M13 Kd: no value found. An attempted source (a Ca-indicator review) contained no such measurement; a CaM-M13 hybrid paper reports Ca binding constants, not a tethered Kd. Slot stays vacant.
-- Recruitment k_on: the existing 1e6 M-1 s-1 in `CLASPParameters` has no citation. Sensitivity analysis shows how much it matters.
+- Fusion CaM-M13 apparent Ca2+ Kd **80 nM**: secondhand (Nagai 2014 citing Porumb 1994) in `FUSION_CAM_M13_CA_KD_M`. Not the free-peptide Kd.
+- Recruitment k_on **1e6 M-1 s-1**: explicit assumption with runtime warning; not a measurement.
 - Errey 2010 OtsA assay details: SI not retrieved. Out of lab scope.
 
 ## Dry-lab inputs the math chassis is waiting on (from the team)
 1. Frozen predictions: run `origami freeze` for CTPR-3, -8, -14 before any plate is read, plus the written pass/fail rule for each.
 2. Group labels for the ablation (batch or construct names) and the planned replicate count per design.
 3. Assay noise or CV from the plate-reader specification, and a cost per experiment (hours or wells), for the replicate-versus-new and cost-aware ranking.
-4. A decision on fidelity levels for the multi-fidelity model, and on the feature representation for non-Euclidean kernels.
-5. A decision on whether n = 17 is in scope (Phase 2 lists it; the earlier instruction excluded it).
-6. A sourced side-chain exclusion radius, or approval to use a named van der Waals convention.
+4. Measured luminescence thresholds and assay CVs to replace placeholders in `active_learning_config.json`.
+5. A sourced side-chain exclusion radius, or approval to use a named van der Waals convention.
 
 ## Resolved by literature
 - Phillips 2012 dCp: taken from Cortajarena and Regan 2011, DOI 10.1002/pro.564, Table I (dCp 0.7, 0.9, 0.9, 1.9, 2.7, 2.8 kcal mol-1 K-1 for CTPRa2, 3, 4, 6, 8, 10), measured in 150 mM NaCl, pH 6.8. Verified against the Phillips text: "dCp ... obtained from Regan and co-workers (ref. 20)". With these inputs the calculator gives dG(10 C) 0.5 to 5.0 kcal mol-1 above the printed values, so Phillips' exact inputs are not reproducible from the tables.

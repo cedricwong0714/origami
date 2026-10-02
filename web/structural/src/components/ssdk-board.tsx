@@ -249,7 +249,175 @@ export function SsdkBoard() {
         </Button>
       </section>
       {report ? <Results report={report} /> : null}
+      <LearnLuminescencePanel />
     </main>
+  );
+}
+
+type MfCandidate = {
+  n_repeats: number;
+  mu_luminescence: number;
+  sigma_luminescence: number;
+  lower_95_luminescence: number;
+  pass_luminescence: boolean;
+  acquisition_wet_NanoBiT: number | null;
+  physics_score: number;
+};
+
+type LearnReport = {
+  next_n: number;
+  gp_fitted: boolean;
+  multifidelity_luminescence: {
+    fitted: boolean;
+    model_version: string;
+    threshold_luminescence: { value: number; status: string; units?: string };
+    config_placeholders_unmeasured: string[];
+    note: string;
+    candidates: MfCandidate[];
+    recommended_evaluation: {
+      n_repeats: number;
+      evaluation_type: string;
+      acquisition_score: number;
+      pass_luminescence_at_recommendation: boolean;
+    } | null;
+    warnings?: string[];
+  };
+};
+
+function LearnLuminescencePanel() {
+  const [nMin, setNMin] = useState("8");
+  const [nMax, setNMax] = useState("14");
+  const [obsJson, setObsJson] = useState(
+    '[{"n_repeats": 8, "y": 0.4, "fidelity": 1, "source": "surrogate"}]',
+  );
+  const [learn, setLearn] = useState<LearnReport | null>(null);
+  const [learnError, setLearnError] = useState<string | null>(null);
+  const [learnRunning, setLearnRunning] = useState(false);
+
+  async function onLearn() {
+    setLearnError(null);
+    const n_min = Number(nMin);
+    const n_max = Number(nMax);
+    if (!Number.isInteger(n_min) || !Number.isInteger(n_max) || n_min < 3 || n_max < n_min) {
+      setLearnError("n_min and n_max must be integers with n_min ≥ 3 and n_max ≥ n_min.");
+      return;
+    }
+    let observations: unknown;
+    try {
+      observations = JSON.parse(obsJson);
+    } catch {
+      setLearnError("Observations must be valid JSON array.");
+      return;
+    }
+    if (!Array.isArray(observations)) {
+      setLearnError("Observations must be a JSON array.");
+      return;
+    }
+    setLearnRunning(true);
+    try {
+      const response = await fetch("/api/ssdk/learn", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ n_min, n_max, observations, acquisition: "ei" }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json()) as { detail?: string };
+        throw new Error(payload.detail || `Learn failed (${response.status}).`);
+      }
+      setLearn((await response.json()) as LearnReport);
+    } catch (caught) {
+      setLearnError(caught instanceof Error ? caught.message : "Learn failed.");
+    } finally {
+      setLearnRunning(false);
+    }
+  }
+
+  const mf = learn?.multifidelity_luminescence;
+
+  return (
+    <section className="mt-10 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <h2 className="text-lg font-semibold">Predictions &amp; gates (luminescence)</h2>
+      <p className="mt-2 max-w-2xl text-sm text-[#5C564E]">
+        Two-fidelity GP: dry = docking physics score, wet = your{" "}
+        <code className="rounded bg-[#F5F0E8] px-1">y</code> with{" "}
+        <code className="rounded bg-[#F5F0E8] px-1">fidelity: 1</code>. Pass uses μ − 1.96σ ≥
+        threshold from config (placeholder until measured).{" "}
+        <a className="underline" href="/intake">
+          Plate intake
+        </a>
+        . <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Field label="n_min" value={nMin} onChange={setNMin} />
+        <Field label="n_max" value={nMax} onChange={setNMax} />
+      </div>
+      <label className="mt-3 block text-sm">
+        Wet observations (JSON)
+        <textarea
+          className="mt-1 min-h-[88px] w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-xs"
+          value={obsJson}
+          onChange={(event) => setObsJson(event.target.value)}
+        />
+      </label>
+      <Button type="button" className="mt-4" onClick={onLearn} disabled={learnRunning}>
+        {learnRunning ? "Learning…" : "Run active learning"}
+      </Button>
+      {learnError ? (
+        <p className="mt-3 text-sm text-red-800">{learnError}</p>
+      ) : null}
+      {mf ? (
+        <div className="mt-4 space-y-3 text-sm">
+          <p>
+            Model {mf.model_version}. MF fitted: {String(mf.fitted)}. Legacy next_n:{" "}
+            {learn?.next_n}. Threshold {formatNumber(mf.threshold_luminescence.value)} (
+            {mf.threshold_luminescence.status}).
+          </p>
+          {mf.config_placeholders_unmeasured.length ? (
+            <p className="text-[#8A8278]">
+              Unmeasured placeholders: {mf.config_placeholders_unmeasured.join(", ")}
+            </p>
+          ) : null}
+          <p className="text-[#5C564E]">{mf.note}</p>
+          {mf.recommended_evaluation ? (
+            <p>
+              Cost-weighted EI recommends n = {mf.recommended_evaluation.n_repeats} via{" "}
+              {mf.recommended_evaluation.evaluation_type} (score{" "}
+              {formatNumber(mf.recommended_evaluation.acquisition_score)}).
+            </p>
+          ) : null}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#E3D9CC]">
+                  <th className="py-2 pr-2">n</th>
+                  <th className="py-2 pr-2">μ</th>
+                  <th className="py-2 pr-2">σ</th>
+                  <th className="py-2 pr-2">lower 95%</th>
+                  <th className="py-2 pr-2">pass</th>
+                  <th className="py-2">EI/cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mf.candidates.map((row) => (
+                  <tr key={row.n_repeats} className="border-b border-[#F0EBE3]">
+                    <td className="py-1.5 pr-2">{row.n_repeats}</td>
+                    <td className="py-1.5 pr-2">{formatNumber(row.mu_luminescence)}</td>
+                    <td className="py-1.5 pr-2">{formatNumber(row.sigma_luminescence)}</td>
+                    <td className="py-1.5 pr-2">{formatNumber(row.lower_95_luminescence)}</td>
+                    <td className="py-1.5 pr-2">{row.pass_luminescence ? "yes" : "no"}</td>
+                    <td className="py-1.5">
+                      {row.acquisition_wet_NanoBiT == null
+                        ? "—"
+                        : formatNumber(row.acquisition_wet_NanoBiT)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

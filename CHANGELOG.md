@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — 2026-10-02 (multi-fidelity learn wired + SSDK gates UI)
+
+### Added
+- `POST /api/ssdk/learn` returns `multifidelity_luminescence`: two-fidelity GP on luminescence (dry physics + wet `y`), pass/fail on lower 95% bound, cost-weighted EI for `wet_NanoBiT`.
+- `origami/ssdk/features.py`, `origami/ssdk/multifidelity_luminescence.py`; observations accept optional `fidelity` 0 or 1.
+- SSDK page: **Predictions & gates (luminescence)** panel with JSON observations and candidate table.
+- `docs/DATA_DEPENDENCY_MATRIX.md` synced to current scope.
+
 ## Unreleased — 2026-10-02 (two-fidelity GP and adopted kinetics figures)
 
 ### Added

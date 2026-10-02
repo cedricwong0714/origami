@@ -32,6 +32,7 @@ from origami.physical.payload_radii import radii_for
 from origami.physical.structure import structural_report
 from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, SPY_K_ON_PER_M_S
 from origami.ssdk.literature_train import train_literature
+from origami.ssdk.multifidelity_luminescence import multifidelity_luminescence_block
 from origami.stability.length_fit import fit_named_delta_g, fit_named_tm
 from origami.stability.series import PHILLIPS_2012_CTPRA_DSC
 
@@ -52,7 +53,8 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     if acquisition not in ("ucb", "ei", "entropy"):
         raise SsdkLearnError("acquisition must be ucb, ei, or entropy")
     radii, radius_origin = _radii(body.get("payload_radii_A"), body.get("payload_names"))
-    observations = _observations(body.get("observations") or [], n_min, n_max)
+    raw_observations = body.get("observations") or []
+    observations, mf_obs_rows = _observations(raw_observations, n_min, n_max)
     engine = ClaspDesignEngine(
         payload_radii_A=radii,
         n_min=n_min,
@@ -97,7 +99,17 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             "kinetics": _kinetics(body.get("kinetics")),
         },
         "literature_training": train_literature(),
+        "multifidelity_luminescence": _multifidelity_block(
+            result, mf_obs_rows, n_max
+        ),
     }
+
+
+def _multifidelity_block(result: Any, rows: list[dict[str, Any]], n_max: int) -> dict[str, Any]:
+    try:
+        return multifidelity_luminescence_block(result, rows, n_max)
+    except ValueError as exc:
+        raise SsdkLearnError(str(exc)) from exc
 
 
 def _candidates(result: Any) -> list[dict[str, Any]]:
@@ -249,10 +261,13 @@ def _kinetics(body: object) -> dict[str, Any]:
     }
 
 
-def _observations(rows: object, n_min: int, n_max: int) -> list[Observation]:
+def _observations(
+    rows: object, n_min: int, n_max: int
+) -> tuple[list[Observation], list[dict[str, Any]]]:
     if not isinstance(rows, list):
         raise SsdkLearnError("observations must be a list")
     parsed: list[Observation] = []
+    mf_rows: list[dict[str, Any]] = []
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise SsdkLearnError(f"observations[{index}] must be an object")
@@ -271,6 +286,11 @@ def _observations(rows: object, n_min: int, n_max: int) -> list[Observation]:
         )
         if sigma_value is not None and sigma_value <= 0:
             raise SsdkLearnError(f"observations[{index}].sigma must be > 0 or omitted")
+        fidelity = row.get("fidelity", 1)
+        if fidelity not in (0, 1):
+            raise SsdkLearnError(
+                f"observations[{index}].fidelity must be 0 (dry) or 1 (wet)"
+            )
         source = row.get("source", "surrogate")
         if not isinstance(source, str) or source.strip() == "":
             raise SsdkLearnError(
@@ -286,7 +306,16 @@ def _observations(rows: object, n_min: int, n_max: int) -> list[Observation]:
                 notes="Caller-supplied surrogate. Not invented by the chassis.",
             )
         )
-    return parsed
+        mf_rows.append(
+            {
+                "n_repeats": n_repeats,
+                "y": y,
+                "sigma": sigma_value,
+                "fidelity": int(fidelity),
+                "source": source.strip(),
+            }
+        )
+    return parsed, mf_rows
 
 
 def _radii(value: object, names: object = None) -> tuple[list[float], str]:
