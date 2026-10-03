@@ -42,11 +42,14 @@ export function GuideBoard() {
         <p className="text-sm uppercase tracking-wide text-[#8A8278]">Handoff</p>
         <h1 className="mt-1 text-3xl font-semibold">Data dependencies</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Engineering readiness map for ORIGAMI. Full prose:{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">docs/DATA_DEPENDENCY_MATRIX.md</code> in
-          the repo. GitLab Pages serves static demos only; run Streamlit or this Next.js + API stack
-          for live simulation.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          A repeat count is scored with the deposited CTPR screw, a Phillips lookup that
+          does not blend series, a Cα clash calculation, and kinetics only when the
+          concentrations or a named prior are explicit. Surrogate luminescence does not
+          edit those outputs. It is a separate Gaussian process: dry scores and wet
+          readouts are different fidelities, and a pass uses a threshold marked unmeasured
+          until a plate-reader CV exists.{" "}
+          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>. Empty lab
+          fields stay empty. A recommendation is the next well, not a validated construct.
         </p>
       </header>
       {error ? <p className="text-sm text-red-800">{error}</p> : null}

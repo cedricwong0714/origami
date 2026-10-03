@@ -15,6 +15,10 @@ Policy for AI assistants: [.claude/RESPONSIBLE_AI_USE.md](../.claude/RESPONSIBLE
 
 You cannot treat a green pass as a wet-lab decision. Thresholds and assay CVs in `data/config/active_learning_config.json` are placeholders until you mark them `measured`.
 
+ORIGAMI's running path is deterministic geometry and literature tables underneath any statistical layer. A repeat count you type is scored with the deposited CTPR screw (PDB 2AVP, 2HYZ, and 2FO7), a Phillips 2012 stability lookup that refuses to blend thermal series, a clash calculation on a placed Cα cloud, and kinetics only when you supply concentrations or the code is explicitly using a named prior such as Zakeri's lumped SpyTag–SpyCatcher rate. Surrogate luminescence does not edit those outputs. It sits in a separate Gaussian process: dry docking scores and wet readouts are different fidelities, the posterior carries a mean and a standard deviation, and a pass/fail rule compares the lower 95% bound to a threshold we have marked unmeasured until a real plate-reader coefficient of variation exists. The same response still returns `calibrated: false`. Plate files are blank-subtracted and checksummed. Empty lab fields stay empty. An assumed on-rate warns at runtime instead of being stored as a measurement. The software records which equation ran, which paper supplied the constant, which fields are still blank, and which recommendation is only a suggestion for the next well.
+
+Judge summary: [JUDGE.md](JUDGE.md). Model cards: [MODEL_CARDS.md](MODEL_CARDS.md). HTTP routes: [API.md](API.md).
+
 ## 2. Two ways the software is served
 
 | Surface | What it runs | How |

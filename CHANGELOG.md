@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (judge page, model cards, API cheat sheet)
+
+### Added
+- `docs/JUDGE.md`, `docs/MODEL_CARDS.md`, `docs/API.md`.
+- User manual and `/guide` now state the same rule: geometry and literature tables stay under the Gaussian process, and a luminescence pass uses an unmeasured threshold.
+
 ## Unreleased — 2026-10-02 (finish: quality slots, guide UI, meta API)
 
 ### Added
