@@ -270,6 +270,10 @@ type LearnReport = {
   learner_family?: string;
   learner_requested?: string;
   design_engine_next_n?: number;
+  canonical?: {
+    sequence_encoding?: string;
+    heteroscedastic?: { fitted: boolean };
+  };
   multioutput?: {
     overall_status: string;
     omitted_outputs: string[];
@@ -401,9 +405,11 @@ function LearnLuminescencePanel() {
           {learn?.learner_family ? (
             <p>
               Learner {learn.learner_requested} ran as {learn.learner_family}. Reported next n is{" "}
-              {learn.next_n}. Design-engine next n is {learn.design_engine_next_n}. Multi-output
-              status {learn.multioutput?.overall_status}. Omitted assays:{" "}
-              {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
+              {learn.next_n}. Design-engine next n is {learn.design_engine_next_n}. Sequence
+              encoding {learn.canonical?.sequence_encoding ?? "none"}. Residual-scatter model{" "}
+              {learn.canonical?.heteroscedastic?.fitted ? "fitted" : "not fitted"} (it does not
+              replace the assay CV). Multi-output status {learn.multioutput?.overall_status}.
+              Omitted assays: {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
             </p>
           ) : null}
           {learn?.batch?.selected?.length ? (

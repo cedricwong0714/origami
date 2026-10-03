@@ -78,3 +78,65 @@ def test_unknown_output_is_rejected():
                 "observations": [{"n_repeats": 8, "y": 1.0, "output": "titer", "source": "surrogate"}],
             }
         )
+
+
+def test_sequence_uses_composition_and_esm_falls_back_without_torch():
+    report = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 10,
+            "sequence": "ACDE",
+            "sequence_encoding": "esm2",
+            "observations": [{"n_repeats": 8, "y": 0.5, "source": "surrogate"}],
+        }
+    )
+    assert report["canonical"]["sequence_encoding"] == "onehot"
+    plain = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 10,
+            "sequence": "AAAA",
+            "observations": [{"n_repeats": 8, "y": 0.5, "source": "surrogate"}],
+        }
+    )
+    assert plain["canonical"]["sequence_encoding"] == "composition"
+
+
+def test_scatter_model_does_not_replace_the_assay_cv():
+    from pathlib import Path
+
+    cfg = Path("data/config/active_learning_config.json").read_text()
+    report = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 14,
+            "observations": [
+                {"n_repeats": n, "y": 0.2 * n, "source": "surrogate"} for n in (8, 10, 12, 14)
+            ],
+        }
+    )
+    scatter = report["canonical"]["heteroscedastic"]
+    assert scatter["fitted"] is True
+    assert scatter["replaces_assay_cv"] is False
+    assert report["canonical"]["used_heteroscedastic_std"] is False
+    assert Path("data/config/active_learning_config.json").read_text() == cfg
+    short = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 11,
+            "observations": [{"n_repeats": 8, "y": 0.4, "source": "surrogate"}],
+        }
+    )
+    assert short["canonical"]["heteroscedastic"]["fitted"] is False
+
+
+def test_bad_sequence_is_rejected():
+    with pytest.raises(SsdkLearnError):
+        learn_ssdk(
+            {
+                "n_min": 8,
+                "n_max": 10,
+                "sequence": "ACDX",
+                "observations": [{"n_repeats": 8, "y": 0.2, "source": "surrogate"}],
+            }
+        )

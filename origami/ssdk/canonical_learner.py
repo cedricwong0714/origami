@@ -15,6 +15,7 @@ import numpy as np
 from origami.linker_prior import kratky_porod_mean_square_A
 from origami.ssdk.features import FEATURE_NAMES, ssdk_feature_vector
 from src.experiment_design.frozen_table import cost_weighted_ei, load_config
+from origami.ssdk.hetero_noise import residual_scatter
 from src.gp_model.residual_gp import ResidualGP
 
 WET_OUTPUTS = (
@@ -57,11 +58,21 @@ def feature_matrix(result: Any, n_max: int, flags: dict[str, float]) -> np.ndarr
     return np.vstack(rows)
 
 
+def _with_sequence(X: np.ndarray, sequence_vector: np.ndarray | None) -> np.ndarray:
+    if sequence_vector is None:
+        return X
+    extra = np.repeat(np.asarray(sequence_vector, dtype=float).reshape(1, -1), len(X), axis=0)
+    return np.hstack([X, extra])
+
+
 def fit_sklearn_luminescence(
     result: Any,
     observation_rows: list[dict[str, Any]],
     n_max: int,
     flags: dict[str, float],
+    sequence_vector: np.ndarray | None = None,
+    sequence_method: str = "none",
+    use_heteroscedastic_std: bool = False,
 ) -> dict[str, Any]:
     """Residual GP of wet luminescence minus the docking physics score."""
     by_n = {int(n): i for i, n in enumerate(result.candidates)}
@@ -79,15 +90,18 @@ def fit_sklearn_luminescence(
             continue
         idx = by_n[n]
         X_rows.append(
-            ssdk_feature_vector(
-                n,
-                float(result.physics_scores[idx]),
-                float(result.p_instability[idx]),
-                n_max,
-                linker_rms_A=flags["linker_rms_A"],
-                cam_on_scaffold=flags["cam_on_scaffold"],
-                m13_on_scaffold=flags["m13_on_scaffold"],
-            )
+            _with_sequence(
+                ssdk_feature_vector(
+                    n,
+                    float(result.physics_scores[idx]),
+                    float(result.p_instability[idx]),
+                    n_max,
+                    linker_rms_A=flags["linker_rms_A"],
+                    cam_on_scaffold=flags["cam_on_scaffold"],
+                    m13_on_scaffold=flags["m13_on_scaffold"],
+                ).reshape(1, -1),
+                sequence_vector,
+            )[0]
         )
         y_obs.append(float(row["y"]))
         y_mech.append(float(result.physics_scores[idx]))
@@ -96,18 +110,28 @@ def fit_sklearn_luminescence(
         "calibrated": False,
         "confidence_tier": "hypothesis_only",
         "feature_names": list(FEATURE_NAMES),
-        "sequence_encoding": "none",
+        "sequence_encoding": sequence_method,
+        "heteroscedastic": {
+            "fitted": False,
+            "replaces_assay_cv": False,
+            "origin": "residual_scatter_model",
+        },
         "fitted": False,
         "family": "sklearn_matern_residual",
     }
     if len(X_rows) < 1:
         base["reason"] = "No wet luminescence row, so the sklearn residual GP was not fit."
         return base
+    X_train = np.vstack(X_rows)
+    residuals = np.asarray(y_obs) - np.asarray(y_mech)
     gp = ResidualGP(n_restarts=2)
-    gp.fit(np.vstack(X_rows), np.asarray(y_obs), np.asarray(y_mech))
-    X_all = feature_matrix(result, n_max, flags)
+    gp.fit(X_train, np.asarray(y_obs), np.asarray(y_mech))
+    X_all = _with_sequence(feature_matrix(result, n_max, flags), sequence_vector)
     mean, half = gp.predict(X_all, np.asarray(result.physics_scores, dtype=float))
     std = np.asarray(half, dtype=float) / 1.96
+    scatter = residual_scatter(X_train, residuals, X_all)
+    if use_heteroscedastic_std and scatter.get("fitted"):
+        std = np.asarray(scatter["sigma"], dtype=float)
     cfg = load_config()
     best = max(y_obs)
     alpha = cost_weighted_ei(mean, std, best, "wet_NanoBiT", cfg)
@@ -120,6 +144,8 @@ def fit_sklearn_luminescence(
         fitted=True,
         next_n=candidates[pick],
         acquisition_score=float(alpha[pick]),
+        heteroscedastic=scatter,
+        used_heteroscedastic_std=bool(use_heteroscedastic_std and scatter.get("fitted")),
         reason=(
             f"sklearn Matérn-2.5 residual GP on {len(X_rows)} wet luminescence "
             f"row(s). Next n={candidates[pick]} maximises EI/cost among unmeasured lengths."

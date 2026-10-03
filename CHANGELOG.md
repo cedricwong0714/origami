@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (optional sequence features and residual scatter)
+
+### Added
+- `sequence` on `POST /api/ssdk/learn`. Default encoding is amino-acid composition. `sequence_encoding=esm2` uses ESM-2 only when `pip install -e ".[esm]"` has provided torch and transformers; otherwise the recorded method is the one-hot fallback. ESM-2 is not a default dependency.
+- `origami/ssdk/hetero_noise.py`: a second GP on log squared residual. It is reported beside the residual standard deviation, does not replace assay CVs, and is not written to the config. Set `use_heteroscedastic_std` true to use it in the acquisition score.
+
 ## Unreleased — 2026-10-03 (canonical sklearn learner and five-output batch)
 
 ### Added

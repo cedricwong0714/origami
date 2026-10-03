@@ -25,6 +25,8 @@ from __future__ import annotations
 import math
 from typing import Any
 
+import numpy as np
+
 from origami.engine import ClaspDesignEngine, Observation
 from origami.kinetics.simulate import KineticsSimError, simulate_kinetics
 from origami.physical.geometry import build_ctpr
@@ -44,6 +46,33 @@ _Z95 = 1.96
 
 class SsdkLearnError(ValueError):
     """The surrogate request cannot be scored."""
+
+
+def _sequence_block(body: dict[str, Any]) -> tuple[np.ndarray | None, str]:
+    """Composition by default. ESM-2 only when requested, and only if the libraries import."""
+    seq = body.get("sequence")
+    if seq is None or seq == "":
+        return None, "none"
+    if not isinstance(seq, str):
+        raise SsdkLearnError("sequence must be a string of amino acids")
+    method = body.get("sequence_encoding", "composition")
+    if method not in ("composition", "onehot", "esm2"):
+        raise SsdkLearnError("sequence_encoding must be composition, onehot, or esm2")
+    from src.gp_model.sequence_encoding import (  # noqa: PLC0415
+        composition_features,
+        encode_sequence,
+        onehot_encoding,
+    )
+
+    try:
+        if method == "composition":
+            return composition_features(seq), "composition"
+        if method == "onehot":
+            return onehot_encoding(seq), "onehot"
+        vector, used = encode_sequence(seq, method="esm2")
+        return vector, used
+    except ValueError as exc:
+        raise SsdkLearnError(str(exc)) from exc
 
 
 def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
@@ -79,8 +108,18 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         raise SsdkLearnError("the library produced no next length")
     engine_next = result.next_experiment.n_repeats
     flags = construct_flags(body.get("construct") if isinstance(body.get("construct"), dict) else None)
+    sequence_vector, sequence_method = _sequence_block(body)
+    use_scatter = bool(body.get("use_heteroscedastic_std", False))
     try:
-        canonical = fit_sklearn_luminescence(result, mf_obs_rows, n_max, flags)
+        canonical = fit_sklearn_luminescence(
+            result,
+            mf_obs_rows,
+            n_max,
+            flags,
+            sequence_vector=sequence_vector,
+            sequence_method=sequence_method,
+            use_heteroscedastic_std=use_scatter,
+        )
         outputs = multioutput_block(
             result,
             mf_obs_rows,
