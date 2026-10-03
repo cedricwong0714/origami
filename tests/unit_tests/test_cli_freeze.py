@@ -55,3 +55,44 @@ def test_cli_freeze_labels_placeholder_interval_and_compares(tmp_path, monkeypat
         (comparison_dir / "CLI_FREEZE_TEST_CMP.json").read_text(encoding="utf-8")
     )
     assert comparison["comparisons"]["ca_1uM"]["within_95ci"] is True
+
+
+def test_cli_scaffold_freeze_keeps_luminescence_off_the_repeat_count(tmp_path, monkeypatch):
+    frozen_dir = tmp_path / "frozen"
+    monkeypatch.setattr("src.predictions.freeze.FROZEN_PREDICTIONS_DIR", frozen_dir)
+    shared = dict(
+        calcium_uM="1",
+        e_t=1e-6,
+        m_t=1e-6,
+        t_end=10.0,
+        overwrite=False,
+        json=False,
+        scaffold=True,
+    )
+    assert (
+        _cmd_freeze(
+            SimpleNamespace(prediction_id="scaffold-cli-n3", n_repeats=3, **shared)
+        )
+        == 0
+    )
+    assert (
+        _cmd_freeze(
+            SimpleNamespace(prediction_id="scaffold-cli-n8", n_repeats=8, **shared)
+        )
+        == 0
+    )
+    short = json.loads((frozen_dir / "scaffold-cli-n3.json").read_text(encoding="utf-8"))
+    mid = json.loads((frozen_dir / "scaffold-cli-n8.json").read_text(encoding="utf-8"))
+    assert (
+        short["predictions"]["contour_nm"]["predicted_value"]
+        < mid["predictions"]["contour_nm"]["predicted_value"]
+    )
+    assert (
+        short["predictions"]["ca_1uM"]["predicted_value"]
+        == mid["predictions"]["ca_1uM"]["predicted_value"]
+    )
+    assert short["predictions"]["ca_1uM"]["depends_on_n_repeats"] is False
+    assert (
+        short["predictions"]["ca_1uM"]["uncertainty_method"]
+        == "fixed_relative_placeholder_pm_30_percent"
+    )

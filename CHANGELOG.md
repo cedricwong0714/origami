@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (scaffold freeze examples for n = 3, 8, 14)
+
+### Added
+- `origami freeze --scaffold --n-repeats N` writes contour, axial span, and the Phillips length curve at that repeat count, plus the calcium luminescence curve.
+- Checked-in examples: `data/predictions/frozen/scaffold-n3.json`, `scaffold-n8.json`, `scaffold-n14.json`.
+- Contour and axial-span intervals are the deposited rise sample standard deviation scaled by the repeat factor and 1.96. They are not a wet-lab confidence interval.
+- Luminescence in those files does not depend on n. Its interval remains predicted value times 0.7 and 1.3 (`fixed_relative_placeholder_pm_30_percent`, `hypothesis_only`). The Phillips ΔG in the file is the length-curve fit, not the Gibbs–Helmholtz calculator, and the two are not reconciled here.
+
 ## Unreleased — 2026-10-03 (learn-ssdk command and five-assay table)
 
 ### Added

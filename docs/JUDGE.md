@@ -69,6 +69,7 @@ Tests: `pytest -q` from the repository root. A green run means the code matches 
 - Two recommenders can name different repeat counts. The default `next_n` is the sklearn Matérn residual on wet luminescence when a wet row exists. `design_engine_next_n` is the older residual Gaussian process and is what you get if the request sets `learner` to `design_engine`, or if there is no wet row (`learner_family` is then `design_engine_fallback`). A batch of up to 12 lengths is ranked by expected improvement per cost, with a penalty when fitted solubility or purity misses the placeholder gate. All of these are suggestions for the next wells.
 - The stability calculator’s ΔG at 10 °C is 0.5–5.0 kcal/mol higher than Phillips’ printed ΔG. The difference is pinned by a test and described in the changelog. It is not averaged away.
 - n = 17 can be typed and computed. It is not a calibrated design point. The lengths the team treats as the planned series are 3, 8, and 14.
+- Checked-in freezes for those three lengths are `data/predictions/frozen/scaffold-n3.json`, `scaffold-n8.json`, and `scaffold-n14.json`. Contour and the Phillips length curve change with n. The luminescence numbers in those files do not, and their ±30% band is a placeholder (`hypothesis_only`, `calibrated: false`).
 
 ## What is deliberately unfinished
 

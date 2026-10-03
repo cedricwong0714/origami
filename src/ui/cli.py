@@ -217,7 +217,16 @@ def _cmd_ablation(args: argparse.Namespace) -> int:
 
 
 def _cmd_freeze(args: argparse.Namespace) -> int:
-    """Freeze a prospective CLASP dose-response prediction (Docs §1.6)."""
+    """Freeze a prospective prediction (Docs §1.6).
+
+    Without ``--scaffold`` this is the calcium dose-response. With
+    ``--scaffold`` it also records screw geometry and the Phillips
+    length curve at ``--n-repeats``. The luminescence interval stays
+    the ±30% placeholder in both modes, and that curve does not depend
+    on repeat count.
+    """
+    if getattr(args, "scaffold", False):
+        return _cmd_freeze_scaffold(args)
     import json
 
     from src.core.clasp_assembly import CLASPParameters, predict_luminescence
@@ -284,6 +293,34 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
         overwrite=args.overwrite,
     )
     print(f"[OK] Frozen prediction written: {path}")
+    if args.json:
+        print(json.dumps(json.loads(path.read_text(encoding="utf-8")), indent=2))
+    return 0
+
+
+def _cmd_freeze_scaffold(args: argparse.Namespace) -> int:
+    """Freeze geometry and the Phillips length curve at one repeat count."""
+    import json
+
+    from src.predictions.scaffold_freeze import write_scaffold_freeze
+
+    if getattr(args, "n_repeats", None) is None:
+        print("freeze --scaffold requires --n-repeats", file=sys.stderr)
+        return 2
+    if not getattr(args, "prediction_id", None):
+        print("freeze --scaffold requires --prediction-id", file=sys.stderr)
+        return 2
+    calcium = [float(item) for item in args.calcium_uM.split(",")]
+    path = write_scaffold_freeze(
+        args.n_repeats,
+        args.prediction_id,
+        overwrite=args.overwrite,
+        calcium_uM=calcium,
+        e_t=args.e_t,
+        m_t=args.m_t,
+        t_end=args.t_end,
+    )
+    print(f"[OK] Frozen scaffold prediction written: {path}")
     if args.json:
         print(json.dumps(json.loads(path.read_text(encoding="utf-8")), indent=2))
     return 0
@@ -363,9 +400,23 @@ def main() -> None:
 
     freeze = sub.add_parser(
         "freeze",
-        help="Freeze a prospective CLASP calcium dose-response prediction",
+        help="Freeze a prospective prediction (calcium curve, or --scaffold geometry)",
     )
     freeze.add_argument("--prediction-id", type=str, required=True)
+    freeze.add_argument(
+        "--scaffold",
+        action="store_true",
+        help=(
+            "Also freeze contour, axial span, and the Phillips length curve "
+            "at --n-repeats. Luminescence is stored and labelled as independent of n."
+        ),
+    )
+    freeze.add_argument(
+        "--n-repeats",
+        type=int,
+        default=None,
+        help="Repeat count for --scaffold (planned series: 3, 8, 14)",
+    )
     freeze.add_argument(
         "--calcium-uM",
         type=str,

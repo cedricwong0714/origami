@@ -52,7 +52,7 @@ Scope decisions (user, 2026-10-02):
 - Errey 2010 OtsA assay details: SI not retrieved. Out of lab scope.
 
 ## Dry-lab inputs the math chassis is waiting on (from the team)
-1. Frozen predictions: run `origami freeze` for CTPR-3, -8, -14 before any plate is read, plus the written pass/fail rule for each.
+1. Scaffold freeze examples for CTPR-3, -8, and -14 are checked in under `data/predictions/frozen/`. The luminescence ±30% band in those files is still a placeholder. Written pass/fail rules for a real plate are still open.
 2. Group labels for the ablation (batch or construct names) and the planned replicate count per design.
 3. Assay noise or CV from the plate-reader specification, and a cost per experiment (hours or wells), for the replicate-versus-new and cost-aware ranking.
 4. Measured luminescence thresholds and assay CVs to replace placeholders in `active_learning_config.json`.

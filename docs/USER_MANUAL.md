@@ -131,7 +131,8 @@ From the repo root, with the venv active, the `origami` command includes:
 |---|---|
 | `origami validate-learn CSV META.json` | Check a Learn time-series package |
 | `origami optimize --radius-a 45 --radius-b 25 --interaction Metabolic` | Rank CTPR spacing (computational) |
-| `origami freeze ...` | Write a frozen prediction file (see `--help`) |
+| `origami freeze ...` | Write a frozen calcium dose-response (see `--help`) |
+| `origami freeze --scaffold --n-repeats 8 --prediction-id scaffold-n8` | Also freeze contour, axial span, and the Phillips length curve at that n |
 | `origami compare ...` | Compare a later run to a frozen file |
 | `origami import-plate PATH` | Parse a plate CSV |
 | `origami learn-plate PATH` | Plate → SSDK learner |
@@ -139,7 +140,7 @@ From the repo root, with the venv active, the `origami` command includes:
 | `origami ablation` | Grouped ablation (see `--help`) |
 | `origami pipeline` | Demo verification path (not the wiki) |
 
-`origami freeze` still labels a ±30% band as a placeholder. Parameter elasticities in that output are sensitivity, not a confidence interval.
+`origami freeze` still labels the luminescence ±30% band as a placeholder. Parameter elasticities in the calcium-only output are sensitivity, not a confidence interval. `--scaffold` adds contour and axial span from the deposited rise, and Phillips Tm and ΔG from the length curve. Those quantities change with repeat count. The luminescence block in the same file does not: the ODE has no repeat-count argument. Checked-in examples for 3, 8, and 14 are `data/predictions/frozen/scaffold-n3.json`, `scaffold-n8.json`, and `scaffold-n14.json`. `calibrated` stays false.
 
 ## 7. HTTP API (short)
 

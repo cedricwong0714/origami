@@ -1,0 +1,359 @@
+{
+  "prediction_id": "scaffold-n8",
+  "frozen_timestamp": "2026-10-03T16:41:20Z",
+  "model_version": "scaffold_freeze_v1",
+  "dataset_version": "literature_only_v1",
+  "design_spec": {
+    "n_repeats": 8,
+    "calibrated": false,
+    "planned_series_member": true,
+    "planned_repeat_counts": [
+      3,
+      8,
+      14
+    ],
+    "component_versions": {
+      "scaffold_freeze": "scaffold_freeze_v1",
+      "length_curve": "ctpr_length_curve/2",
+      "luminescence": "clasp_assembly_1.0.0"
+    },
+    "recorded_without_interval": {
+      "wlc_end_to_end_rms_nm": 6.26474924663038,
+      "rigid_screw": true,
+      "persistence_length_nm": 15.0,
+      "pitch_A": 67.32911533587951,
+      "scaffold_radius_A": 12.185585199113614,
+      "rise_A": 8.416139416984938,
+      "twist_rad": 0.7853981633974483
+    },
+    "stability_series": "phillips2012_ctpra_dsc",
+    "tm_length_fit": {
+      "form": "saturating",
+      "equation": "y(n) = y_inf - (y_inf - y_1) * exp(-(n-1)/lambda)",
+      "n_points": 7,
+      "n_repeats": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10
+      ],
+      "values": [
+        53.0,
+        63.0,
+        68.0,
+        71.0,
+        71.0,
+        74.0,
+        74.0
+      ],
+      "units": "C",
+      "longest_cited_n": 10,
+      "warnings": [],
+      "parameters": [
+        {
+          "name": "y_inf",
+          "value": 73.97434095738322,
+          "units": "C",
+          "standard_error": 0.5408642527382771,
+          "identifiable": true
+        },
+        {
+          "name": "y_1",
+          "value": 35.269396697021726,
+          "units": "C",
+          "standard_error": 2.7606069017251964,
+          "identifiable": true
+        },
+        {
+          "name": "lambda",
+          "value": 1.6169883240938254,
+          "units": "repeats",
+          "standard_error": 0.1529219916438957,
+          "identifiable": true
+        }
+      ],
+      "model_name": "ctpr_length_curve",
+      "model_version": "2",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "human_review_required": true
+    },
+    "delta_g_length_fit": {
+      "form": "line",
+      "equation": "y(n) = a + b*n",
+      "n_points": 7,
+      "n_repeats": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        10
+      ],
+      "values": [
+        3.2,
+        4.8,
+        4.2,
+        6.0,
+        7.7,
+        14.3,
+        23.4
+      ],
+      "units": "kcal mol-1",
+      "longest_cited_n": 10,
+      "warnings": [
+        "The saturating form is non-identifiable for these points. A parameter standard error is not finite, or the prediction sigma at n = 3, 8, or 14 is larger than the absolute value of the prediction. The straight line y(n) = a + b*n was fit to the same rows. The value and the 95% band are that line. The band is a linear approximation, not a wet-lab confidence interval."
+      ],
+      "parameters": [
+        {
+          "name": "a",
+          "value": -4.219161699419705,
+          "units": "kcal mol-1",
+          "standard_error": 2.267124765651762,
+          "identifiable": true
+        },
+        {
+          "name": "b",
+          "value": 2.4508982077878403,
+          "units": "kcal mol-1 per repeat",
+          "standard_error": 0.37636356844626623,
+          "identifiable": true
+        }
+      ],
+      "model_name": "ctpr_length_curve",
+      "model_version": "2",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "human_review_required": true
+    },
+    "literature_lookup": {
+      "series_id": "phillips2012_ctpra_dsc",
+      "n_repeats": 8,
+      "calibrated": false,
+      "interpolated": false,
+      "averaged": false,
+      "tm_status": "cited",
+      "tm_c": 74.0,
+      "tm_units": "C",
+      "tm_uncertainty": 0.5,
+      "delta_g": 14.3,
+      "delta_g_units": "kcal mol-1",
+      "delta_g_uncertainty": 1.5,
+      "delta_g_origin": "looked_up",
+      "delta_g_t_c": 10.0,
+      "delta_g_t_units": "C",
+      "delta_h": 178.0,
+      "delta_h_units": "kcal mol-1",
+      "delta_cp": 2.7,
+      "delta_cp_units": "kcal mol-1 K-1",
+      "doi": "10.1002/pro.2018",
+      "method": "DSC",
+      "citation": "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
+      "figure_or_table": "Table I",
+      "buffer": "50 mM phosphate",
+      "pH": 7.0,
+      "construct": "CTPRa8",
+      "sources": [
+        {
+          "record_id": "phillips2012_ctpra8_tm_dsc",
+          "observable": "Tm_C",
+          "value": 74.0,
+          "units": "C",
+          "uncertainty": 0.5,
+          "doi": "10.1002/pro.2018",
+          "method": "DSC",
+          "citation": "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
+          "figure_or_table": "Table I",
+          "buffer": "50 mM phosphate",
+          "pH": 7.0,
+          "construct": "CTPRa8",
+          "n_repeats": 8
+        },
+        {
+          "record_id": "phillips2012_ctpra8_dg_dsc",
+          "observable": "delta_G",
+          "value": 14.3,
+          "units": "kcal mol-1",
+          "uncertainty": 1.5,
+          "doi": "10.1002/pro.2018",
+          "method": "DSC",
+          "citation": "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
+          "figure_or_table": "Table I",
+          "buffer": "50 mM phosphate",
+          "pH": 7.0,
+          "construct": "CTPRa8",
+          "n_repeats": 8
+        }
+      ],
+      "omissions": []
+    },
+    "luminescence": {
+      "function": "predict_luminescence",
+      "depends_on_n_repeats": false,
+      "E_T_M": 1e-06,
+      "M_T_M": 1e-06,
+      "t_end_s": 3600.0,
+      "calcium_uM": [
+        0.1,
+        0.5,
+        1.0,
+        2.0,
+        5.0,
+        10.0
+      ],
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent"
+    }
+  },
+  "predictions": {
+    "contour_nm": {
+      "predicted_value": 6.732911533587951,
+      "uncertainty_95_lower": 5.986463896998398,
+      "uncertainty_95_upper": 7.479359170177505,
+      "sigma": 0.38084063091303744,
+      "rise_value_A": 8.416139416984938,
+      "rise_sigma_A": 0.4760507886412968,
+      "repeat_factor": 8,
+      "uncertainty_method": "delta_method_deposited_rise_sample_std",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": true,
+      "human_review_required": true,
+      "units": "nm"
+    },
+    "axial_span_A": {
+      "predicted_value": 58.91297591889457,
+      "uncertainty_95_lower": 52.38155909873598,
+      "uncertainty_95_upper": 65.44439273905316,
+      "sigma": 3.3323555204890773,
+      "rise_value_A": 8.416139416984938,
+      "rise_sigma_A": 0.4760507886412968,
+      "repeat_factor": 7,
+      "uncertainty_method": "delta_method_deposited_rise_sample_std",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": true,
+      "human_review_required": true,
+      "units": "\u00c5"
+    },
+    "phillips_tm_length_curve": {
+      "predicted_value": 73.46420001673093,
+      "uncertainty_95_lower": 72.03625233009947,
+      "uncertainty_95_upper": 74.89214770336238,
+      "sigma": 0.7285447380772763,
+      "uncertainty_method": "length_curve_linearized_covariance",
+      "band_label": "linear approximation",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": true,
+      "human_review_required": true,
+      "units": "C",
+      "form": "saturating",
+      "past_longest_cited_length": false,
+      "length_note": null,
+      "model_name": "ctpr_length_curve",
+      "model_version": "2"
+    },
+    "phillips_delta_g_length_curve": {
+      "predicted_value": 15.388023962883018,
+      "uncertainty_95_lower": 12.684821625429175,
+      "uncertainty_95_upper": 18.091226300336864,
+      "sigma": 1.3791848660478796,
+      "uncertainty_method": "length_curve_linearized_covariance",
+      "band_label": "linear approximation",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": true,
+      "human_review_required": true,
+      "units": "kcal mol-1",
+      "form": "line",
+      "past_longest_cited_length": false,
+      "length_note": null,
+      "model_name": "ctpr_length_curve",
+      "model_version": "2"
+    },
+    "ca_0.1uM": {
+      "predicted_value": 104.5171749229082,
+      "uncertainty_95_lower": 73.16202244603573,
+      "uncertainty_95_upper": 135.87232739978066,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    },
+    "ca_0.5uM": {
+      "predicted_value": 697.9549535283548,
+      "uncertainty_95_lower": 488.5684674698484,
+      "uncertainty_95_upper": 907.3414395868614,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    },
+    "ca_1uM": {
+      "predicted_value": 875.9172270963667,
+      "uncertainty_95_lower": 613.1420589674566,
+      "uncertainty_95_upper": 1138.6923952252766,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    },
+    "ca_2uM": {
+      "predicted_value": 896.0123004649342,
+      "uncertainty_95_lower": 627.208610325454,
+      "uncertainty_95_upper": 1164.8159906044145,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    },
+    "ca_5uM": {
+      "predicted_value": 897.7172948736974,
+      "uncertainty_95_lower": 628.4021064115881,
+      "uncertainty_95_upper": 1167.0324833358065,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    },
+    "ca_10uM": {
+      "predicted_value": 897.7618088756573,
+      "uncertainty_95_lower": 628.43326621296,
+      "uncertainty_95_upper": 1167.0903515383545,
+      "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
+      "confidence_tier": "hypothesis_only",
+      "calibrated": false,
+      "depends_on_n_repeats": false,
+      "human_review_required": true,
+      "units": "RLU"
+    }
+  },
+  "parameter_sources": [
+    "Screw fit to PDB 2AVP, 2HYZ, and 2FO7. Kajander et al. (2007) Acta Crystallogr D Biol Crystallogr 63:800-811, DOI: 10.1107/S0907444907024353. Coordinates from RCSB mmCIF; the article PDF was not open.",
+    "Length curve and cited-row lookup use series phillips2012_ctpra_dsc. thermo_prefill citation: Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338..",
+    "k_lock=0.003 s^-1 is the existing ODE prior. origami.priors records that this value is not printed in Zakeri et al. 2012."
+  ],
+  "assumptions": [
+    "Contour length is n_repeats times the deposited rise. Axial span is (n_repeats - 1) times that rise. The 95% band is the value plus or minus 1.96 times the repeat factor times the deposited rise sample standard deviation. That sigma is the sample standard deviation of the deposited screw steps, not a wet-lab confidence interval.",
+    "phillips_tm_length_curve and phillips_delta_g_length_curve are origami.stability.length_fit evaluated at this n on series phillips2012_ctpra_dsc. They are not a copied table cell. The band is the fit's linearized covariance, labelled linear approximation. calibrated is false.",
+    "phillips_delta_g_length_curve is the fit to the printed Phillips DSC column. It is not the Gibbs\u2013Helmholtz calculator output. This file does not reconcile those two numbers.",
+    "predict_luminescence does not take n_repeats. The calcium curve in this file is the same for every scaffold length. Its interval is predicted_value multiplied by 0.7 and 1.3. The method is fixed_relative_placeholder_pm_30_percent. It is not a propagated 95% interval. confidence_tier is hypothesis_only.",
+    "WLC end-to-end RMS, pitch, and the rigid-screw flag are recorded on the design spec without a propagated interval.",
+    "This freeze is not a wet-lab calibration. A passing checksum is not validation."
+  ],
+  "file_checksum": "sha256:fc3f4817423fceba33bad4c24860d19dd5840a4d92046ab2f46f16096d33b70b"
+}
