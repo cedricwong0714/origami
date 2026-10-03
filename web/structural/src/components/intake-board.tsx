@@ -5,10 +5,12 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudioNav } from "@/components/studio-nav";
 import {
+  comparePlateToFrozen,
   importPlate,
   runAblation,
   type Ablation,
   type PlateImport,
+  type PlateVsFrozen,
 } from "@/lib/intake";
 
 const TEMPLATE =
@@ -36,6 +38,8 @@ export function IntakeBoard() {
   const [csv, setCsv] = useState(TEMPLATE);
   const [plate, setPlate] = useState<PlateImport | null>(null);
   const [plateError, setPlateError] = useState<string | null>(null);
+  const [frozen, setFrozen] = useState<PlateVsFrozen | null>(null);
+  const [frozenError, setFrozenError] = useState<string | null>(null);
   const [ablationText, setAblationText] = useState("");
   const [ablation, setAblation] = useState<Ablation | null>(null);
   const [ablationError, setAblationError] = useState<string | null>(null);
@@ -49,6 +53,19 @@ export function IntakeBoard() {
     } catch (caught) {
       setPlate(null);
       setPlateError(caught instanceof Error ? caught.message : "Import failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onFrozen() {
+    setBusy(true);
+    setFrozenError(null);
+    try {
+      setFrozen(await comparePlateToFrozen(csv, "pasted.csv"));
+    } catch (caught) {
+      setFrozen(null);
+      setFrozenError(caught instanceof Error ? caught.message : "Frozen comparison failed.");
     } finally {
       setBusy(false);
     }
@@ -84,7 +101,8 @@ export function IntakeBoard() {
       <section className="mb-10">
         <h2 className="mb-2 text-lg font-semibold">1. Plate CSV</h2>
         <label className="mb-1 block text-sm text-[#5C564E]" htmlFor="plate-csv">
-          Columns: well, construct, n_repeats, batch, role (sample or blank), rlu
+          Columns: well, construct, n_repeats, batch, role (sample or blank), rlu.
+          Optional calcium_uM matches a frozen dose. Without it, the row is not scored.
         </label>
         <textarea
           id="plate-csv"
@@ -97,8 +115,48 @@ export function IntakeBoard() {
           <Button onClick={onImport} disabled={busy}>
             Blank-correct and import
           </Button>
+          <Button onClick={onFrozen} disabled={busy} variant="outline" className="ml-2">
+            Score against frozen scaffolds
+          </Button>
         </div>
         {plateError ? <div className="mt-4"><ErrorBox message={plateError} /></div> : null}
+        {frozenError ? <div className="mt-4"><ErrorBox message={frozenError} /></div> : null}
+        {frozen ? (
+          <div className="mt-5 overflow-x-auto rounded-lg border border-[#E3D9CC] bg-white">
+            <p className="px-3 py-2 text-xs text-[#5C564E]">
+              Parameter error propagated: {frozen.parameter_error.parameter_error_propagated ? "yes" : "no"}.{" "}
+              {frozen.parameter_error.reason} {frozen.note}
+            </p>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-[#F5F0E8] text-xs uppercase text-[#8A8278]">
+                <tr>
+                  {["construct", "n", "calcium µM", "status", "observed", "predicted", "interval"].map((h) => (
+                    <th key={h} className="px-3 py-2">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {frozen.comparisons.map((row) => (
+                  <tr key={`${row.construct}-${row.n_repeats}-${row.batch}-${row.calcium_uM}`} className="border-t border-[#E3D9CC]">
+                    <td className="px-3 py-2">{row.construct}</td>
+                    <td className="px-3 py-2">{row.n_repeats}</td>
+                    <td className="px-3 py-2">{row.calcium_uM === null ? "—" : row.calcium_uM}</td>
+                    <td className="px-3 py-2">{row.status}</td>
+                    <td className="px-3 py-2">{fmt(row.observed)}</td>
+                    <td className="px-3 py-2">{fmt(row.predicted)}</td>
+                    <td className="px-3 py-2">
+                      {row.status === "compared" ? (row.within_95ci ? "inside" : "outside") : "not scored"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="border-t border-[#E3D9CC] px-3 py-2 text-xs text-[#8A8278]">
+              {frozen.untested_predictions.length} frozen keys have no matching plate column or calcium.
+              calibrated = false.
+            </p>
+          </div>
+        ) : null}
         {plate ? (
           <div className="mt-5 overflow-x-auto rounded-lg border border-[#E3D9CC] bg-white">
             <table className="w-full text-left text-sm">

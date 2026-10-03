@@ -3,6 +3,10 @@
 Input is a long-format CSV, one row per well, with columns:
   well, construct, n_repeats, batch, role, rlu
 ``role`` is ``sample`` or ``blank``. ``rlu`` is raw luminescence in RLU.
+Optional ``calcium_uM`` is free calcium in µM. When that column is
+present, sample wells must fill it, and replicates are averaged only
+when construct, repeat count, batch, and calcium all match. Blanks stay
+per batch.
 
 Processing is deterministic and explicit:
   1. Blank correction: for each batch, the mean RLU of that batch's blank
@@ -54,8 +58,9 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
     if missing:
         raise PlateReaderError(f"missing required columns: {missing}")
 
+    has_calcium = "calcium_uM" in (reader.fieldnames or [])
     blanks: dict[str, list[float]] = defaultdict(list)
-    samples: dict[tuple[str, int, str], list[float]] = defaultdict(list)
+    samples: dict[tuple[str, int, str, float | None], list[float]] = defaultdict(list)
     for line, row in enumerate(reader, start=2):
         role = (row["role"] or "").strip().lower()
         batch = (row["batch"] or "").strip()
@@ -73,7 +78,8 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
             construct = (row["construct"] or "").strip()
             if not construct:
                 raise PlateReaderError(f"line {line}: construct is empty")
-            samples[(construct, int(n_f), batch)].append(rlu)
+            calcium = _sample_calcium(row, line, has_calcium)
+            samples[(construct, int(n_f), batch, calcium)].append(rlu)
         else:
             raise PlateReaderError(f"line {line}: role must be 'sample' or 'blank', got {role!r}")
 
@@ -81,7 +87,9 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
         raise PlateReaderError("no sample wells found")
 
     out_rows: list[dict[str, Any]] = []
-    for (construct, n_repeats, batch), values in sorted(samples.items()):
+    for (construct, n_repeats, batch, calcium), values in sorted(
+        samples.items(), key=_sample_sort_key
+    ):
         if batch not in blanks:
             raise PlateReaderError(f"batch {batch!r} has sample wells but no blank wells")
         blank_mean = sum(blanks[batch]) / len(blanks[batch])
@@ -99,9 +107,10 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
                 "n_repeats": n_repeats,
                 "y": mean,
                 "sigma": sigma,
-                "source": f"{source}:{construct}:{batch}",
+                "source": f"{source}:{construct}:{batch}:{_calcium_label(calcium)}",
                 "construct": construct,
                 "batch": batch,
+                "calcium_uM": calcium,
                 "n_wells": n,
                 "blank_mean_rlu": blank_mean,
                 "units": "RLU",
@@ -114,6 +123,35 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
         "source": source,
         "calibrated": False,
     }
+
+
+def _sample_calcium(row: dict[str, str], line: int, has_calcium: bool) -> float | None:
+    if not has_calcium:
+        return None
+    raw = (row.get("calcium_uM") or "").strip()
+    if raw == "":
+        raise PlateReaderError(f"line {line}: calcium_uM is empty")
+    calcium = _finite(raw, "calcium_uM", line)
+    if calcium < 0:
+        raise PlateReaderError(f"line {line}: calcium_uM {calcium} is negative")
+    return calcium
+
+
+def _calcium_label(calcium: float | None) -> str:
+    if calcium is None:
+        return "no-calcium"
+    return f"{calcium:g}uM"
+
+
+def _sample_sort_key(
+    item: tuple[tuple[str, int, str, float | None], list[float]],
+) -> tuple[str, int, str, int, float]:
+    construct, n_repeats, batch, calcium = item[0]
+    # None sorts before any measured calcium. The pair (0, 0.0) is a
+    # sort key, not a concentration.
+    if calcium is None:
+        return (construct, n_repeats, batch, 0, 0.0)
+    return (construct, n_repeats, batch, 1, calcium)
 
 
 def load_plate_csv(path: str | Path) -> dict[str, Any]:

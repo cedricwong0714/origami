@@ -63,6 +63,34 @@ async def post_lab_plate(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post("/api/lab/plate-vs-frozen")
+async def post_plate_vs_frozen(request: Request) -> dict[str, Any]:
+    """Score plate CSV text against scaffold-n3, scaffold-n8, and scaffold-n14.
+
+    Body: ``{"csv_text": "...", "source": "plate1.csv"}``. A row is compared
+    only when ``calcium_uM`` matches a frozen luminescence key. Nothing is stored.
+    """
+    import hashlib
+
+    from origami.lab.freeze_compare import FreezeCompareError, compare_plate_csv
+    from origami.lab.plate_reader import PlateReaderError
+
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict) or not isinstance(body.get("csv_text"), str):
+        raise HTTPException(status_code=400, detail="csv_text (string) is required")
+    source = body.get("source")
+    if not isinstance(source, str) or not source.strip():
+        source = "uploaded.csv"
+    digest = hashlib.sha256(body["csv_text"].encode("utf-8")).hexdigest()
+    try:
+        return compare_plate_csv(body["csv_text"], source=source.strip(), sha256=digest)
+    except (PlateReaderError, FreezeCompareError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.post("/api/lab/ablation")
 async def post_lab_ablation(request: Request) -> dict[str, Any]:
     """Grouped leave-one-group-out ablation of physics, GP and XGBoost."""

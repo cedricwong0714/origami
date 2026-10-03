@@ -231,6 +231,7 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
 
     from src.core.clasp_assembly import CLASPParameters, predict_luminescence
     from src.predictions.freeze import freeze_prediction
+    from src.predictions.luminescence_interval import placeholder_interval
     from src.predictions.sensitivity import parameter_elasticities
 
     params = CLASPParameters()
@@ -249,18 +250,10 @@ def _cmd_freeze(args: argparse.Namespace) -> int:
         sens = parameter_elasticities(
             c_uM * 1e-6, params, E_T=args.e_t, M_T=args.m_t, t_end=args.t_end
         )
-        predictions[f"ca_{c_uM:g}uM"] = {
-            "most_sensitive_parameter": sens["most_sensitive_parameter"],
-            "parameter_elasticities": sens["elasticities"],
-            "predicted_value": value,
-            # predict_luminescence does not propagate parameter error.
-            # The band stays a fixed relative placeholder until that exists.
-            "uncertainty_95_lower": value * 0.7,
-            "uncertainty_95_upper": value * 1.3,
-            "uncertainty_method": "fixed_relative_placeholder_pm_30_percent",
-            "confidence_tier": "hypothesis_only",
-            "units": "RLU",
-        }
+        entry = placeholder_interval(value)
+        entry["most_sensitive_parameter"] = sens["most_sensitive_parameter"]
+        entry["parameter_elasticities"] = sens["elasticities"]
+        predictions[f"ca_{c_uM:g}uM"] = entry
 
     path = freeze_prediction(
         args.prediction_id,
@@ -323,6 +316,48 @@ def _cmd_freeze_scaffold(args: argparse.Namespace) -> int:
     print(f"[OK] Frozen scaffold prediction written: {path}")
     if args.json:
         print(json.dumps(json.loads(path.read_text(encoding="utf-8")), indent=2))
+    return 0
+
+
+def _cmd_compare_plate(args: argparse.Namespace) -> int:
+    """Score a plate CSV against the checksummed scaffold freezes."""
+    import hashlib
+    import json
+    from pathlib import Path
+
+    from origami.lab.freeze_compare import FreezeCompareError, compare_plate_csv
+    from origami.lab.plate_reader import PlateReaderError
+
+    path = Path(args.csv)
+    try:
+        text = path.read_text(encoding="utf-8")
+        report = compare_plate_csv(
+            text,
+            source=path.name,
+            sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        )
+    except (OSError, UnicodeDecodeError, FreezeCompareError, PlateReaderError) as exc:
+        print(f"compare-plate failed: {exc}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return 0
+    propagated = report["parameter_error"]["parameter_error_propagated"]
+    print(f"parameter_error_propagated: {propagated}")
+    print(report["parameter_error"]["reason"])
+    for row in report["comparisons"]:
+        if row["status"] != "compared":
+            print(
+                f"  {row['construct']} n={row['n_repeats']}: {row['status']} — {row['detail']}"
+            )
+            continue
+        flag = "IN" if row["within_95ci"] else "OUT"
+        print(
+            f"  {row['construct']} n={row['n_repeats']} {row['frozen_key']}: "
+            f"obs={row['observed']:.4g} pred={row['predicted']:.4g} "
+            f"err={row['error']:+.4g} [{flag}] {row.get('uncertainty_method')}"
+        )
+    print(f"untested frozen keys: {len(report['untested_predictions'])}")
     return 0
 
 
@@ -442,6 +477,14 @@ def main() -> None:
     compare.add_argument("--comparison-id", type=str, default=None)
     compare.add_argument("--overwrite", action="store_true")
     compare.set_defaults(func=_cmd_compare)
+
+    plate_vs = sub.add_parser(
+        "compare-plate",
+        help="Score a plate CSV against the checksummed scaffold freezes",
+    )
+    plate_vs.add_argument("csv", help="Plate CSV. Optional column calcium_uM selects the frozen dose.")
+    plate_vs.add_argument("--json", action="store_true")
+    plate_vs.set_defaults(func=_cmd_compare_plate)
 
     plate = sub.add_parser(
         "import-plate",

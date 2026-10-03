@@ -38,6 +38,7 @@ from origami.ssdk.canonical_learner import construct_flags, fit_sklearn_luminesc
 from origami.ssdk.literature_train import train_literature
 from origami.ssdk.multioutput import multioutput_block
 from origami.ssdk.multifidelity_luminescence import multifidelity_luminescence_block
+from origami.ssdk.quantify import QuantificationError, curve_request_from_body, quantify_luminescence_rows
 from origami.stability.length_fit import fit_named_delta_g, fit_named_tm
 from origami.stability.series import PHILLIPS_2012_CTPRA_DSC
 
@@ -94,6 +95,9 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         raise SsdkLearnError("batch_size must be an integer from 1 to 12")
     radii, radius_origin = _radii(body.get("payload_radii_A"), body.get("payload_names"))
     raw_observations = body.get("observations") or []
+    quantification = _quantification(body, raw_observations)
+    if quantification["applied"]:
+        raw_observations = quantification["rows"]
     observations, mf_obs_rows = _observations(raw_observations, n_min, n_max)
     engine = ClaspDesignEngine(
         payload_radii_A=radii,
@@ -177,6 +181,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             "kinetics": _kinetics(body.get("kinetics")),
         },
         "literature_training": train_literature(),
+        "quantification": quantification,
         "canonical": canonical,
         "multioutput": outputs,
         "batch": batch,
@@ -184,6 +189,37 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             result, mf_obs_rows, n_max
         ),
     }
+
+
+def _quantification(body: dict[str, Any], rows: list[Any]) -> dict[str, Any]:
+    """Leave caller y unchanged unless quantify_luminescence is true."""
+    quantify = bool(body.get("quantify_luminescence", False))
+    if not quantify:
+        return {
+            "applied": False,
+            "calibrated": False,
+            "learner_target": "caller_y",
+            "note": (
+                "Luminescence stayed on the scale of observations[].y. "
+                "Set quantify_luminescence true and supply a standard curve "
+                "to convert RLU to amount."
+            ),
+        }
+    try:
+        curve = curve_request_from_body(body)
+        if curve is None:
+            raise QuantificationError(
+                "quantify_luminescence requires standard_curve with amount and rlu"
+            )
+        if not isinstance(rows, list):
+            raise QuantificationError("observations must be a list")
+        return quantify_luminescence_rows(
+            rows,
+            curve,
+            str(body.get("amount_units") or ""),
+        )
+    except QuantificationError as exc:
+        raise SsdkLearnError(str(exc)) from exc
 
 
 def _multifidelity_block(result: Any, rows: list[dict[str, Any]], n_max: int) -> dict[str, Any]:

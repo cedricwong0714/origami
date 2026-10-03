@@ -34,6 +34,7 @@ from origami.stability.series import PHILLIPS_2012_CTPRA_DSC
 from origami.stability.thermo import thermo_prefill
 from src.core.clasp_assembly import CLASPParameters, predict_luminescence
 from src.predictions.freeze import freeze_prediction
+from src.predictions.luminescence_interval import placeholder_interval
 
 # Software identity of this freeze layout. Not a biological constant.
 SCAFFOLD_FREEZE_VERSION = "scaffold_freeze_v1"
@@ -172,17 +173,9 @@ def luminescence_predictions(
     predictions: dict[str, dict[str, Any]] = {}
     for concentration, raw in zip(grid, values, strict=True):
         value = float(raw)
-        predictions[f"ca_{concentration:g}uM"] = {
-            "predicted_value": value,
-            "uncertainty_95_lower": value * 0.7,
-            "uncertainty_95_upper": value * 1.3,
-            "uncertainty_method": _LUMINESCENCE_METHOD,
-            "confidence_tier": "hypothesis_only",
-            "calibrated": False,
-            "depends_on_n_repeats": False,
-            "human_review_required": True,
-            "units": "RLU",
-        }
+        entry = placeholder_interval(value)
+        entry["depends_on_n_repeats"] = False
+        predictions[f"ca_{concentration:g}uM"] = entry
     return predictions
 
 

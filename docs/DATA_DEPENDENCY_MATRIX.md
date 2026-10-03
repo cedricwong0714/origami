@@ -29,7 +29,7 @@ Scope decisions (user, 2026-10-02):
 | T1.1-1.5 BCA, expression, solubility, purity, MW | prep slots (concentration, soluble fraction, mass check) | prep flags only; no model |
 | T2/3 native PAGE shift, geometry series expression | `n_repeats`, prep flags | gates which designs enter the learner |
 | T4.8 Ca dose-response | `calcium`, `calcium_rlu`, `wt_rlu` | residual GP, EC50 estimate, ablation |
-| T4.9 NanoLuc standard curve | `assay_window` slots | absolute quantification, not yet connected to the GP target |
+| T4.9 NanoLuc standard curve | `assay_window` slots | `quantify_luminescence` on `POST /api/ssdk/learn` converts luminescence RLU to amount when the caller opts in. Default `y` is unchanged |
 | T4.10 Scrambled M13 | `scrambled_rlu` | specificity ratio |
 | T4.11 Inter-day CV | `quality.inter_day_rlu`, `quality.inter_operator_rlu` | `origami/lab/uncertainty_budget.py` → suggested GP σ |
 | P3 Exp 1 instrument | `quality.plate_reader_reference_rlu` | recorded; no auto-calibration |
@@ -44,7 +44,7 @@ Scope decisions (user, 2026-10-02):
 | P3 Exp 7 temperature | `rlu_25_C`, `rlu_30_C`, `rlu_37_C` | temperature sensitivity only |
 | P3 Exp 12 locking kinetics | `time_min`, `fraction_locked` | k_lock fit (lumped Spy rate) |
 | P4 4-tube bridging | `tube1_rlu` to `tube4_rlu` | bridging verdict |
-| P3 Exp 1, 2, 3, 4, 5, 6, 8, 9, 10, 11 | no slots yet | add after the protocols are fixed (instrument calibration, furimazine decay, normalization comparison, Fluo-3 free Ca, background vs expression, linearity, freeze-thaw, lysis, negative panel, irreversibility) |
+| Plate versus frozen scaffold | `origami compare-plate`, optional `calcium_uM` | checksum, then within-interval against the frozen luminescence key. No calcium, or a quantity the plate does not measure, stays unscored |
 
 ## Open items that block a number
 - Fusion CaM-M13 apparent Ca2+ Kd **80 nM**: secondhand (Nagai 2014 citing Porumb 1994) in `FUSION_CAM_M13_CA_KD_M`. Not the free-peptide Kd.
@@ -52,7 +52,7 @@ Scope decisions (user, 2026-10-02):
 - Errey 2010 OtsA assay details: SI not retrieved. Out of lab scope.
 
 ## Dry-lab inputs the math chassis is waiting on (from the team)
-1. Scaffold freeze examples for CTPR-3, -8, and -14 are checked in under `data/predictions/frozen/`. The luminescence ±30% band in those files is still a placeholder. Written pass/fail rules for a real plate are still open.
+1. Scaffold freeze examples for CTPR-3, -8, and -14 are checked in, and a plate can be scored against them when `calcium_uM` is present. The luminescence ±30% band is still a placeholder: the eight ODE parameters have no sourced sigma, so parameter error is not propagated. Written pass/fail rules for a real plate are still open.
 2. Group labels for the ablation (batch or construct names) and the planned replicate count per design.
 3. Assay noise or CV from the plate-reader specification, and a cost per experiment (hours or wells), for the replicate-versus-new and cost-aware ranking.
 4. Measured luminescence thresholds and assay CVs to replace placeholders in `active_learning_config.json`.

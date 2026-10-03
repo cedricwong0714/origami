@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (plate versus freeze, blocked ODE error, standard-curve target)
+
+### Added
+- `origami compare-plate` and `POST /api/lab/plate-vs-frozen` score a blank-corrected plate against `scaffold-n3.json`, `scaffold-n8.json`, and `scaffold-n14.json`. A row is compared only when `calcium_uM` matches a frozen luminescence key. Contour and the Phillips curve are reported as untested. A checksum mismatch refuses the file.
+- The intake page can run that comparison. The ±30% band is still the interval, and the response says ODE parameter error was not propagated.
+- `quantify_luminescence` on `POST /api/ssdk/learn` converts luminescence from RLU to amount with a caller-supplied standard curve. Other outputs stay on the caller scale. The default remains the raw `y`.
+
+### Changed
+- New luminescence freezes record `parameter_error_propagated: false` and the eight ODE parameters that have no sourced sigma. Peptide Kd and the Spy bimolecular sigma are not applied to those parameters. The checked-in scaffold files were not rewritten.
+
 ## Unreleased — 2026-10-03 (scaffold freeze examples for n = 3, 8, 14)
 
 ### Added

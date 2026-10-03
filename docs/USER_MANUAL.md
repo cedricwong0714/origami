@@ -134,13 +134,14 @@ From the repo root, with the venv active, the `origami` command includes:
 | `origami freeze ...` | Write a frozen calcium dose-response (see `--help`) |
 | `origami freeze --scaffold --n-repeats 8 --prediction-id scaffold-n8` | Also freeze contour, axial span, and the Phillips length curve at that n |
 | `origami compare ...` | Compare a later run to a frozen file |
+| `origami compare-plate PLATE.csv` | Score blank-corrected wells against the scaffold freezes. Optional column `calcium_uM` |
 | `origami import-plate PATH` | Parse a plate CSV |
 | `origami learn-plate PATH` | Plate → SSDK learner |
 | `origami learn-ssdk --json-body '{...}'` | Print learner family, next n, batch, and overall status. `--full` prints the JSON |
 | `origami ablation` | Grouped ablation (see `--help`) |
 | `origami pipeline` | Demo verification path (not the wiki) |
 
-`origami freeze` still labels the luminescence ±30% band as a placeholder. Parameter elasticities in the calcium-only output are sensitivity, not a confidence interval. `--scaffold` adds contour and axial span from the deposited rise, and Phillips Tm and ΔG from the length curve. Those quantities change with repeat count. The luminescence block in the same file does not: the ODE has no repeat-count argument. Checked-in examples for 3, 8, and 14 are `data/predictions/frozen/scaffold-n3.json`, `scaffold-n8.json`, and `scaffold-n14.json`. `calibrated` stays false.
+`origami compare-plate` checks the freeze checksum and scores a well only when its calcium matches a frozen luminescence key. Contour and the Phillips length curve are listed as untested. The luminescence band is still the ±30% placeholder, because the ODE parameters have no sourced standard deviations. `origami freeze` still labels that band as a placeholder. Parameter elasticities in the calcium-only output are sensitivity, not a confidence interval. `--scaffold` adds contour and axial span from the deposited rise, and Phillips Tm and ΔG from the length curve. Those quantities change with repeat count. The luminescence block in the same file does not: the ODE has no repeat-count argument. Checked-in examples for 3, 8, and 14 are `data/predictions/frozen/scaffold-n3.json`, `scaffold-n8.json`, and `scaffold-n14.json`. `calibrated` stays false.
 
 ## 7. HTTP API (short)
 

@@ -44,7 +44,7 @@ Optional: `indices`, `radii_A` (two Å values), `lab_tm_C`, `kinetics`.
 }
 ```
 
-`acquisition` is `ucb`, `ei`, or `entropy`. `learner` is `sklearn` (default) or `design_engine`. `fidelity` is 0 (dry) or 1 (wet); omitted means 1. `output` is one of `luminescence`, `locking_fraction`, `expression`, `solubility`, `purity` (default luminescence). Optional `sequence` uses composition unless `sequence_encoding` is `onehot` or `esm2`. `batch_size` is 1 to 12.
+`acquisition` is `ucb`, `ei`, or `entropy`. `learner` is `sklearn` (default) or `design_engine`. `fidelity` is 0 (dry) or 1 (wet); omitted means 1. `output` is one of `luminescence`, `locking_fraction`, `expression`, `solubility`, `purity` (default luminescence). Optional `sequence` uses composition unless `sequence_encoding` is `onehot` or `esm2`. `batch_size` is 1 to 12. Set `quantify_luminescence` true with `standard_curve` (`amount` and `rlu` lists) and `amount_units` to convert luminescence rows from RLU to amount before the learner sees them. Other outputs are not converted. Omit the flag and `y` stays as sent.
 
 Read `learner_family` and `next_n` for the recommendation that was actually used. `design_engine_next_n` is always the older residual GP. `multioutput.overall_status` is PASS, FAIL, or NOT_GATED. `batch.selected` is the plate of lengths. `canonical.heteroscedastic.replaces_assay_cv` is false.
 
@@ -77,6 +77,7 @@ Modes include `recruitment_steady`, `covalent_timecourse`, and `nanobit_compleme
 | GET | `/api/lab/schema` | Slot list. Values start null |
 | POST | `/api/lab/run` | `prep`, `assay_window`, `calcium`, `lock`, `bridging`, `quality` |
 | POST | `/api/lab/plate` | `csv_text`, `source` |
+| POST | `/api/lab/plate-vs-frozen` | Same body. Scores wells against `scaffold-n3`, `scaffold-n8`, and `scaffold-n14` when `calcium_uM` is present |
 | POST | `/api/lab/ablation` | Feature matrix for grouped ablation |
 
 Quality example:
@@ -85,7 +86,7 @@ Quality example:
 {"quality": {"inter_day_rlu": [100, 108, 92, 101]}}
 ```
 
-Plate columns: `well`, `construct`, `n_repeats`, `batch`, `role`, `rlu`. `role=blank` is subtracted inside each batch.
+Plate columns: `well`, `construct`, `n_repeats`, `batch`, `role`, `rlu`. Optional `calcium_uM`. `role=blank` is subtracted inside each batch.
 
 ## Errors
 
