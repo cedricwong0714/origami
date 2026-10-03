@@ -1,52 +1,87 @@
 # ORIGAMI for judges
 
-Hong Kong team ISEF 2026. CLASP dry-lab software. This page is a reading guide. It is not a wet-lab claim.
+Hong Kong team, ISEF 2026. This page is the software exhibit for CLASP. It says what the program does, how to run it, and what a screen must not be read as. It is not a wet-lab result.
 
-## What it is
+Repository: https://gitlab.ISEF.org/2026/software/hong-kong-team/origami
 
-ORIGAMI is a stack of transparent calculators for a CTPR scaffold: geometry, literature stability, docking and steric clash, kinetics, lab intake, and an active-learning layer on top. It is not a trained black-box predictor of a fusion, and it does not generate DNA sequences.
+Longer operator notes: [USER_MANUAL.md](USER_MANUAL.md). One card per calculator: [MODEL_CARDS.md](MODEL_CARDS.md). HTTP routes: [API.md](API.md). Which numbers still need the lab: [DATA_DEPENDENCY_MATRIX.md](DATA_DEPENDENCY_MATRIX.md).
 
-A number in the software is one of three things: a literature value with a source, a team assumption that warns at runtime, or a blank waiting for a measurement. Predictions that depend on literature parameters stay `calibrated = false`.
+## What the software is
 
-## What a judge can run
+ORIGAMI is a set of transparent calculators for a consensus-tetratricopeptide-repeat (CTPR) scaffold. A user types a repeat count and, where needed, concentrations or a plate file. The program returns geometry, a literature stability lookup, a docking and clash score, a kinetics time course, and a suggestion for the next measurement.
 
-GitLab: https://gitlab.ISEF.org/2026/software/hong-kong-team/origami
+It is not a black-box model of one fusion protein. It does not generate DNA or protein sequences. It does not mark a design safe to order. Every prediction that rests on literature parameters is returned with `calibrated: false`.
 
-GitLab Pages (Deploy → Pages on `main`) serves a static landing page and a browser CTPR optimizer. That is not the full model.
+A number on screen is one of three things:
 
-Full chassis, on a laptop:
+1. A literature value the team can point to (PDB screw, Phillips table, Zakeri rate, and similar).
+2. A team assumption that warns when it is used (the recruitment on-rate is the example).
+3. A blank field waiting for a measurement this team has not made yet.
+
+## How this fits the project
+
+CLASP needs a way to compare scaffold lengths before and after assays, without hiding which equation ran. ORIGAMI is that record. Structure, stability, docking, and kinetics stay separate. A later luminescence reading does not overwrite the screw or the melting-temperature table. It is stored as an observation and used only in the learning layer.
+
+Other ISEF teams can clone the repository, change the repeat count and the concentrations, and rerun the same functions. The install path below does not depend on a private notebook.
+
+## What a judge can open
+
+**Static demo.** GitLab → Deploy → Pages, on the default branch `main`. That URL is a landing page plus an in-browser CTPR spacing demo. It does not run the Python chassis.
+
+**Full program**, on a computer with Python 3.10+ and Node:
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+git clone https://gitlab.ISEF.org/2026/software/hong-kong-team/origami.git
+cd origami
+python -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev]"
 python host_sa.py
 ```
 
-In a second terminal: `cd web/structural && npm install && npm run dev`. Open http://127.0.0.1:3000 .
+Second terminal:
 
-| Page | What you see |
+```bash
+cd web/structural
+npm install
+npm run dev
+```
+
+Open http://127.0.0.1:3000 . The API is http://127.0.0.1:41287/docs .
+
+| Page | What to look at |
 |---|---|
-| `/` | Screw geometry for a repeat count you type |
-| `/stability` and `/stability/calculator` | Literature Tm / ΔG and the Gibbs–Helmholtz calculator |
-| `/kinetics` | Recruitment, Spy lock, or NanoBiT when concentrations are supplied |
-| `/ssdk` | All four chassis, plus luminescence gates |
-| `/lab` and `/intake` | Empty lab slots and plate CSV import |
-| `/learn` | Next length to measure; not a validated design |
-| `/guide` | What needs lab data versus what is already literature |
+| `/` | Contour, axial span, and rigid versus flexible for an integer repeat count from 3 to 24 |
+| `/stability` | Phillips 2012 CTPRa lookup. Missing uncertainty stays blank. Lengths past the cited range are marked extrapolated |
+| `/stability/calculator` | Gibbs–Helmholtz ΔG(T). Enthalpy and ΔCp are filled only where the table has them |
+| `/kinetics` | A time course or occupancy after the user types concentrations |
+| `/ssdk` | The four calculators for one length, then the luminescence gate |
+| `/learn` | A recommended next repeat count. The sentence on the page says it is the next measurement, not a validated design |
+| `/lab` and `/intake` | Empty slots, and a plate CSV import that subtracts blanks and stores a checksum |
+| `/guide` | The split between literature, lab-pending fields, and team dry-lab inputs |
 
-Operator detail: [USER_MANUAL.md](USER_MANUAL.md). Equations and limits: [MODEL_CARDS.md](MODEL_CARDS.md). HTTP routes: [API.md](API.md).
+Tests: `pytest -q` from the repository root. A green run means the code matches its pinned inputs. It does not mean a construct works in cells.
 
 ## How to read a result
 
-- `calibrated: false` means the team has not approved a project dataset for that claim.
-- A pass/fail on luminescence uses μ − 1.96σ against a threshold marked `unmeasured` until a plate-reader CV exists. A pass on placeholder units is not an assay decision.
-- Two recommenders can disagree. `next_n` is the older residual Gaussian process on the docking score. The multi-fidelity block recommends a length by expected improvement divided by cost. Both are suggestions for the next well.
-- The stability calculator’s ΔG at 10 °C sits 0.5–5.0 kcal/mol above Phillips’ printed ΔG. The gap is reported, not hidden.
+- `calibrated: false` means this team has not approved a project dataset for that claim. Literature priors are labelled as literature, not as our assay.
+- Luminescence pass/fail uses the lower 95% bound, μ − 1.96σ, against a threshold in `data/config/active_learning_config.json`. That threshold is tagged `unmeasured`. Until the plate-reader coefficient of variation is entered and the tag is changed, a pass is a software demo.
+- Two recommenders can name different repeat counts. `next_n` comes from the residual Gaussian process on the docking score. The multi-fidelity block ranks lengths by expected improvement divided by a cost. Both are suggestions for the next well.
+- The stability calculator’s ΔG at 10 °C is 0.5–5.0 kcal/mol higher than Phillips’ printed ΔG. The difference is pinned by a test and described in the changelog. It is not averaged away.
+- n = 17 can be typed and computed. It is not a calibrated design point. The lengths the team treats as the planned series are 3, 8, and 14.
 
-## What the team still has to supply
+## What is deliberately unfinished
 
-Measured assay CVs and pass thresholds, frozen predictions for the lengths they will actually build, and group labels when real plates exist. Those fields are blank on purpose.
+Measured assay noise, written pass/fail limits on the real RLU scale, and group labels for real plates. Those inputs change the learning layer. They are not invented here. Enzyme assays (OtsA/OtsB), circular dichroism, thermal shift, size-exclusion chromatography, and cryo-EM are out of this team’s wet-lab plan. Stability on those points stays a literature lookup.
 
-## AI assistance
+## AI tools
 
-Coding agents helped build and document this repository. The team remains responsible for every constant, every page, and every decision taken from a screen. See the wiki AI attribution. A passing test is not scientific validation.
+Cursor, DeepSeek, and Gemini assisted coding, drafting, and literature triage. The team chose which papers entered the parameter file, rejected numbers that were not in the cited source, and is responsible for the repository and the wiki. The attribution form on the team wiki is the record of that use. This file is not a claim that a model validated the biology.
+
+## A short path through the demo
+
+1. Open `/`. Set the repeat count to 8. Read contour and the rigid/flexible line.
+2. Open `/stability`. Confirm the Phillips row is a lookup, and that a length past the table is marked as such.
+3. Open `/ssdk`. Run repeat count 8 with kinetics left off, then again with concentrations filled in. Empty kinetics stays empty.
+4. Open `/learn` or the gate on `/ssdk`. Enter two synthetic readings. Read the recommended n and the `calibrated: false` line.
+5. Open `/guide` for the list of fields that are still waiting on the lab.
