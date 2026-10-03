@@ -412,6 +412,42 @@ function LearnLuminescencePanel() {
               Omitted assays: {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
             </p>
           ) : null}
+          {learn?.multioutput ? (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[#E3D9CC]">
+                    <th className="py-2 pr-2">assay</th>
+                    <th className="py-2 pr-2">n</th>
+                    <th className="py-2 pr-2">μ</th>
+                    <th className="py-2 pr-2">σ</th>
+                    <th className="py-2">pass</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(learn.multioutput.outputs)
+                    .filter(([, block]) => block.fitted && block.rows)
+                    .map(([name, block]) => {
+                      const row =
+                        block.rows?.find((item) => item.n_repeats === learn.next_n) ??
+                        block.rows?.[0];
+                      if (!row) return null;
+                      return (
+                        <tr key={name} className="border-b border-[#F0EBE3]">
+                          <td className="py-1.5 pr-2">{name}</td>
+                          <td className="py-1.5 pr-2">{row.n_repeats}</td>
+                          <td className="py-1.5 pr-2">{formatNumber(row.mu)}</td>
+                          <td className="py-1.5 pr-2">{formatNumber(row.sigma)}</td>
+                          <td className="py-1.5">
+                            {row.passes === undefined ? "—" : row.passes ? "yes" : "no"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
           {learn?.batch?.selected?.length ? (
             <p>
               Batch ({learn.batch.selected.length}):{" "}

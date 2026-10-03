@@ -130,6 +130,45 @@ def test_scatter_model_does_not_replace_the_assay_cv():
     assert short["canonical"]["heteroscedastic"]["fitted"] is False
 
 
+def test_purity_miss_cuts_the_batch_weight():
+    from origami.ssdk.batch_acquire import _penalty
+
+    assert _penalty({"outputs": {}}, 8) == 1.0
+    missed = {
+        "outputs": {
+            "purity": {
+                "fitted": True,
+                "rows": [{"n_repeats": 8, "passes": False}],
+            }
+        }
+    }
+    assert _penalty(missed, 8) == 0.25
+    assert _penalty(missed, 9) == 1.0
+
+
+def test_learn_ssdk_cli_prints_the_family():
+    import json
+    import subprocess
+    import sys
+
+    body = json.dumps(
+        {
+            "n_min": 8,
+            "n_max": 10,
+            "observations": [],
+        }
+    )
+    proc = subprocess.run(
+        [sys.executable, "-m", "src.ui.cli", "learn-ssdk", "--json-body", body],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0
+    assert "learner_family: design_engine_fallback" in proc.stdout
+    assert "calibrated: false" in proc.stdout
+
+
 def test_bad_sequence_is_rejected():
     with pytest.raises(SsdkLearnError):
         learn_ssdk(

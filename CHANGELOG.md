@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (learn-ssdk command and five-assay table)
+
+### Added
+- `origami learn-ssdk --json-body '...'` prints learner family, both next-n values, overall status, and the batch. `--full` prints the JSON.
+- SSDK learn panel lists μ, σ, and pass for each fitted assay at the reported next n.
+- A purity miss multiplies that length's batch weight by 0.25. An unfitted assay does not.
+
 ## Unreleased — 2026-10-03 (optional sequence features and residual scatter)
 
 ### Added

@@ -135,6 +135,7 @@ From the repo root, with the venv active, the `origami` command includes:
 | `origami compare ...` | Compare a later run to a frozen file |
 | `origami import-plate PATH` | Parse a plate CSV |
 | `origami learn-plate PATH` | Plate → SSDK learner |
+| `origami learn-ssdk --json-body '{...}'` | Print learner family, next n, batch, and overall status. `--full` prints the JSON |
 | `origami ablation` | Grouped ablation (see `--help`) |
 | `origami pipeline` | Demo verification path (not the wiki) |
 

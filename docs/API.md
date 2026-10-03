@@ -44,7 +44,11 @@ Optional: `indices`, `radii_A` (two Å values), `lab_tm_C`, `kinetics`.
 }
 ```
 
-`acquisition` is `ucb`, `ei`, or `entropy`. `fidelity` is 0 (dry) or 1 (wet); omitted means 1. Read `next_n` for the residual GP and `multifidelity_luminescence` for the luminescence gate. They can disagree.
+`acquisition` is `ucb`, `ei`, or `entropy`. `learner` is `sklearn` (default) or `design_engine`. `fidelity` is 0 (dry) or 1 (wet); omitted means 1. `output` is one of `luminescence`, `locking_fraction`, `expression`, `solubility`, `purity` (default luminescence). Optional `sequence` uses composition unless `sequence_encoding` is `onehot` or `esm2`. `batch_size` is 1 to 12.
+
+Read `learner_family` and `next_n` for the recommendation that was actually used. `design_engine_next_n` is always the older residual GP. `multioutput.overall_status` is PASS, FAIL, or NOT_GATED. `batch.selected` is the plate of lengths. `canonical.heteroscedastic.replaces_assay_cv` is false.
+
+CLI: `origami learn-ssdk --json-body '{"n_min":8,"n_max":12,"observations":[]}'`
 
 ## Stability
 

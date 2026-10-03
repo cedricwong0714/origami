@@ -140,6 +140,40 @@ def _cmd_import_plate(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_learn_ssdk(args: argparse.Namespace) -> int:
+    """Run the SSDK learner on a JSON body and print the decision summary."""
+    import json
+
+    from origami.ssdk.learn import SsdkLearnError, learn_ssdk
+
+    try:
+        body = json.loads(args.json_body)
+    except json.JSONDecodeError as exc:
+        print(f"learn-ssdk failed: {exc}", file=sys.stderr)
+        return 2
+    if not isinstance(body, dict):
+        print("learn-ssdk failed: JSON object required", file=sys.stderr)
+        return 2
+    try:
+        result = learn_ssdk(body)
+    except SsdkLearnError as exc:
+        print(f"learn-ssdk failed: {exc}", file=sys.stderr)
+        return 2
+    if args.full:
+        print(json.dumps(result, indent=2))
+        return 0
+    batch = [row["n_repeats"] for row in result.get("batch", {}).get("selected", [])]
+    multi = result.get("multioutput") or {}
+    print(f"learner_family: {result.get('learner_family')}")
+    print(f"next_n: {result.get('next_n')}")
+    print(f"design_engine_next_n: {result.get('design_engine_next_n')}")
+    print(f"overall_status: {multi.get('overall_status')}")
+    print(f"omitted_outputs: {', '.join(multi.get('omitted_outputs') or []) or 'none'}")
+    print(f"batch: {batch}")
+    print("calibrated: false")
+    return 0
+
+
 def _cmd_learn_plate(args: argparse.Namespace) -> int:
     """Run the SSDK learner on a plate-reader CSV."""
     import json
@@ -373,6 +407,14 @@ def main() -> None:
     lp.add_argument("--n-min", type=int, default=3)
     lp.add_argument("--n-max", type=int, default=24)
     lp.set_defaults(func=_cmd_learn_plate)
+
+    ssdk = sub.add_parser(
+        "learn-ssdk",
+        help="Score a JSON learn body and print the learner family, next n, and batch",
+    )
+    ssdk.add_argument("--json-body", required=True, help="JSON object for POST /api/ssdk/learn")
+    ssdk.add_argument("--full", action="store_true", help="Print the full JSON response")
+    ssdk.set_defaults(func=_cmd_learn_ssdk)
 
     ablate = sub.add_parser(
         "ablation",
