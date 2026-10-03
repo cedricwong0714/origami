@@ -31,7 +31,10 @@ from origami.physical.geometry import build_ctpr
 from origami.physical.payload_radii import radii_for
 from origami.physical.structure import structural_report
 from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, SPY_K_ON_PER_M_S
+from origami.ssdk.batch_acquire import select_batch
+from origami.ssdk.canonical_learner import construct_flags, fit_sklearn_luminescence
 from origami.ssdk.literature_train import train_literature
+from origami.ssdk.multioutput import multioutput_block
 from origami.ssdk.multifidelity_luminescence import multifidelity_luminescence_block
 from origami.stability.length_fit import fit_named_delta_g, fit_named_tm
 from origami.stability.series import PHILLIPS_2012_CTPRA_DSC
@@ -52,6 +55,14 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     acquisition = body.get("acquisition", "ucb")
     if acquisition not in ("ucb", "ei", "entropy"):
         raise SsdkLearnError("acquisition must be ucb, ei, or entropy")
+    learner = body.get("learner", "sklearn")
+    if learner not in ("sklearn", "design_engine"):
+        raise SsdkLearnError("learner must be sklearn or design_engine")
+    batch_size = body.get("batch_size", 6)
+    if isinstance(batch_size, bool) or not isinstance(batch_size, int):
+        raise SsdkLearnError("batch_size must be an integer from 1 to 12")
+    if batch_size < 1 or batch_size > 12:
+        raise SsdkLearnError("batch_size must be an integer from 1 to 12")
     radii, radius_origin = _radii(body.get("payload_radii_A"), body.get("payload_names"))
     raw_observations = body.get("observations") or []
     observations, mf_obs_rows = _observations(raw_observations, n_min, n_max)
@@ -66,9 +77,34 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     result = engine.run(thermal_prior=False)
     if result.next_experiment is None:
         raise SsdkLearnError("the library produced no next length")
+    engine_next = result.next_experiment.n_repeats
+    flags = construct_flags(body.get("construct") if isinstance(body.get("construct"), dict) else None)
+    try:
+        canonical = fit_sklearn_luminescence(result, mf_obs_rows, n_max, flags)
+        outputs = multioutput_block(
+            result,
+            mf_obs_rows,
+            n_max,
+            body.get("construct") if isinstance(body.get("construct"), dict) else None,
+        )
+        batch = select_batch(canonical, outputs, batch_size)
+    except ValueError as exc:
+        raise SsdkLearnError(str(exc)) from exc
+    if learner == "sklearn" and canonical.get("fitted"):
+        next_n = int(canonical["next_n"])
+        next_reason = str(canonical["reason"])
+        family = "sklearn_matern_residual"
+    elif learner == "design_engine":
+        next_n = engine_next
+        next_reason = result.next_experiment.reason
+        family = "design_engine"
+    else:
+        next_n = engine_next
+        next_reason = result.next_experiment.reason
+        family = "design_engine_fallback"
     distinct = sorted({obs.n_repeats for obs in observations})
     gp_fitted = len(distinct) >= 3
-    highlighted = _highlighted(distinct, result.next_experiment.n_repeats)
+    highlighted = _highlighted(distinct, next_n)
     return {
         "calibrated": False,
         "confidence_tier": "hypothesis_only",
@@ -81,8 +117,11 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         "n_observations": len(observations),
         "distinct_lengths": distinct,
         "acquisition": result.next_experiment.acquisition_name,
-        "next_n": result.next_experiment.n_repeats,
-        "next_reason": result.next_experiment.reason,
+        "learner_requested": learner,
+        "learner_family": family,
+        "design_engine_next_n": engine_next,
+        "next_n": next_n,
+        "next_reason": next_reason,
         "radius_origin": radius_origin,
         "payload_radii_A": radii,
         "evidence_level": result.evidence_level,
@@ -99,6 +138,9 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             "kinetics": _kinetics(body.get("kinetics")),
         },
         "literature_training": train_literature(),
+        "canonical": canonical,
+        "multioutput": outputs,
+        "batch": batch,
         "multifidelity_luminescence": _multifidelity_block(
             result, mf_obs_rows, n_max
         ),
@@ -296,6 +338,17 @@ def _observations(
             raise SsdkLearnError(
                 f"observations[{index}].source must be a non-empty string"
             )
+        output = row.get("output", "luminescence")
+        if output not in (
+            "luminescence",
+            "locking_fraction",
+            "expression",
+            "solubility",
+            "purity",
+        ):
+            raise SsdkLearnError(
+                f"observations[{index}].output is not one of the five wet assays"
+            )
         parsed.append(
             Observation(
                 n_repeats=n_repeats,
@@ -312,6 +365,7 @@ def _observations(
                 "y": y,
                 "sigma": sigma_value,
                 "fidelity": int(fidelity),
+                "output": output,
                 "source": source.strip(),
             }
         )

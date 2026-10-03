@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-10-03 (canonical sklearn learner and five-output batch)
+
+### Added
+- Default `learner` on `POST /api/ssdk/learn` is `sklearn` (Matérn-2.5 residual). `design_engine` remains available. The response names `learner_family`, including `design_engine_fallback` when there is no wet luminescence row.
+- Separate two-fidelity GPs for luminescence, locking fraction, expression, solubility, and purity. An output with no row is omitted.
+- Feature row adds screw radius, three default module distances, linker RMS from the existing Kratky–Porod function, and CaM/M13 placement flags.
+- Greedy batch of 1–12 lengths. Solubility or purity below the placeholder lower-95% gate multiplies EI/cost by 0.25.
+- SSDK learn panel shows the family, the design-engine n beside it, and the batch.
+
 ## Unreleased — 2026-10-03 (judge page, model cards, API cheat sheet)
 
 ### Added

@@ -267,6 +267,19 @@ type MfCandidate = {
 type LearnReport = {
   next_n: number;
   gp_fitted: boolean;
+  learner_family?: string;
+  learner_requested?: string;
+  design_engine_next_n?: number;
+  multioutput?: {
+    overall_status: string;
+    omitted_outputs: string[];
+    placeholders_unmeasured: string[];
+    outputs: Record<string, { fitted: boolean; rows?: { n_repeats: number; mu: number; sigma: number; passes?: boolean }[] }>;
+  };
+  batch?: {
+    selected: { n_repeats: number; score: number; feasibility_weight: number }[];
+    reason: string;
+  };
   multifidelity_luminescence: {
     fitted: boolean;
     model_version: string;
@@ -383,6 +396,20 @@ function LearnLuminescencePanel() {
               Cost-weighted EI recommends n = {mf.recommended_evaluation.n_repeats} via{" "}
               {mf.recommended_evaluation.evaluation_type} (score{" "}
               {formatNumber(mf.recommended_evaluation.acquisition_score)}).
+            </p>
+          ) : null}
+          {learn?.learner_family ? (
+            <p>
+              Learner {learn.learner_requested} ran as {learn.learner_family}. Reported next n is{" "}
+              {learn.next_n}. Design-engine next n is {learn.design_engine_next_n}. Multi-output
+              status {learn.multioutput?.overall_status}. Omitted assays:{" "}
+              {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
+            </p>
+          ) : null}
+          {learn?.batch?.selected?.length ? (
+            <p>
+              Batch ({learn.batch.selected.length}):{" "}
+              {learn.batch.selected.map((item) => item.n_repeats).join(", ")}. {learn.batch.reason}
             </p>
           ) : null}
           <div className="overflow-x-auto">
