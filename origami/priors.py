@@ -265,7 +265,41 @@ FUSION_CAM_M13_CA_KD_M = Parameter(
     method="Secondhand citation of an in vitro Ca2+ affinity; sigma not printed",
     notes=(
         "Secondhand figure. Do not treat as a measurement read from Porumb 1994. "
-        "Not the free-peptide Kd in CAM_M13_KD_M. calibrated stays false."
+        "Not the free-peptide Kd in CAM_M13_KD_M. calibrated stays false. "
+        "Team 2026-10-04: keep 80 nM labelled secondhand. They report that "
+        "Porumb 1994 (same DOI) describes a biphasic Ca2+ profile spanning "
+        "pCa 4.8–7.4 with midpoint pCa50% = 6.3 (500 nM). That midpoint is "
+        "stored as PORUMB_1994_CAM_M13_HYBRID_PCA50_M and is not this slot. "
+        "ORIGAMI did not re-read the Porumb PDF in that update."
+    ),
+    provenance="literature_placeholder",
+    calibrated=False,
+)
+
+# Parameter: Porumb 1994 CaM–M13 hybrid Ca2+ midpoint (team reading)
+# Value: 500e-9
+# Units: M
+# Source: Porumb et al. (1994) Protein Eng 7:109-115, DOI 10.1093/protein/7.1.109,
+#         as restated by the team on 2026-10-04 (pCa50% = 6.3).
+# System: Xenopus laevis CaM-M13 hybrid
+# Method: team restatement of a printed midpoint; PDF not re-read in this commit
+# Notes: Not the 80 nM secondhand figure. Not used as recruitment Langmuir Kd.
+PORUMB_1994_CAM_M13_HYBRID_PCA50_M = Parameter(
+    name="porumb_1994_cam_m13_hybrid_pca50",
+    value=500e-9,
+    units="M",
+    sigma=None,
+    source=(
+        "Porumb et al. (1994) Protein Eng 7:109–115, "
+        "DOI: 10.1093/protein/7.1.109. Team restatement 2026-10-04: "
+        "biphasic pCa 4.8 to 7.4, midpoint pCa50% = 6.3 → 500 nM."
+    ),
+    system="Xenopus laevis CaM-M13 hybrid, Ca2+ binding profile (team reading)",
+    method="Team restatement of printed pCa50%. ORIGAMI did not re-parse the PDF.",
+    notes=(
+        "Recorded so the 80 nM secondhand figure is not mistaken for Porumb. "
+        "Recruitment occupancy still uses CAM_M13_KD_M (peptide Kd). "
+        "This value is not substituted into the Langmuir model. calibrated stays false."
     ),
     provenance="literature_placeholder",
     calibrated=False,
@@ -283,13 +317,12 @@ SPY_REVERSAL_SOURCE = (
 )
 
 # Parameter: recruitment kon for CaM–M13
-# Value: 1e6
+# Value: 1e6 (warned assumption). A 2e9 figure was stated 2026-10-04 with no DOI.
 # Units: M^-1 s^-1
-# Source: NONE. Team prior choice, 2026-10-02. Bayley 1996 does not print
-#         a single usable kon.
+# Source: NONE for both numbers.
 # System: assumed protein–peptide association
 # Method: assumption
-# Notes: Range stated by the team: 1e5 to 1e7. Not a measurement.
+# Notes: Range stated earlier by the team: 1e5 to 1e7. 2e9 is not installed.
 RECRUITMENT_KON_RANGE_PER_M_S = (1e5, 1e7)
 
 
@@ -297,12 +330,24 @@ def assumed_recruitment_kon_per_M_s() -> float | None:
     """Team assumption 1e6 M^-1 s^-1. Warns every call. Not a measurement."""
     warnings.warn(
         "recruitment kon = 1e6 M^-1 s^-1 is an unsourced prior choice "
-        "(stated range 1e5–1e7). Bayley 1996 does not print this number. "
-        "Do not use it for a wet-lab decision.",
+        "(stated range 1e5–1e7). A later claim of 2e9 M^-1 s^-1 had no DOI "
+        "and is not used. Do not use either number for a wet-lab decision.",
         UserWarning,
         stacklevel=2,
     )
     return 1.0e6
+
+
+def unsourced_cam_m13_peptide_kon_per_M_s() -> float | None:
+    """Refuse the 2e9 claim until a paper and DOI exist."""
+    warnings.warn(
+        "Ca4-CaM + M13 kon was stated as 2e9 M^-1 s^-1 with no citation. "
+        "ORIGAMI will not store that as a usable prior. "
+        "assumed_recruitment_kon_per_M_s still returns 1e6 with a warning.",
+        UserWarning,
+        stacklevel=2,
+    )
+    return None
 
 
 def derived_recruitment_koff_per_s() -> float | None:

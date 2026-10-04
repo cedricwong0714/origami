@@ -29,10 +29,17 @@ FEATURE_NAMES = (
 
 
 def module_indices(n_repeats: int) -> tuple[int, int, int]:
-    """Default placement: M13 at the first repeat, SpyCatcher mid, LgBiT at the last."""
+    """M13 graft, SpyCatcher N-term, LgBiT C-term. Indices are 0-based.
+
+    M13 is at ``(n+1)//2 - 1`` (the first of the two middle repeats when n is
+    even). That matches the team strings for n = 3, 8, and 14.
+    """
     if n_repeats < 1:
         raise ValueError("n_repeats must be >= 1")
-    return 0, n_repeats // 2, n_repeats - 1
+    i_m13 = (n_repeats + 1) // 2 - 1
+    i_spy = 0
+    i_lgbit = n_repeats - 1
+    return i_m13, i_spy, i_lgbit
 
 
 def module_distances_A(n_repeats: int) -> tuple[float, float, float]:
@@ -53,8 +60,8 @@ def ssdk_feature_vector(
     n_max: int,
     *,
     linker_rms_A: float = 0.0,
-    cam_on_scaffold: float = 1.0,
-    m13_on_scaffold: float = 0.0,
+    cam_on_scaffold: float = 0.0,
+    m13_on_scaffold: float = 1.0,
 ) -> np.ndarray:
     """One row per scaffold length. Distances are Å/100. Flags are 0 or 1."""
     report = structural_report(build_ctpr(n_repeats))

@@ -47,8 +47,12 @@ Scope decisions (user, 2026-10-02):
 | Plate versus frozen scaffold | `origami compare-plate`, optional `calcium_uM` | checksum, then within-interval against the frozen luminescence key. No calcium, or a quantity the plate does not measure, stays unscored |
 
 ## Open items that block a number
-- Fusion CaM-M13 apparent Ca2+ Kd **80 nM**: secondhand (Nagai 2014 citing Porumb 1994) in `FUSION_CAM_M13_CA_KD_M`. Not the free-peptide Kd.
-- Recruitment k_on **1e6 M-1 s-1**: explicit assumption with runtime warning; not a measurement.
+- Fusion CaM-M13 apparent Ca2+ Kd **80 nM**: secondhand (Nagai 2014 citing Porumb 1994) in `FUSION_CAM_M13_CA_KD_M`. Not used as Langmuir Kd. Team reading of Porumb 1994 midpoint pCa50% = 6.3 (500 nM) is stored as `PORUMB_1994_CAM_M13_HYBRID_PCA50_M` and is also not the recruitment Kd.
+- Recruitment k_on **1e6 M-1 s-1**: explicit assumption with runtime warning. A 2e9 M-1 s-1 peptide-association figure was stated without a DOI and is not installed.
+- Side-chain exclusion: remains **0 Å** (unsourced). Clash payload radius stays the 2BBM Cα sphere already in `payload_radii.json`.
+- Luminescence ODE parameter sigmas: vacant. Freeze band stays ±30% placeholder.
+- Spy k_rev / k_bond: vacant. Zakeri 2012: no reversal observed, no numeric k_rev.
+- Phillips calculator vs printed ΔG gap: pinned unexplained (0.5–5.0 kcal/mol at 10 °C).
 - Errey 2010 OtsA assay details: SI not retrieved. Out of lab scope.
 
 ## Dry-lab inputs the math chassis is waiting on (from the team)
@@ -56,7 +60,7 @@ Scope decisions (user, 2026-10-02):
 2. Group labels for the ablation (batch or construct names) and the planned replicate count per design.
 3. Assay noise or CV from the plate-reader specification, and a cost per experiment (hours or wells), for the replicate-versus-new and cost-aware ranking.
 4. Measured luminescence thresholds and assay CVs to replace placeholders in `active_learning_config.json`.
-5. A sourced side-chain exclusion radius, or approval to use a named van der Waals convention.
+5. A sourced side-chain exclusion radius, or approval to use a named van der Waals convention. Until then the code keeps 0 Å and the 2BBM-derived clash sphere.
 
 ## Resolved by literature
 - Phillips 2012 dCp: taken from Cortajarena and Regan 2011, DOI 10.1002/pro.564, Table I (dCp 0.7, 0.9, 0.9, 1.9, 2.7, 2.8 kcal mol-1 K-1 for CTPRa2, 3, 4, 6, 8, 10), measured in 150 mM NaCl, pH 6.8. Verified against the Phillips text: "dCp ... obtained from Regan and co-workers (ref. 20)". With these inputs the calculator gives dG(10 C) 0.5 to 5.0 kcal mol-1 above the printed values, so Phillips' exact inputs are not reproducible from the tables.

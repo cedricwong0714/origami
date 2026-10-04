@@ -110,9 +110,9 @@ CONSTRUCT_N_TO_C = (
 CONSTRUCT_N_VALUES = (3, 8, 14)
 
 # Team-supplied m13 loop position, counted from the SpyCatcher-side end.
-# Repeat 1 is index 0. These are not a fit and not a sequence.
-# n=3: 2nd repeat. n=8: 3rd repeat. n=14: 7th repeat.
-M13_GRAFT_1BASED: dict[int, int] = {3: 2, 8: 3, 14: 7}
+# Repeat 1 is index 0. Matches the pasted AA strings (graft inside that repeat).
+# n=3: 2nd repeat. n=8: 4th repeat. n=14: 7th repeat.
+M13_GRAFT_1BASED: dict[int, int] = {3: 2, 8: 4, 14: 7}
 
 
 def m13_graft_index(n_repeats: int) -> int | None:

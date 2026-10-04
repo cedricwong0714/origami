@@ -19,8 +19,33 @@ from origami.export.sbol import sbol_for_n
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_team_series_checksums_and_repeat_intent():
+def test_module_indices_match_team_graft():
+    from origami.ssdk.features import module_indices
+
+    assert module_indices(3) == (1, 0, 2)
+    assert module_indices(8) == (3, 0, 7)
+    assert module_indices(14) == (6, 0, 13)
+
+
+def test_fusion_kd_stays_secondhand_and_kon_unsourced():
+    from origami.priors import (
+        FUSION_CAM_M13_CA_KD_M,
+        PORUMB_1994_CAM_M13_HYBRID_PCA50_M,
+        assumed_recruitment_kon_per_M_s,
+        unsourced_cam_m13_peptide_kon_per_M_s,
+    )
+
+    assert FUSION_CAM_M13_CA_KD_M.value == 80e-9
+    assert FUSION_CAM_M13_CA_KD_M.calibrated is False
+    assert "Secondhand" in FUSION_CAM_M13_CA_KD_M.notes
+    assert PORUMB_1994_CAM_M13_HYBRID_PCA50_M.value == 500e-9
+    assert unsourced_cam_m13_peptide_kon_per_M_s() is None
+    assert assumed_recruitment_kon_per_M_s() == 1.0e6
+
+
+def test_camsol_method_doi_on_series():
     doc = load_series()
+    assert doc["camsol_method"]["doi"] == "10.1101/cshperspect.a033845"
     assert doc["calibrated"] is False
     lengths = {row["n_repeats"]: row["length_aa"] for row in doc["constructs"]}
     assert lengths == {3: 413, 8: 603, 14: 787}

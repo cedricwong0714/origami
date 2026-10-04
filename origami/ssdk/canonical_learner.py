@@ -29,7 +29,7 @@ WET_OUTPUTS = (
 
 
 def construct_flags(body: dict[str, Any] | None) -> dict[str, float]:
-    """Placement flags are metadata on the feature row. Defaults match CaM-on-scaffold."""
+    """Placement flags. Defaults match the wet architecture: CaM off scaffold, M13 grafted."""
     raw = body or {}
     linker = raw.get("linker_residues", 15)
     if isinstance(linker, bool) or not isinstance(linker, int) or linker < 1:
@@ -37,8 +37,8 @@ def construct_flags(body: dict[str, Any] | None) -> dict[str, float]:
     rms = float(np.sqrt(kratky_porod_mean_square_A(linker)))
     return {
         "linker_rms_A": rms,
-        "cam_on_scaffold": 1.0 if raw.get("cam_on_scaffold", True) else 0.0,
-        "m13_on_scaffold": 1.0 if raw.get("m13_on_scaffold", False) else 0.0,
+        "cam_on_scaffold": 1.0 if raw.get("cam_on_scaffold", False) else 0.0,
+        "m13_on_scaffold": 1.0 if raw.get("m13_on_scaffold", True) else 0.0,
     }
 
 

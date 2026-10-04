@@ -5,6 +5,6 @@
   "physics_score": "Ranking score (1 − clash probability) × log10(1 + C_eff / 1 mM). The 1 mM denominator is a ranking convention, not a measured Km.",
   "calibrated": "False until the team approves a wet dataset for a named claim. A green test run is not calibration.",
   "fidelity": "0 = dry (physics or computational score). 1 = wet plate y. CamSol is fidelity 0.",
-  "CamSol": "Sequence-based intrinsic solubility score from the CamSol method. Dry. Not a measured soluble fraction.",
+  "CamSol": "Sequence-based intrinsic solubility score (CamSol). Method: Sormanni & Vendruscolo 2019, DOI 10.1101/cshperspect.a033845. Dry. Not a measured soluble fraction.",
   "Phillips_Tm": "Melting temperature from the Phillips 2012 CTPRa DSC length model. Not a melt of the Spy–CTPR–LgBiT fusion."
 }

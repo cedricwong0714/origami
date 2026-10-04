@@ -59,8 +59,8 @@ def test_readings_follow_the_screw_and_do_not_call_phase_a_gap() -> None:
     assert "is a rigid screw" not in flexible
     assert "No m13 graft was named" in flexible
     grafted = " ".join(readings[8]["reading"])
-    assert "repeat 3 of 8" in grafted
-    assert "index 2" in grafted
+    assert "repeat 4 of 8" in grafted
+    assert "index 3" in grafted
     assert constructs[14]["m13_graft"]["repeat_index"] == 6
     assert readings[8]["reach"]["end_bow_A"] == (
         constructs[8]["end_junction"]["chord_A"] - constructs[8]["axial_span_A"]

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (CamSol citation, secondhand Kd, graft index)
+
+### Changed
+- CamSol scores cite Sormanni & Vendruscolo 2019 (DOI 10.1101/cshperspect.a033845). Scores stay dry.
+- Fusion 80 nM Ca2+ Kd stays secondhand. A team reading of Porumb 1994 pCa50% = 6.3 (500 nM) is stored separately and is not the Langmuir Kd.
+- A 2e9 M^-1 s^-1 CaM–M13 kon was stated without a DOI and is not installed. Recruitment kon remains the warned 1e6 assumption.
+- Clash still uses the 2BBM Cα sphere; ca_exclusion stays 0; Spy k_rev stays vacant; Phillips ΔG gap stays unexplained; ODE sigmas stay vacant.
+- M13 graft index for n = 8 is the 4th repeat (matches the pasted sequence). SpyCatcher is N-term and LgBiT is C-term on the SSDK feature distances. Default construct flags are CaM off scaffold, M13 grafted.
+
 ## Unreleased — 2026-10-04 (software interchange)
 
 ### Added
