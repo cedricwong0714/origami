@@ -123,9 +123,9 @@ def evaluate_affinity(
         "association_theta_at_c_eff_high": high,
         "association_holds": holds,
         "criterion": (
-            "Held means bound fraction at least 1/2. "
-            "That is Kd at or below the local effective concentration. "
-            "It is the Langmuir midpoint, not a cutoff from a paper."
+            "The ends stay together when at least half of them are bound. "
+            "That happens when your Kd is at or below the local concentration. "
+            "Half-bound is the usual meaning of a Kd. It is not a cutoff from a paper."
         ),
         "nanobit_theta": nano_theta,
         "nanobit_printed_kd_M": nano_kd,
@@ -262,21 +262,18 @@ def _verdict(
     spy_text = "not computed" if spy_half is None else f"{spy_half:.3e} s"
     if not holds:
         return (
-            f"Kd {kd_M:.3e} M is above the local concentration {c_eff:.3e} M, "
-            f"so the bound fraction is {theta:.3f}. "
-            "The two constructs are not held together at the Langmuir midpoint, "
-            "so this affinity does not drive LgBiT–SmBiT or SpyCatcher–SpyTag at this geometry."
+            f"Your Kd ({kd_M:.3e} M) is weaker than the local concentration ({c_eff:.3e} M). "
+            f"Only {theta:.0%} of the pairs stay together. "
+            "The reporter and the Spy lock are not driven at this length."
         )
     if drives_nano and drives_spy:
         return (
-            f"Kd {kd_M:.3e} M is at or below the local concentration {c_eff:.3e} M, "
-            f"so the bound fraction is {theta:.3f}. "
-            f"LgBiT–SmBiT occupancy at that concentration is {nano_text}. "
+            f"The ends stay together ({theta:.0%} bound). "
+            f"LgBiT–SmBiT occupancy is {nano_text}. "
             f"SpyCatcher–SpyTag half-life is {spy_text}."
         )
     return (
-        f"The affinity holds the constructs together (bound fraction {theta:.3f}). "
-        f"LgBiT–SmBiT occupancy at this local concentration is {nano_text}. "
-        f"SpyCatcher–SpyTag half-life is {spy_text}. "
-        "A payload is driven only when the association holds and that payload's own midpoint is met."
+        f"The ends stay together ({theta:.0%} bound). "
+        f"LgBiT–SmBiT occupancy is {nano_text}, below half. "
+        f"SpyCatcher–SpyTag half-life is {spy_text}."
     )

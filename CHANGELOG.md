@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (studio copy)
+
+### Changed
+- Studio page text is written as short intros, steps, and plain-language reads of the numbers.
+
 ## Unreleased — 2026-10-04 (Vercel + Render deploy)
 
 ### Added

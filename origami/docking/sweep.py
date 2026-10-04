@@ -29,10 +29,10 @@ from origami.priors import N_REPEATS_MAX, N_REPEATS_MIN
 from origami.stability.series import DEFAULT_OPERATING_TEMPERATURE_C
 
 _RANKING_RULE = (
-    "Among lengths whose calculated melting temperature is above the assay "
-    "temperature and whose association holds, the highest LgBiT–SmBiT "
-    "occupancy is marked. A tie takes the shorter scaffold. "
-    "The mark is this ranking rule. It is not a validated optimum."
+    "A length is marked when it stays folded at the assay temperature, "
+    "the two ends stay together, and the reporter occupancy is the highest in that group. "
+    "A tie keeps the shorter scaffold. "
+    "It is not a validated optimum."
 )
 
 

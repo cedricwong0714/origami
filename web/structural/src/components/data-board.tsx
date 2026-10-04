@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 import { fetchPrediction, fmt, type PredictResponse } from "@/lib/sa";
 
 const DEFAULT_LENGTHS = [3, 8, 14];
@@ -264,13 +265,30 @@ export function DataBoard() {
             Structural analysis · compare lengths
           </p>
           <h1 className="mt-2 font-heading text-4xl text-studio-foreground md:text-5xl">
-            End separation
+            How far apart are the ends?
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-studio-muted">
-            Compare lengths on the same screw. Dark bar: distance along the axis.
-            Orange bar: straight-line end distance, which is what docking uses as the chord.
-            Blue whisker: spread among the three crystal structures. Add a count from 3 to 24 to see whether a longer scaffold actually separates the ends.
-          </p>
+          <PageGuide
+            intro="This page compares end-to-end distance across scaffold lengths. Use it when you want the geometry, without the binding scores."
+            steps={[
+              "The chart starts with n = 3, 8, and 14.",
+              "Add another count from 3 to 24, or click a chip to remove it.",
+              "Read the dark bar and the orange bar for each length.",
+            ]}
+            read={[
+              "Dark bar: distance along the screw axis.",
+              "Orange bar: straight-line distance between the ends. Docking uses this as the chord.",
+              "Blue whisker: the spread among the three crystal structures.",
+              "A longer scaffold usually increases both bars. Check the chart instead of assuming that.",
+            ]}
+            rules={[
+              "These distances come from published CTPR crystals.",
+              "They are not a measurement of our fusion.",
+            ]}
+            next={[
+              "If the orange bar looks short, open Docking and check clash.",
+              "If you also care about folding and the reporter, open Choose a length.",
+            ]}
+          />
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge

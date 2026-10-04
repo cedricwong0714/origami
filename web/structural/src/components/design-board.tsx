@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 
 type SweepPoint = {
   n_repeats: number;
@@ -160,20 +161,37 @@ export function DesignBoard() {
         Structural analysis
       </p>
       <h1 className="mt-2 text-3xl font-semibold">Which length should the scaffold be?</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-        Every repeat count from 3 to 24 is scored with the same melt model and the same
-        affinity check. A length stays in the running when its calculated melting temperature
-        is above the assay temperature and the typed Kd or Ka holds the two docking sites
-        together. Among those lengths, the highest LgBiT–SmBiT occupancy is marked. SpyCatcher–SpyTag
-        half-life and clash are drawn on the same sweep so a short distance is not chosen
-        blindly. The mark is that ranking rule. It is not a validated optimum.
-      </p>
+      <PageGuide
+        intro="This page scores every scaffold length from 3 to 24 repeats. Use it to see which lengths stay folded, hold the two ends together, and light up the reporter."
+        steps={[
+          "Leave the Kd at 0.19 nM, or type the affinity you want to test.",
+          "Leave the graft blank to use the named M13 position. Type an index if you want a fixed second site.",
+          "Click Score every length.",
+          "Click a colored cell to read that length.",
+        ]}
+        read={[
+          "Melting temperature above 37 °C means the model still calls the scaffold folded at a typical E. coli assay.",
+          "Bound fraction is how often the two ends stay together. At or above 0.5, they hold.",
+          "LgBiT–SmBiT occupancy is how often the reporter is on at that same local concentration. Higher is brighter. 0.5 is half on.",
+          "Spy half-life is how long the covalent lock takes. Shorter is faster. Clash near 0 means the two payloads are unlikely to overlap.",
+        ]}
+        rules={[
+          "Green: folded, ends held, reporter at least half occupied.",
+          "Orange: folded and held, but the reporter stays mostly off.",
+          "Blue: folded, but the ends do not stay together.",
+          "The marked length is the green cell, or the orange cell with the highest reporter occupancy if none are green.",
+        ]}
+        next={[
+          "If only n = 3 is green, longer planned constructs will not turn the reporter on at this Kd.",
+          "Open Docking if you want one length in more detail.",
+          "Open Melting temperature if you want the fold curve on its own.",
+        ]}
+      />
 
       <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-6">
         <p className="text-sm text-studio-muted">
-          The box starts at the peptide Kd used by the bound-fraction model, 0.19 nM. Type
-          another Kd or Ka to ask a different affinity. Leave the graft blank to use each
-          length’s named M13 position, or the C-terminal repeat when that length has none.
+          Start with the peptide Kd, 0.19 nM. Change it if you want to test a tighter or looser sensor.
+          A blank graft uses each length’s named M13 site. Lengths without a named site use the last repeat.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           <label className="block text-sm font-medium">
@@ -351,8 +369,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">Melting temperature</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                The dashed line is the assay temperature, {assay} °C. A point above it passes
-                the fold comparison used everywhere else in the studio.
+                Dashed line: 37 °C. Above it, the model calls the scaffold folded.
               </p>
               <SeriesChart
                 label="Melting temperature versus repeat count"
@@ -380,9 +397,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">Does the association hold?</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Bound fraction at the local concentration. The dashed line is one half, the
-                Langmuir midpoint. At or above that line, the typed affinity holds the two
-                sites together.
+                Dashed line: half bound. At or above it, your Kd holds the two ends together.
               </p>
               <SeriesChart
                 label="Association bound fraction versus repeat count"
@@ -401,9 +416,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">Does that proximity drive LgBiT–SmBiT?</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Occupancy uses the printed LgBiT–SmBiT Kd at the same local concentration,
-                and only when the association holds. The dashed line is one half. A curve
-                along the bottom is far below the reporter.
+                Dashed line: half occupied. A line along the bottom means the reporter stays dark.
               </p>
               <SeriesChart
                 label="LgBiT–SmBiT occupancy versus repeat count"
@@ -422,8 +435,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">SpyCatcher–SpyTag half-life</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Point half-life is ln(2) divided by the on-rate times the local concentration.
-                The axis is logarithmic. A higher local concentration shortens this half-life.
+                Time for half of the Spy pairs to lock. The axis is log scale. Higher local concentration makes this shorter.
               </p>
               <SeriesChart
                 label="SpyCatcher–SpyTag half-life versus repeat count"
@@ -442,8 +454,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">Clash</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Probability that the SpyCatcher and LgBiT spheres overlap at this chord.
-                A length that holds the sites together can still clash.
+                Chance the SpyCatcher and LgBiT spheres overlap. Near zero is what you want.
               </p>
               <SeriesChart
                 label="Clash probability versus repeat count"

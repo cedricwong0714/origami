@@ -6,6 +6,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 import { PHILLIPS_PRINTED_DELTA_G_T_C } from "@/lib/thermo";
 import {
   CANONICAL_SERIES_ID,
@@ -465,16 +466,32 @@ export function StabilityBoard() {
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">Stability</p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-studio-foreground md:text-5xl">
-            Melting temperature
+            Will this length stay folded?
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-studio-muted">
-            The curve is melting temperature versus scaffold length. Run a repeat
-            count to read that length on the curve. Pass means the calculated melt
-            is above 37 °C, so the scaffold model is still folded at an E. coli
-            assay temperature. The fit is Phillips et al. 2012 CTPRa DSC
-            (DOI 10.1002/pro.2018). Lengths the paper did not measure are the same
-            curve extended, not a copied table cell.
-          </p>
+          <PageGuide
+            intro="This page estimates melting temperature from scaffold length. Use it to check whether a repeat count is still folded at 37 °C."
+            steps={[
+              "Type a repeat count from 3 to 24.",
+              "Click Run.",
+              "Read the melt, the 95% band, and pass or fail.",
+              "The orange curve is every length. The vertical line is the one you just ran.",
+            ]}
+            read={[
+              "Melting temperature is the model’s estimate of the unfold point, in °C. Higher sits further above the assay.",
+              "The grey lines are the 95% range of that fit. A wide band means the fit is less sure.",
+              "Unfolding ΔG is the length-model energy at the paper’s 10 °C anchor. It is not a temperature correction.",
+              "Pass means the calculated melt is above 37 °C.",
+            ]}
+            rules={[
+              "37 °C is an E. coli working temperature. It is not a temperature from the DSC paper.",
+              "Lengths the paper did not measure, including n = 14, are the same curve extended.",
+              "The fit is Phillips et al. 2012 CTPRa DSC.",
+            ]}
+            next={[
+              "If a length fails, do not build it for a 37 °C assay.",
+              "If it passes, open ΔG vs temperature when you need energy at another temperature.",
+            ]}
+          />
           <Link
             href="/stability/calculator"
             className="mt-4 inline-block text-sm font-medium text-studio-accent underline decoration-studio-border underline-offset-4 hover:decoration-studio-accent"
@@ -501,7 +518,7 @@ export function StabilityBoard() {
       <section className="mt-10 rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          37 °C is the assay line on the curve. It is an E. coli operating temperature, not a DSC setpoint. The dashed line on the plot is that cutoff.
+          The dashed line on the plot is 37 °C. That is the pass line.
         </p>
         <div className="mt-6 flex flex-wrap items-end gap-3">
           <label className="text-sm font-medium text-studio-foreground">
@@ -629,7 +646,7 @@ export function StabilityBoard() {
         <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-5" aria-label="Melting temperature versus length">
           <h2 className="font-heading text-2xl font-semibold">Melt versus repeat count</h2>
           <p className="mt-2 max-w-2xl text-sm text-studio-muted">
-            Orange is the calculated melt. Grey lines are the 95% band of the fit. Blue is 37 °C. A vertical mark is the length you just ran.
+            Orange: calculated melt. Grey: 95% range of the fit. Blue dashed line: 37 °C. Vertical mark: the length you just ran.
           </p>
           <SeriesChart
             label="Calculated melting temperature versus repeat count, with a 37 °C assay line"

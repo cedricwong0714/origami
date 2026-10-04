@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 
 type AffinityReport = {
   n_repeats: number;
@@ -176,13 +177,55 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
         Docking verification
       </p>
       <h1 className="mt-2 text-3xl font-semibold">
-        {pane === "affinity" ? "Does this affinity hold the constructs together?" : "Distance and clash"}
+        {pane === "affinity" ? "Will this Kd hold the two ends together?" : "How far apart are the ends?"}
       </h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-        {pane === "affinity"
-          ? "The screw turns a repeat count into a local concentration between the two docking sites. Your Kd or Ka is compared with that concentration. Bound fraction = local concentration / (local concentration + Kd). At or above one half, the constructs stay together, and the same concentration is applied to LgBiT–SmBiT and SpyCatcher–SpyTag. Use it to see whether a candidate affinity is tight enough for this length."
-          : "Straight-line distance between the two docking repeats on the screw, the chance those payloads clash, and the local concentration that distance produces. Radii are the deposited SpyCatcher and LgBiT sizes. Use it to see how length changes proximity."}
-      </p>
+      {pane === "affinity" ? (
+        <PageGuide
+          intro="This page checks one scaffold length and one Kd or Ka. Use it when you already have a length in mind and want to know if the sensor is tight enough."
+          steps={[
+            "Type a repeat count from 3 to 24.",
+            "Pick Kd or Ka, then type the value and the unit.",
+            "Click Run.",
+            "Read the verdict, then the ruler under it.",
+          ]}
+          read={[
+            "Local concentration is how crowded the two ends are on this scaffold. It comes from the screw distance and the payload sizes.",
+            "Bound fraction is local concentration divided by local concentration plus your Kd. 0.5 means half the pairs are together.",
+            "LgBiT–SmBiT occupancy uses the published reporter Kd at that same local concentration. Near zero means the reporter stays off.",
+            "Spy half-life is how long the covalent lock takes at that concentration. Clash is the chance the two spheres overlap.",
+          ]}
+          rules={[
+            "The ends hold when your Kd is at or below the local concentration.",
+            "The reporter is driven only if the ends hold and its occupancy is at least 0.5.",
+            "The Spy lock is scored only when the ends hold.",
+          ]}
+          next={[
+            "If the ends do not hold, try a tighter Kd or a shorter length.",
+            "If they hold but the reporter is near zero, the sensor is tight enough and the reporter still is not. Open Choose a length to see if any length fixes that.",
+          ]}
+        />
+      ) : (
+        <PageGuide
+          intro="This page shows the straight-line distance between the two docking sites, and whether the payloads are likely to bump into each other."
+          steps={[
+            "Type a repeat count from 3 to 24.",
+            "Click Run.",
+            "Read the chord, the clash chance, and the local concentration.",
+          ]}
+          read={[
+            "The chord is the straight-line distance between the two sites, in angstroms.",
+            "The blue segment is the low end of the 95% range up to that distance.",
+            "Local concentration falls as the chord gets longer. Clash near zero means the spheres barely overlap.",
+          ]}
+          rules={[
+            "Radii are the deposited SpyCatcher and LgBiT sizes.",
+            "A missing radius would stop the clash calculation. These defaults are filled in.",
+          ]}
+          next={[
+            "Take a chord that looks usable into the affinity check on the other docking tab.",
+          ]}
+        />
+      )}
 
       <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-6">
         <label className="block text-sm font-medium">
@@ -256,7 +299,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             nanoKd={affinity.nanobit_printed_kd_M}
           />
           <p className="mt-2 text-sm text-studio-muted">
-            On this log scale, your Kd has to sit at or left of the local concentration to hold the constructs together. The LgBiT–SmBiT Kd shows how much higher that local concentration would need to be to occupy the reporter.
+            On this log scale, your Kd has to sit at or left of the local concentration. The reporter Kd is usually far to the right, which is why occupancy stays low.
           </p>
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
@@ -330,7 +373,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
               {geometry.docking.chord_95_high_A.toFixed(0)} Å
             </text>
           </svg>
-          <p className="mt-1 text-sm text-studio-muted">Orange dot: straight-line distance. Blue: from the low end of the 95% band to that distance.</p>
+          <p className="mt-1 text-sm text-studio-muted">Orange dot: the distance. Blue: the low end of the 95% range up to that distance.</p>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-studio-label">Repeats</dt>

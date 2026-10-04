@@ -5,6 +5,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 import {
   fetchKineticsSchema,
   simulateCovalent,
@@ -169,15 +170,76 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <header className="mb-8">
         <p className="text-sm uppercase tracking-wide text-studio-label">Kinetic modelling</p>
         <h1 className="mt-1 text-3xl font-semibold">
-          {pane === "spy" ? "SpyCatcher–SpyTag" : pane === "nanobit" ? "LgBiT–SmBiT" : "Bound fraction"}
+          {pane === "spy" ? "How fast does SpyCatcher lock?" : pane === "nanobit" ? "Does LgBiT–SmBiT assemble?" : "How much of the sensor is bound?"}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          {pane === "spy"
-            ? "Mass-action time course for the covalent lock in a well-mixed solution. The curve is adduct versus time at the concentrations you type. Use it to see whether the lock finishes inside an assay window."
-            : pane === "nanobit"
-              ? "Reversible mass-action time course for LgBiT and SmBiT in a well-mixed solution. The curve is complex versus time. Use it to see whether the reporter assembles at the concentrations you type."
-              : "Langmuir isotherm for the CaM–M13 sensor. The curve is the fraction of sites occupied versus free concentration. The dot is the concentration you run. Use it to see whether that concentration saturates the sensor or sits on the slope."}
-        </p>
+        {pane === "spy" ? (
+          <PageGuide
+            intro="This page runs the SpyCatcher–SpyTag lock in a well-mixed tube. Use it to see if the covalent link finishes during your assay."
+            steps={[
+              "Check the on-rate. The published value is already filled in.",
+              "Type the two concentrations you will actually mix.",
+              "Click Run.",
+              "Read the adduct curve against time.",
+            ]}
+            read={[
+              "The curve is locked product versus time.",
+              "A curve that levels off inside your assay window means the lock finishes in time.",
+              "A curve that is still climbing at the end of the plot needs a longer incubation or higher concentration.",
+            ]}
+            rules={[
+              "The default path is one irreversible step. The reverse rate and the bond rate stay empty until you supply both.",
+              "This is a mixed solution. It is not the local concentration on the scaffold.",
+            ]}
+            next={[
+              "If the lock is too slow here, it will be even slower on a long scaffold. Check Choose a length for the tethered half-life.",
+            ]}
+          />
+        ) : pane === "nanobit" ? (
+          <PageGuide
+            intro="This page runs LgBiT and SmBiT binding in a well-mixed tube. Use it to see if the reporter assembles at the concentrations you will use."
+            steps={[
+              "Type the LgBiT and SmBiT concentrations.",
+              "Click Run.",
+              "Read complex versus time.",
+            ]}
+            read={[
+              "The curve is reporter complex versus time.",
+              "The printed Kd is 190 μM. k_off divided by k_on is shown beside it and is not swapped in.",
+              "A low plateau means most of the protein stays apart at those concentrations.",
+            ]}
+            rules={[
+              "This is reversible binding in free solution.",
+              "It does not use the scaffold’s local concentration. Docking does that.",
+            ]}
+            next={[
+              "If free solution looks dark, the scaffold has to raise the local concentration a lot before the reporter turns on. Check Choose a length.",
+            ]}
+          />
+        ) : (
+          <PageGuide
+            intro="This page shows how much of the CaM–M13 sensor is bound at a free concentration you choose. Use it before you pick a working concentration."
+            steps={[
+              "Look at the filled-in Kd. Empty rate rows stay empty.",
+              "Type a free concentration in molar.",
+              "Click Run bound fraction.",
+              "Find your concentration on the curve.",
+            ]}
+            read={[
+              "Bound fraction is free concentration divided by free concentration plus Kd.",
+              "The peptide Kd is 0.19 nM. The 80 nM fusion number is a different measurement and is not used here.",
+              "The shaded range on the point comes from the uncertainty on that Kd.",
+              "Near 1 means the sensor is saturated. Near 0.5 means you are at the Kd. Near 0 means almost nothing is bound.",
+            ]}
+            rules={[
+              "Higher free concentration binds more sensor.",
+              "This is well mixed. It is not the concentration between the two ends of the scaffold.",
+            ]}
+            next={[
+              "If you are on the steep part of the curve, small concentration errors will change the signal a lot.",
+              "Take a concentration you trust into the docking page if you want the scaffold version.",
+            ]}
+          />
+        )}
       </header>
 
       {error ? (
@@ -198,7 +260,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
         <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
           <h2 className="text-lg font-medium">Rates</h2>
           <p className="mt-1 text-sm text-studio-muted">
-            Published values are filled in. Empty rows stay empty until you measure them.
+            Published numbers are already filled in. Leave a row blank if you have not measured it.
           </p>
           <ul className="mt-4 space-y-3">
             {schema.rate_slots.map((slot) => (
@@ -223,7 +285,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">Bound fraction</h2>
         <p className="mt-1 text-sm text-studio-muted">
-          θ = C_free / (C_free + Kd). Kd is the peptide value 0.19 nM. The 80 nM fusion figure is not this isotherm. The band on the single point comes from the uncertainty on that Kd.
+          Bound fraction = free concentration / (free concentration + Kd). The Kd here is the peptide value, 0.19 nM. Do not type the 80 nM fusion number into this box.
         </p>
         <label className="mt-4 block text-sm">
           C<sub>free</sub> (M)

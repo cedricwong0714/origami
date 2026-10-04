@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 
 const ScrewView = dynamic(() => import("@/components/screw-view").then((mod) => mod.ScrewView), {
   ssr: false,
@@ -182,11 +183,29 @@ export function StructuralStudio() {
             Hong Kong team · ISEF 2026 · ORIGAMI
           </p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-studio-foreground md:text-5xl">
-            CTPR screw
+            Where do the ends sit?
           </h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-studio-muted">
-            This is the geometric model of the scaffold. A repeat count is placed on the deposited CTPR screw (PDB 2AVP, 2HYZ, 2FO7) so you can see graft position, end-to-end distance, and which way the ends face. SpyCatcher, the linkers, and LgBiT are not in the trace. Use the shape before you score stability or docking.
-          </p>
+          <PageGuide
+            intro="This page draws the CTPR screw for a repeat count you choose. Use it to see where the M13 graft sits and how far the two ends are."
+            steps={[
+              "Pick n = 3, 8, or 14, or run another count in the panel below.",
+              "Drag the model to orbit it. Scroll to zoom.",
+              "Blue is the SpyCatcher end. Orange is the M13 graft. Brown is the other end.",
+            ]}
+            read={[
+              "The pale tube is the protein backbone trace from deposited CTPR crystals.",
+              "Distances on screen are not angstroms until you read the numbers under the model.",
+              "SpyCatcher, the flexible linkers, and LgBiT are labels only. They are not drawn in the trace.",
+            ]}
+            rules={[
+              "Named grafts: repeat 2 of n = 3, repeat 4 of n = 8, repeat 7 of n = 14.",
+              "This is a geometric model of published screws. It is not a structure of our fusion.",
+            ]}
+            next={[
+              "Open Compare lengths if you want the end distances as a bar chart.",
+              "Open Choose a length if you want fold, binding, and reporter on the same sweep.",
+            ]}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge
@@ -244,7 +263,7 @@ export function StructuralStudio() {
             <CardContent className="space-y-3">
               <ScrewView scene={scene} selected={site} />
               <p className="text-xs text-studio-muted">
-                Pale tube: Cα trace. Blue sphere: SpyCatcher-side end. Orange sphere: m13 graft. Brown sphere: C-end. The model rotates on its own. Drag to orbit, scroll to zoom.
+                Drag to orbit. Scroll to zoom. Pixel distance on screen is not angstroms.
               </p>
             </CardContent>
           </Card>
@@ -258,9 +277,7 @@ export function StructuralStudio() {
           </p>
           <ConstructStrip labels={data?.n_to_c ?? ["FL", "rigid_spacer", "rigid_spacer", "FL", "SpyCatcher", "CTPR", "flx", "flx", "flx", "LgBiT"]} />
           <p className="text-sm text-studio-muted">
-            Only the orange CTPR block is in this model. SpyCatcher, the three
-            flexible linkers, and LgBiT are labels. The M13 peptide sits on
-            repeat 2 of n = 3, repeat 4 of n = 8, and repeat 7 of n = 14.
+            Only the orange CTPR block is modeled. The M13 peptide sits on repeat 2 (n = 3), repeat 4 (n = 8), or repeat 7 (n = 14).
           </p>
         </CardContent>
       </Card>

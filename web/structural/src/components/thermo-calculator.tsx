@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StudioNav } from "@/components/studio-nav";
+import { PageGuide } from "@/components/page-guide";
 import { CANONICAL_SERIES_ID, SERIES_COPY, TEAM_LENGTHS } from "@/lib/stability";
 import {
   CURVE_LABEL,
@@ -532,17 +533,32 @@ export function ThermoCalculator() {
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">Stability</p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-studio-foreground md:text-5xl">
-            Unfolding energy vs temperature
+            How stable is it at another temperature?
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-studio-muted">
-            Turn a melting temperature into unfolding energy at the temperature you care about.
-            At the melt, ΔG is 0 for a two-state transition. Away from the melt, the curve needs
-            ΔHcal and ΔCp, or an anchor ΔG under the explicit assumption ΔCp = 0.
-            When the paper has a row, those values start the calculation. When it does not,
-            the length model supplies the melt and the anchor. With the stored heat-capacity
-            values, calculated ΔG at 10 °C sits 0.5–5.0 kcal/mol above the printed number.
-            That gap is unexplained. This is not a melt of our fusion.
-          </p>
+          <PageGuide
+            intro="This page turns a melting temperature into unfolding energy at the temperature you care about. Use it when 37 °C is not the only temperature you will run."
+            steps={[
+              "Pick a repeat count from 3 to 24.",
+              "Check the melt and the anchor energy. They fill in from the paper when a row exists, and from the length model when it does not.",
+              "Type ΔH and ΔCp only if you have them. Leave them blank if you do not.",
+              "Read ΔG at the melt first. It should be zero for a two-state unfold.",
+            ]}
+            read={[
+              "ΔG is unfolding energy. At the melting temperature it is zero.",
+              "Away from the melt, the curve needs ΔH at the melt and a heat capacity change, ΔCp.",
+              "If you only have an anchor ΔG, the page can estimate an effective ΔH by assuming ΔCp is zero. That estimate is labeled as an assumption.",
+              "With the stored heat-capacity values, calculated ΔG at 10 °C sits 0.5–5.0 kcal/mol above the printed number. That gap is still unexplained.",
+            ]}
+            rules={[
+              "A paper cell is used when one exists. A missing cell is not left blank.",
+              "Switching units does not convert a number you already typed.",
+              "These curves are calculations. They are not a melt of our fusion.",
+            ]}
+            next={[
+              "If ΔH and ΔCp are empty, do not treat the temperature curve as measured.",
+              "Use the melting-temperature page when you only need pass or fail at 37 °C.",
+            ]}
+          />
         </div>
         <Badge
           className="rounded-full bg-studio-button text-studio-button-text"
@@ -556,7 +572,7 @@ export function ThermoCalculator() {
         <section className="rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
           <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
           <p className="mt-2 text-sm leading-relaxed text-studio-muted">
-            The melt and the anchor start from a paper row when one exists, and from the length model when it does not. ΔHcal and ΔCp stay empty until you type them, because the curve away from the melt is not invented.
+            The melt and the anchor fill in for you. ΔH and ΔCp stay empty until you type them.
           </p>
 
           <div className="mt-8 rounded-xl border border-studio-border bg-studio-surface p-4">
