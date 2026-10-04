@@ -263,10 +263,12 @@ with tab_bind:
                 f"k_off/k_on {rates.get('kinetic_kd_M')}. Printed Kd {rates.get('printed_kd_M')} M."
             )
         series = (result.get("series") or {}) if isinstance(result.get("series"), dict) else {}
-        if series.get("time_s") and series.get("adduct_M"):
+        times = result.get("time_s") or series.get("time_s")
+        adduct = series.get("adduct_M")
+        if times and adduct:
             fig = go.Figure()
             fig.add_trace(
-                go.Scatter(x=series["time_s"], y=series["adduct_M"], mode="lines", name="Adduct (M)")
+                go.Scatter(x=times, y=adduct, mode="lines", name="Adduct (M)")
             )
             fig.update_layout(
                 xaxis_title="Time (s)",
