@@ -102,7 +102,8 @@ CLI: `origami ssdk chassis`, `origami ssdk learn`, and `origami ssdk learn-plate
 | POST | `/api/export/pdb` | `{pdb_text}` C-alpha Rg; does not replace the screw |
 | GET | `/api/export/benchmark` | File and exporter self-test |
 | POST | `/api/export/synthetic` | Labelled dry fixtures |
-| GET | `/api/export/tooltips` | Plain-language parameter notes |
+| POST | `/api/literature/doi` | `{doi}` Crossref metadata; Europe PMC abstract if present |
+| POST | `/api/literature/search` | `{query}` titles only; `usable_as_prior: false` |
 | POST | `/api/export/plate-report` | Markdown residuals vs frozen scaffolds |
 
 CLI: `origami export-genbank --n-repeats 8`, `origami export-sbol`, `origami export-sbml --json-body`, `origami passport`, `origami benchmark`.

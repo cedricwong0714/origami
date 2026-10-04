@@ -1,0 +1,30 @@
+{
+  "doi": "10.1021/acschembio.5b00753",
+  "title": "NanoLuc Complementation Reporter Optimized for Accurate\nMeasurement of Protein Interactions in Cells",
+  "authors": [
+    "Andrew S. Dixon",
+    "Marie K. Schwinn",
+    "Mary P. Hall",
+    "Kris Zimmerman",
+    "Paul Otto",
+    "Thomas H. Lubben",
+    "Braeden L. Butler",
+    "Brock F. Binkowski",
+    "Thomas Machleidt",
+    "Thomas A. Kirkland",
+    "Monika G. Wood",
+    "Christopher T. Eggers",
+    "Lance P. Encell",
+    "Keith V. Wood"
+  ],
+  "container": "ACS Chemical Biology",
+  "year": 2015,
+  "type": "journal-article",
+  "abstract": "<jats:title>Abstract</jats:title>\n                  <jats:p>Protein-fragment complementation assays (PCAs) are widely used for investigating protein interactions. However, the fragments used are structurally compromised and have not been optimized nor thoroughly characterized for accurately assessing these interactions. We took advantage of the small size and bright luminescence of NanoLuc to engineer a new complementation reporter (NanoBiT). By design, the NanoBiT subunits (i.e., 1.3 kDa peptide, 18 kDa polypeptide) weakly associate so that their assembly into a luminescent complex is dictated by the interaction characteristics of the target proteins onto which they are appended. To ascertain their general suitability for measuring interaction affinities and kinetics, we determined that their intrinsic affinity (KD = 190 \u03bcM) and association constants (kon = 500 M\u20131 s\u20131, koff = 0.2 s\u20131) are outside of the ranges typical for protein interactions. The accuracy of NanoBiT was verified under defined biochemical conditions using the previously characterized interaction between SME-1 \u03b2-lactamase and a set of inhibitor binding proteins. In cells, NanoBiT fusions to FRB/FKBP produced luminescence consistent with the linear characteristics of NanoLuc. Response dynamics, evaluated using both protein kinase A and \u03b2-arrestin-2, were rapid, reversible, and robust to temperature (21\u201337 \u00b0C). Finally, NanoBiT provided a means to measure pharmacology of kinase inhibitors known to induce the interaction between BRAF and CRAF. Our results demonstrate that the intrinsic properties of NanoBiT allow accurate representation of protein interactions and that the reporter responds reliably and dynamically in cells.</jats:p>",
+  "url": "https://doi.org/10.1021/acschembio.5b00753",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Protein-fragment complementation assays (PCAs) are widely used for investigating protein interactions. However, the fragments used are structurally compromised and have not been optimized nor thoroughly characterized for accurately assessing these interactions. We took advantage of the small size and bright luminescence of NanoLuc to engineer a new complementation reporter (NanoBiT). By design, the NanoBiT subunits (i.e., 1.3 kDa peptide, 18 kDa polypeptide) weakly associate so that their assembly into a luminescent complex is dictated by the interaction characteristics of the target proteins onto which they are appended. To ascertain their general suitability for measuring interaction affinities and kinetics, we determined that their intrinsic affinity (KD = 190 \u03bcM) and association constants (kon = 500 M(-1) s(-1), koff = 0.2 s(-1)) are outside of the ranges typical for protein interactions. The accuracy of NanoBiT was verified under defined biochemical conditions using the previously characterized interaction between SME-1 \u03b2-lactamase and a set of inhibitor binding proteins. In cells, NanoBiT fusions to FRB/FKBP produced luminescence consistent with the linear characteristics of NanoLuc. Response dynamics, evaluated using both protein kinase A and \u03b2-arrestin-2, were rapid, reversible, and robust to temperature (21-37 \u00b0C). Finally, NanoBiT provided a means to measure pharmacology of kinase inhibitors known to induce the interaction between BRAF and CRAF. Our results demonstrate that the intrinsic properties of NanoBiT allow accurate representation of protein interactions and that the reporter responds reliably and dynamically in cells.",
+  "pmid": "26569370",
+  "pmcid": null
+}

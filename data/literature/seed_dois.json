@@ -1,0 +1,15 @@
+{
+  "version": "literature-seed-0.1",
+  "calibrated": false,
+  "note": "DOIs already used in ORIGAMI priors or supplied by the team. Fetching metadata does not calibrate them.",
+  "dois": [
+    "10.1101/cshperspect.a033845",
+    "10.1093/protein/7.1.109",
+    "10.3389/fnmol.2014.00090",
+    "10.1021/bi060857u",
+    "10.1073/pnas.1115485109",
+    "10.1021/acschembio.5b00753",
+    "10.1002/pro.2018",
+    "10.1002/pro.564"
+  ]
+}

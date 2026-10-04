@@ -1,0 +1,20 @@
+{
+  "doi": "10.1093/protein/7.1.109",
+  "title": "A calmodulin-target peptide hybrid molecule with unique calcium-binding properties",
+  "authors": [
+    "Tudor Porumb",
+    "Patrick Yau",
+    "Timothy S. Harvey",
+    "Mitsuhiko Ikura"
+  ],
+  "container": "\"Protein Engineering, Design and Selection\"",
+  "year": 1994,
+  "type": "journal-article",
+  "abstract": null,
+  "url": "https://doi.org/10.1093/protein/7.1.109",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "This paper describes the production and properties of a hybrid protein comprising the full length of the Xenopus laevis calmodulin (CaM) sequence, followed, through a glycylglycine linker, by the 26-residue CaM-binding region of myosin light-chain kinase (M13). This hybrid molecule appears to have high thermal stability (Tm > 75 degrees C in the presence of Ca2+) as well as unusual Ca(2+)-binding properties: (i) a wide-range biphasic Ca(2+)-binding response (extending over pCa 4.8-7.4) and (ii) a high apparent binding constant (pCa50% = 6.3, a 10-fold increase from that of wild-type CaM). NMR and CD data indicate that the CaM-M13 hybrid molecule exists in equilibrium in an approximate 1:1 ratio between two major conformations, one of which is similar to the compact globular structure of the CaM-M13 complex [M.Ikura, G.M. Clore, A.M. Gronenborn, G. Zhu, C.B. Klee and A. Bax (1992) Science, 256, 632-638] and the other to the dumb-bell-like structure of the wild type CaM [Y.S. Babu, C.E. Bugg and W.J. Cook (1988) J. Mol. Biol., 204, 191-204]. The biphasic Ca(2+)-binding curve can be interpreted using a linear combination of two Hill binding curves with significantly different dissociation constants (2 x 10(-9) M and 8 x 10(-8) M), which can be attributed to the two conformations in equilibrium. The present study has opened an avenue to engineer proteins with higher Ca(2+)-binding affinities using the known CaM structures as a template.",
+  "pmid": "8140087",
+  "pmcid": null
+}

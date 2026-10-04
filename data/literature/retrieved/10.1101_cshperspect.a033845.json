@@ -1,0 +1,18 @@
+{
+  "doi": "10.1101/cshperspect.a033845",
+  "title": "Protein Solubility Predictions Using the CamSol Method in the Study of Protein Homeostasis",
+  "authors": [
+    "Pietro Sormanni",
+    "Michele Vendruscolo"
+  ],
+  "container": "Cold Spring Harbor Perspectives in Biology",
+  "year": 2019,
+  "type": "journal-article",
+  "abstract": null,
+  "url": "https://doi.org/10.1101/cshperspect.a033845",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "One of the major functions of the protein homeostasis system is to maintain proteins in their soluble states, and indeed several human disorders are associated with the aberrant aggregation of proteins. An active involvement of the protein homeostasis system is necessary to avoid aggregation because proteins are expressed at levels close to their solubility limits, hence being poorly soluble. The mechanisms by which the protein homeostasis system acts to control protein aggregation are, however, still not known in much detail. To facilitate systematic investigations of these mechanisms, we describe here the CamSol method of predicting protein solubility, and illustrate its initial applications. We anticipate that with the advent of powerful proteomics and transcriptomic methods, in combination with the use of the CamSol method and related approaches to predict the solubility and other biophysical properties of proteins, it will become possible to increase our understanding of the principles of protein homeostasis related to the maintenance of the proteome in its soluble form.",
+  "pmid": "30833455",
+  "pmcid": "PMC6886446"
+}

@@ -482,6 +482,50 @@ def _cmd_batch_chassis(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_fetch_literature(args: argparse.Namespace) -> int:
+    import json
+    from pathlib import Path
+
+    from origami.literature.fetch import (
+        LiteratureFetchError,
+        fetch_and_store,
+        search_crossref,
+    )
+
+    try:
+        if args.seed:
+            seed = json.loads(
+                Path("data/literature/seed_dois.json").read_text(encoding="utf-8")
+            )
+            records = []
+            for doi in seed["dois"]:
+                records.append(fetch_and_store(str(doi)))
+            print(json.dumps({"calibrated": False, "records": records}, indent=2))
+            return 0
+        if args.doi:
+            print(json.dumps(fetch_and_store(args.doi), indent=2))
+            return 0
+        if args.query:
+            hits = search_crossref(args.query, rows=args.rows)
+            print(
+                json.dumps(
+                    {
+                        "calibrated": False,
+                        "usable_as_prior": False,
+                        "query": args.query,
+                        "hits": hits,
+                    },
+                    indent=2,
+                )
+            )
+            return 0
+    except (LiteratureFetchError, OSError, json.JSONDecodeError, KeyError) as exc:
+        print(f"fetch-literature failed: {exc}", file=sys.stderr)
+        return 2
+    print("fetch-literature needs --doi, --query, or --seed", file=sys.stderr)
+    return 2
+
+
 def _cmd_compare_plate(args: argparse.Namespace) -> int:
     """Score a plate CSV against the checksummed scaffold freezes."""
     import hashlib
@@ -730,6 +774,16 @@ def main() -> None:
     batch = sub.add_parser("batch-chassis", help="Chassis table from a CSV of n_repeats")
     batch.add_argument("csv")
     batch.set_defaults(func=_cmd_batch_chassis)
+
+    lit = sub.add_parser(
+        "fetch-literature",
+        help="Fetch Crossref/Europe PMC metadata for a DOI or search (no PDFs, no priors)",
+    )
+    lit.add_argument("--doi", default=None)
+    lit.add_argument("--query", default=None)
+    lit.add_argument("--rows", type=int, default=5)
+    lit.add_argument("--seed", action="store_true", help="Fetch data/literature/seed_dois.json")
+    lit.set_defaults(func=_cmd_fetch_literature)
 
     ablate = sub.add_parser(
         "ablation",

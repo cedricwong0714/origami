@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (literature metadata fetch)
+
+### Added
+- `origami fetch-literature` and `/api/literature/doi` + `/api/literature/search` pull Crossref bibliographic records and Europe PMC abstracts when present. Publisher PDFs are not downloaded. Search hits are not installed as priors.
+
 ## Unreleased — 2026-10-04 (CamSol citation, secondhand Kd, graft index)
 
 ### Changed

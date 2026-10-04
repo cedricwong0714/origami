@@ -246,10 +246,10 @@ CAM_M13_KD_M = Parameter(
 #         Protein Eng 7:109-115, DOI 10.1093/protein/7.1.109.
 # System: CaM–M13 fusion linked by two amino acids (GECI / cameleon context)
 # Method: review restatement of an in vitro affinity; not re-measured here
-# Notes: Secondhand. The number "80 nM" is printed in Nagai 2014, which
-#        attributes it to Porumb 1994. It was not read in Porumb itself.
-#        It is an apparent Ca2+ affinity of the fusion, not the peptide Kd
-#        (CAM_M13_KD_M = 0.19 nM) and not a binding Kd of CaM for M13.
+# Notes: Secondhand as a single Kd. Europe PMC abstract for Porumb 1994
+#        (retrieved 2026-10-04, PMID 8140087) prints pCa50% = 6.3 and a
+#        biphasic fit with two Hill Kds: 2e-9 M and 8e-8 M. 80 nM is the
+#        second of those two, not a unique calibration cell. Not the peptide Kd.
 FUSION_CAM_M13_CA_KD_M = Parameter(
     name="fusion_cam_m13_ca_kd",
     value=80e-9,
@@ -266,11 +266,12 @@ FUSION_CAM_M13_CA_KD_M = Parameter(
     notes=(
         "Secondhand figure. Do not treat as a measurement read from Porumb 1994. "
         "Not the free-peptide Kd in CAM_M13_KD_M. calibrated stays false. "
-        "Team 2026-10-04: keep 80 nM labelled secondhand. They report that "
-        "Porumb 1994 (same DOI) describes a biphasic Ca2+ profile spanning "
-        "pCa 4.8–7.4 with midpoint pCa50% = 6.3 (500 nM). That midpoint is "
-        "stored as PORUMB_1994_CAM_M13_HYBRID_PCA50_M and is not this slot. "
-        "ORIGAMI did not re-read the Porumb PDF in that update."
+        "Team 2026-10-04: keep 80 nM labelled secondhand as a single number. "
+        "Europe PMC abstract PMID 8140087 (retrieved 2026-10-04) prints "
+        "pCa50% = 6.3 and two Hill Kds, 2e-9 M and 8e-8 M. "
+        "8e-8 M is 80 nM as one component of a biphasic curve, not a unique Kd. "
+        "PORUMB_1994_CAM_M13_HYBRID_PCA50_M stores the 500 nM midpoint. "
+        "Neither value is the recruitment Langmuir Kd."
     ),
     provenance="literature_placeholder",
     calibrated=False,
@@ -295,7 +296,7 @@ PORUMB_1994_CAM_M13_HYBRID_PCA50_M = Parameter(
         "biphasic pCa 4.8 to 7.4, midpoint pCa50% = 6.3 → 500 nM."
     ),
     system="Xenopus laevis CaM-M13 hybrid, Ca2+ binding profile (team reading)",
-    method="Team restatement of printed pCa50%. ORIGAMI did not re-parse the PDF.",
+    method="Europe PMC abstract PMID 8140087, retrieved 2026-10-04; pCa50% = 6.3",
     notes=(
         "Recorded so the 80 nM secondhand figure is not mistaken for Porumb. "
         "Recruitment occupancy still uses CAM_M13_KD_M (peptide Kd). "

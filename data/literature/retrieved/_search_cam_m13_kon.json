@@ -1,0 +1,131 @@
+{
+  "query": "calmodulin M13 peptide association rate constant",
+  "usable_as_prior": false,
+  "calibrated": false,
+  "hits": [
+    {
+      "doi": "10.1016/j.bpj.2023.11.1833",
+      "title": "Small GTPase Ras fused with M13 peptide which is controlled by calmodulin ionochromically",
+      "authors": [
+        "Ziyun Zhang",
+        "Yassine Sabek",
+        "Shinsaku Maruta"
+      ],
+      "year": 2024,
+      "container": "Biophysical Journal",
+      "url": "https://doi.org/10.1016/j.bpj.2023.11.1833",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.1016/j.bpj.2024.11.3272",
+      "title": "BPS2025 - Ion-control of small G protein RAS by fusion with calmodulin and M13 peptide",
+      "authors": [
+        "Ziyun Zhang",
+        "Nobuyuki Nishibe",
+        "Shinsaku Maruta"
+      ],
+      "year": 2025,
+      "container": "Biophysical Journal",
+      "url": "https://doi.org/10.1016/j.bpj.2024.11.3272",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.1101/2024.03.21.586151",
+      "title": "Neurogranin modulates the Rate of Association between Calmodulin and Target Peptides",
+      "authors": [
+        "John A. Putkey",
+        "Laurel Hoffman",
+        "Vladimir Berka",
+        "Xu Wang"
+      ],
+      "year": 2024,
+      "container": "",
+      "url": "https://doi.org/10.1101/2024.03.21.586151",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.7554/elife.46124.004",
+      "title": "Figure 3. Kinetic model for viomycin action during tRNA selection.",
+      "authors": [],
+      "year": null,
+      "container": "",
+      "url": "https://doi.org/10.7554/elife.46124.004",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.2210/pdb1cdl/pdb",
+      "title": "TARGET ENZYME RECOGNITION BY CALMODULIN: 2.4 ANGSTROMS STRUCTURE OF A CALMODULIN-PEPTIDE COMPLEX",
+      "authors": [
+        "W.E. Meador",
+        "F.A. Quiocho"
+      ],
+      "year": 1994,
+      "container": "",
+      "url": "https://doi.org/10.2210/pdb1cdl/pdb",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.2210/pdb5nin/pdb",
+      "title": "Crystal Structure of AKAP79 calmodulin binding domain peptide in complex with Ca2+/Calmodulin",
+      "authors": [
+        "M.G. Gold",
+        "N. Patel"
+      ],
+      "year": 2017,
+      "container": "",
+      "url": "https://doi.org/10.2210/pdb5nin/pdb",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.1002/psc.837",
+      "title": "Recombinant preparation and characterization of interactions for a calmodulin\u2010binding chromogranin A peptide and calmodulin",
+      "authors": [
+        "Sunmi Kang",
+        "Jinho Kang",
+        "Seung Hyun Yoo",
+        "Sunghyouk Park"
+      ],
+      "year": 2007,
+      "container": "Journal of Peptide Science",
+      "url": "https://doi.org/10.1002/psc.837",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    },
+    {
+      "doi": "10.2210/pdb2l7l/pdb",
+      "title": "Solution structure of Ca2+/calmodulin complexed with a peptide representing the calmodulin-binding domain of calmodulin kinase I",
+      "authors": [
+        "J.L. Gifford",
+        "H. Ishida",
+        "H.J. Vogel"
+      ],
+      "year": 2010,
+      "container": "Worldwide Protein Data Bank",
+      "url": "https://doi.org/10.2210/pdb2l7l/pdb",
+      "source": "crossref_search",
+      "calibrated": false,
+      "usable_as_prior": false,
+      "note": "Search hit only. A title match is not a sourced rate."
+    }
+  ]
+}

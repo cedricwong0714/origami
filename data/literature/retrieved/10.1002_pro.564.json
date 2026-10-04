@@ -1,0 +1,18 @@
+{
+  "doi": "10.1002/pro.564",
+  "title": "Calorimetric study of a series of designed repeat proteins: Modular structure and modular folding",
+  "authors": [
+    "Aitziber L. Cortajarena",
+    "Lynne Regan"
+  ],
+  "container": "Protein Science",
+  "year": 2011,
+  "type": "journal-article",
+  "abstract": "<jats:title>Abstract</jats:title><jats:p>Repeat proteins comprise tandem arrays of a small structural motif. Their structure is defined and stabilized by interactions between residues that are close in the primary sequence. Several studies have investigated whether their structural modularity translates into modular thermodynamic properties. Tetratricopeptide repeat proteins (TPRs) are a class in which the repeated unit is a 34 amino acid helix\u2010turn\u2010helix motif. In this work, we use differential scanning calorimetry (DSC) to study the equilibrium stability of a series of TPR proteins with different numbers of an identical consensus repeat, from 2 to 20, CTPRa2 to CTPRa20. The DSC data provides direct evidence that the folding/unfolding transition of CTPR proteins does not fit a two\u2010state folding model. Our results confirm and expand earlier studies on TPR proteins, which showed that apparent two\u2010state unfolding curves are better fit by linear statistical mechanics models: 1D Ising models in which each repeat is treated as an independent folding unit.</jats:p>",
+  "url": "https://doi.org/10.1002/pro.564",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Repeat proteins comprise tandem arrays of a small structural motif. Their structure is defined and stabilized by interactions between residues that are close in the primary sequence. Several studies have investigated whether their structural modularity translates into modular thermodynamic properties. Tetratricopeptide repeat proteins (TPRs) are a class in which the repeated unit is a 34 amino acid helix-turn-helix motif. In this work, we use differential scanning calorimetry (DSC) to study the equilibrium stability of a series of TPR proteins with different numbers of an identical consensus repeat, from 2 to 20, CTPRa2 to CTPRa20. The DSC data provides direct evidence that the folding/unfolding transition of CTPR proteins does not fit a two-state folding model. Our results confirm and expand earlier studies on TPR proteins, which showed that apparent two-state unfolding curves are better fit by linear statistical mechanics models: 1D Ising models in which each repeat is treated as an independent folding unit.",
+  "pmid": "21280125",
+  "pmcid": "PMC3048418"
+}

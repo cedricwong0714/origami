@@ -1,0 +1,23 @@
+{
+  "doi": "10.1073/pnas.1115485109",
+  "title": "Peptide tag forming a rapid covalent bond to a protein, through engineering a bacterial adhesin",
+  "authors": [
+    "Bijan Zakeri",
+    "Jacob O. Fierer",
+    "Emrah Celik",
+    "Emily C. Chittock",
+    "Ulrich Schwarz-Linek",
+    "Vincent T. Moy",
+    "Mark Howarth"
+  ],
+  "container": "Proceedings of the National Academy of Sciences",
+  "year": 2012,
+  "type": "journal-article",
+  "abstract": "<jats:p>\n                    Protein interactions with peptides generally have low thermodynamic and mechanical stability.\n                    <jats:italic>Streptococcus pyogenes</jats:italic>\n                    fibronectin-binding protein FbaB contains a domain with a spontaneous isopeptide bond between Lys and Asp. By splitting this domain and rational engineering of the fragments, we obtained a peptide (SpyTag) which formed an amide bond to its protein partner (SpyCatcher) in minutes. Reaction occurred in high yield simply upon mixing and amidst diverse conditions of pH, temperature, and buffer. SpyTag could be fused at either terminus or internally and reacted specifically at the mammalian cell surface. Peptide binding was not reversed by boiling or competing peptide. Single-molecule dynamic force spectroscopy showed that SpyTag did not separate from SpyCatcher until the force exceeded 1\u00a0nN, where covalent bonds snap. The robust reaction conditions and irreversible linkage of SpyTag shed light on spontaneous isopeptide bond formation and should provide a targetable lock in cells and a stable module for new protein architectures.\n                  </jats:p>",
+  "url": "https://doi.org/10.1073/pnas.1115485109",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Protein interactions with peptides generally have low thermodynamic and mechanical stability. Streptococcus pyogenes fibronectin-binding protein FbaB contains a domain with a spontaneous isopeptide bond between Lys and Asp. By splitting this domain and rational engineering of the fragments, we obtained a peptide (SpyTag) which formed an amide bond to its protein partner (SpyCatcher) in minutes. Reaction occurred in high yield simply upon mixing and amidst diverse conditions of pH, temperature, and buffer. SpyTag could be fused at either terminus or internally and reacted specifically at the mammalian cell surface. Peptide binding was not reversed by boiling or competing peptide. Single-molecule dynamic force spectroscopy showed that SpyTag did not separate from SpyCatcher until the force exceeded 1 nN, where covalent bonds snap. The robust reaction conditions and irreversible linkage of SpyTag shed light on spontaneous isopeptide bond formation and should provide a targetable lock in cells and a stable module for new protein architectures.",
+  "pmid": "22366317",
+  "pmcid": "PMC3311370"
+}

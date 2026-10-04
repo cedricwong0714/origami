@@ -1,0 +1,21 @@
+{
+  "doi": "10.1021/bi060857u",
+  "title": "Rational Design of New Binding Specificity by Simultaneous Mutagenesis of Calmodulin and a Target Peptide",
+  "authors": [
+    "David F. Green",
+    "Andrew T. Dennis",
+    "Peter S. Fam",
+    "Bruce Tidor",
+    "Alan Jasanoff"
+  ],
+  "container": "Biochemistry",
+  "year": 2006,
+  "type": "journal-article",
+  "abstract": null,
+  "url": "https://doi.org/10.1021/bi060857u",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Calcium-saturated calmodulin (CaM) binds and influences the activity of a varied collection of target proteins in most cells. This promiscuity underlies the role of CaM as a shared participant in calcium-dependent signal transduction pathways but imposes a handicap on popular CaM-based calcium biosensors, which display an undesired tendency to cross-react with cellular proteins. Designed CaM/target pairs that retain high affinity for one another but lack affinity for wild-type CaM and its natural interaction partners would therefore be useful as sensor components and possibly also as elements of \"synthetic\" cellular-signaling networks. Here, we have adopted a rational approach to creating suitably modified CaM/target complexes by using computational design methods to guide parallel site-directed mutagenesis of both binding partners. A hierarchical design procedure was applied to suggest a small number of complementary mutations on CaM and on a peptide ligand derived from skeletal-muscle light-chain kinase (M13). Experimental analysis showed that the procedure was successful in identifying CaM and M13 mutants with novel specificity for one another. Importantly, the designed complexes retained an affinity comparable to the wild-type CaM/M13 complex. These results represent a step toward the creation of CaM and M13 derivatives with specificity fully orthogonal to the wild-type proteins and show that qualitatively accurate predictions may be obtained from computational methods applied simultaneously to two proteins involved in multiple-linked binding equilibria.",
+  "pmid": "17029410",
+  "pmcid": "PMC2517080"
+}

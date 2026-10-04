@@ -20,6 +20,7 @@ from origami.export.sbol import sbol_for_n
 from origami.export.sbml import sbml_from_kinetics_body
 from origami.export.synthetic import synthetic_learn_rows
 from origami.kinetics.simulate import KineticsSimError
+from origami.literature.fetch import LiteratureFetchError, fetch_and_store, search_crossref
 from origami.lab.freeze_compare import FreezeCompareError, compare_plate_csv
 from origami.ssdk.chassis import ChassisError
 
@@ -119,3 +120,27 @@ async def post_plate_report(request: Request) -> str:
         return freeze_report_markdown(report)
     except (FreezeCompareError, KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/literature/doi")
+async def post_literature_doi(request: Request) -> dict[str, Any]:
+    try:
+        body = await request.json()
+        return fetch_and_store(str(body["doi"]))
+    except (LiteratureFetchError, KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/literature/search")
+async def post_literature_search(request: Request) -> dict[str, Any]:
+    try:
+        body = await request.json()
+        hits = search_crossref(str(body["query"]), rows=int(body.get("rows", 5)))
+    except (LiteratureFetchError, KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {
+        "calibrated": False,
+        "usable_as_prior": False,
+        "hits": hits,
+        "note": "Search hits are not installed as rates or Kd values.",
+    }

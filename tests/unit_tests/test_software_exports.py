@@ -38,6 +38,7 @@ def test_fusion_kd_stays_secondhand_and_kon_unsourced():
     assert FUSION_CAM_M13_CA_KD_M.value == 80e-9
     assert FUSION_CAM_M13_CA_KD_M.calibrated is False
     assert "Secondhand" in FUSION_CAM_M13_CA_KD_M.notes
+    assert "8e-8" in FUSION_CAM_M13_CA_KD_M.notes
     assert PORUMB_1994_CAM_M13_HYBRID_PCA50_M.value == 500e-9
     assert unsourced_cam_m13_peptide_kon_per_M_s() is None
     assert assumed_recruitment_kon_per_M_s() == 1.0e6

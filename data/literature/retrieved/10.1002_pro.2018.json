@@ -1,0 +1,20 @@
+{
+  "doi": "10.1002/pro.2018",
+  "title": "Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors",
+  "authors": [
+    "J. J. Phillips",
+    "Y. Javadi",
+    "C. Millership",
+    "E. R. G. Main"
+  ],
+  "container": "Protein Science",
+  "year": 2012,
+  "type": "journal-article",
+  "abstract": "<jats:title>Abstract</jats:title><jats:p>Tetratricopeptide repeats (TPRs) are a class of all alpha\u2010helical repeat proteins that are comprised of 34\u2010aa helix\u2010turn\u2010helix motifs. These stack together to form nonglobular structures that are stabilized by short\u2010range interactions from residues close in primary sequence. Unlike globular proteins, they have few, if any, long\u2010range nonlocal stabilizing interactions. Several studies on designed TPR proteins have shown that this modular structure is reflected in their folding, that is, modular multistate folding is observed as opposed to two\u2010state folding. Here we show that TPR multistate folding can be suppressed to approximate two\u2010state folding through modulation of intrinsic stability or extrinsic environmental variables. This modulation was investigated by comparing the thermodynamic unfolding under differing buffer regimes of two distinct series of consensus\u2010designed TPR proteins, which possess different intrinsic stabilities. A total of nine proteins of differing sizes and differing consensus TPR motifs were each thermally and chemically denatured and their unfolding monitored using differential scanning calorimetry (DSC) and CD/fluorescence, respectively. Analyses of both the DSC and chemical denaturation data show that reducing the total stability of each protein and repeat units leads to observable two\u2010state unfolding. These data highlight the intimate link between global and intrinsic repeat stability that governs whether folding proceeds by an observably two\u2010state mechanism, or whether partial unfolding yields stable intermediate structures which retain sufficient stability to be populated at equilibrium.</jats:p>",
+  "url": "https://doi.org/10.1002/pro.2018",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Tetratricopeptide repeats (TPRs) are a class of all alpha-helical repeat proteins that are comprised of 34-aa helix-turn-helix motifs. These stack together to form nonglobular structures that are stabilized by short-range interactions from residues close in primary sequence. Unlike globular proteins, they have few, if any, long-range nonlocal stabilizing interactions. Several studies on designed TPR proteins have shown that this modular structure is reflected in their folding, that is, modular multistate folding is observed as opposed to two-state folding. Here we show that TPR multistate folding can be suppressed to approximate two-state folding through modulation of intrinsic stability or extrinsic environmental variables. This modulation was investigated by comparing the thermodynamic unfolding under differing buffer regimes of two distinct series of consensus-designed TPR proteins, which possess different intrinsic stabilities. A total of nine proteins of differing sizes and differing consensus TPR motifs were each thermally and chemically denatured and their unfolding monitored using differential scanning calorimetry (DSC) and CD/fluorescence, respectively. Analyses of both the DSC and chemical denaturation data show that reducing the total stability of each protein and repeat units leads to observable two-state unfolding. These data highlight the intimate link between global and intrinsic repeat stability that governs whether folding proceeds by an observably two-state mechanism, or whether partial unfolding yields stable intermediate structures which retain sufficient stability to be populated at equilibrium.",
+  "pmid": "22170589",
+  "pmcid": "PMC3375434"
+}

@@ -1,0 +1,54 @@
+{
+  "ok": [
+    {
+      "doi": "10.1101/cshperspect.a033845",
+      "title": "Protein Solubility Predictions Using the CamSol Method in the Study of Protein Homeostasis",
+      "year": 2019,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.1093/protein/7.1.109",
+      "title": "A calmodulin-target peptide hybrid molecule with unique calcium-binding properties",
+      "year": 1994,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.3389/fnmol.2014.00090",
+      "title": "Genetically encoded Ca2+ indicators; expanded affinity range, color hue and compatibility with optogenetics",
+      "year": 2014,
+      "has_abstract": false
+    },
+    {
+      "doi": "10.1021/bi060857u",
+      "title": "Rational Design of New Binding Specificity by Simultaneous Mutagenesis of Calmodulin and a Target Peptide",
+      "year": 2006,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.1073/pnas.1115485109",
+      "title": "Peptide tag forming a rapid covalent bond to a protein, through engineering a bacterial adhesin",
+      "year": 2012,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.1021/acschembio.5b00753",
+      "title": "NanoLuc Complementation Reporter Optimized for Accurate\nMeasurement of Protein Interactions in Cells",
+      "year": 2015,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.1002/pro.2018",
+      "title": "Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors",
+      "year": 2012,
+      "has_abstract": true
+    },
+    {
+      "doi": "10.1002/pro.564",
+      "title": "Calorimetric study of a series of designed repeat proteins: Modular structure and modular folding",
+      "year": 2011,
+      "has_abstract": true
+    }
+  ],
+  "fail": [],
+  "calibrated": false
+}
