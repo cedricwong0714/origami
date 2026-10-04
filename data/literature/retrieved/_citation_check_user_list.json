@@ -1,0 +1,242 @@
+{
+  "dois": [
+    {
+      "doi": "10.1073/pnas.1909653116",
+      "title": "Approaching infinite affinity through engineering of peptide\u2013protein interaction",
+      "year": 2019,
+      "authors": [
+        "Anthony H. Keeble",
+        "Paula Turkki",
+        "Samuel Stokes",
+        "Irsyad N. A. Khairil Anuar",
+        "Rolle Rahikainen",
+        "Vesa P. Hyt\u00f6nen",
+        "Mark Howarth"
+      ],
+      "container": "Proceedings of the National Academy of Sciences",
+      "pmid": "31822621",
+      "europe_pmc_abstract": "Much of life's complexity depends upon contacts between proteins with precise affinity and specificity. The successful application of engineered proteins often depends on high-stability binding to their target. In recent years, various approaches have enabled proteins to form irreversible covalent interactions with protein targets. However, the rate of such reactions is a major limitation to their use. Infinite affinity refers to the ideal where such covalent interaction occurs at the diffusion limit. Prototypes of infinite affinity pairs have been achieved using nonnatural reactive groups. After library-based evolution and rational design, here we establish a peptide-protein pair composed of the regular 20 amino acids that link together through an amide bond at a rate approaching the diffusion limit. Reaction occurs in a few minutes with both partners at low nanomolar concentration. Stopped flow fluorimetry illuminated the conformational dynamics involved in docking and reaction. Hydrogen-deuterium exchange mass spectrometry gave insight into the conformational flexibility of this split protein and the process of enhancing its reaction rate. We applied this reactive pair for specific labeling of a plasma membrane target in 1 min on live mammalian cells. Sensitive and specific detection was also confirmed by Western blot in a range of model organisms. The peptide-protein pair allowed reconstitution of a critical mechanotransmitter in the cytosol of mammalian cells, restoring cell adhesion and migration. This simple genetic encoding for rapid irreversible reaction should provide diverse opportunities to enhance protein function by rapid detection, stable anchoring, and multiplexing of protein functionality."
+    },
+    {
+      "doi": "10.1021/bi060857u",
+      "title": "Rational Design of New Binding Specificity by Simultaneous Mutagenesis of Calmodulin and a Target Peptide",
+      "year": 2006,
+      "authors": [
+        "David F. Green",
+        "Andrew T. Dennis",
+        "Peter S. Fam",
+        "Bruce Tidor",
+        "Alan Jasanoff"
+      ],
+      "container": "Biochemistry",
+      "pmid": "17029410",
+      "europe_pmc_abstract": "Calcium-saturated calmodulin (CaM) binds and influences the activity of a varied collection of target proteins in most cells. This promiscuity underlies the role of CaM as a shared participant in calcium-dependent signal transduction pathways but imposes a handicap on popular CaM-based calcium biosensors, which display an undesired tendency to cross-react with cellular proteins. Designed CaM/target pairs that retain high affinity for one another but lack affinity for wild-type CaM and its natural interaction partners would therefore be useful as sensor components and possibly also as elements of \"synthetic\" cellular-signaling networks. Here, we have adopted a rational approach to creating suitably modified CaM/target complexes by using computational design methods to guide parallel site-directed mutagenesis of both binding partners. A hierarchical design procedure was applied to suggest a small number of complementary mutations on CaM and on a peptide ligand derived from skeletal-muscle light-chain kinase (M13). Experimental analysis showed that the procedure was successful in identifying CaM and M13 mutants with novel specificity for one another. Importantly, the designed complexes retained an affinity comparable to the wild-type CaM/M13 complex. These results represent a step toward the creation of CaM and M13 derivatives with specificity fully orthogonal to the wild-type proteins and show that qualitatively accurate predictions may be obtained from computational methods applied simultaneously to two proteins involved in multiple-linked binding equilibria."
+    }
+  ],
+  "searches": [
+    {
+      "query": "Porumb Yau Ikura FEBS Letters calmodulin 1994",
+      "hits": [
+        {
+          "doi": "10.1016/0014-5793(94)00982-1",
+          "title": "Purification and spectroscopic characterization of a recombinant amino\u2010terminal polypeptide fragment of mouse epithelial cadherin",
+          "authors": [
+            "Kit I. Tong",
+            "Patrick Yau",
+            "Michael Overduin",
+            "Stefan Bagby",
+            "Tudor Porumb",
+            "Masatoshi Takeichi",
+            "Mitsuhiko Ikura"
+          ],
+          "year": 1994,
+          "container": "FEBS Letters",
+          "url": "https://doi.org/10.1016/0014-5793(94)00982-1",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1093/protein/7.1.109",
+          "title": "A calmodulin-target peptide hybrid molecule with unique calcium-binding properties",
+          "authors": [
+            "Tudor Porumb",
+            "Patrick Yau",
+            "Timothy S. Harvey",
+            "Mitsuhiko Ikura"
+          ],
+          "year": 1994,
+          "container": "\"Protein Engineering, Design and Selection\"",
+          "url": "https://doi.org/10.1093/protein/7.1.109",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1016/s0014-5793(97)01333-1",
+          "title": "Lateral self\u2010assembly of E\u2010cadherin directed by cooperative calcium binding",
+          "authors": [
+            "Jean-Ren\u00e9 Alattia",
+            "James B. Ames",
+            "Tudor Porumb",
+            "Kit I. Tong",
+            "Yew Meng Heng",
+            "Peter Ottensmeyer",
+            "Cyril M. Kay",
+            "Mitsuhiko Ikura"
+          ],
+          "year": 1997,
+          "container": "FEBS Letters",
+          "url": "https://doi.org/10.1016/s0014-5793(97)01333-1",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1016/0014-5793(94)00492-7",
+          "title": "Calcium, calmodulin and cell cycle regulation",
+          "authors": [
+            "Anthony R. Means"
+          ],
+          "year": 1994,
+          "container": "FEBS Letters",
+          "url": "https://doi.org/10.1016/0014-5793(94)00492-7",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1016/0014-5793(94)00782-9",
+          "title": "Ion channel regulation by calmodulin binding",
+          "authors": [
+            "Yoshiro Saimi",
+            "Ching Kung"
+          ],
+          "year": 1994,
+          "container": "FEBS Letters",
+          "url": "https://doi.org/10.1016/0014-5793(94)00782-9",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1016/0014-5793(87)81182-1",
+          "title": "Sequence\u2010specific assignments of downfield\u2010shifted amide proton resonances of calmodulin Use of two\u2010dimensional NMR analysis of its tryptic fragments",
+          "authors": [
+            "Mitsuhiko Ikura",
+            "Osamu Minowa",
+            "Michio Yazawa",
+            "Koichi Yagi",
+            "Kunio Hikichi"
+          ],
+          "year": 1987,
+          "container": "FEBS Letters",
+          "url": "https://doi.org/10.1016/0014-5793(87)81182-1",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        }
+      ]
+    },
+    {
+      "query": "Bayley Findlay Martin Target recognition by calmodulin 1996 Protein Science",
+      "hits": [
+        {
+          "doi": "10.1002/pro.5560050701",
+          "title": "Target recognition by calmodulin: Dissecting the kinetics and affinity of interaction using short peptide sequences",
+          "authors": [
+            "P.M. Bayley",
+            "W.A. Findlay",
+            "S.R. Martin"
+          ],
+          "year": 1996,
+          "container": "Protein Science",
+          "url": "https://doi.org/10.1002/pro.5560050701",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1016/s1080-8914(06)80049-9",
+          "title": "Investigating calmodulin-target sequence interactions using mutant proteins and synthetic target peptides",
+          "authors": [
+            "Wendy A. Findlay",
+            "Stephen R. Martin",
+            "Peter M. Bayley"
+          ],
+          "year": 1995,
+          "container": "Techniques in Protein Chemistry",
+          "url": "https://doi.org/10.1016/s1080-8914(06)80049-9",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1002/pro.5560041116",
+          "title": "Role of the N\u2010terminal region of the skeletal muscle myosin light chain kinase target sequence in its interaction with calmodulin",
+          "authors": [
+            "Wendy A. Findlay",
+            "Michael J. Gradwell",
+            "Peter M. Bayley"
+          ],
+          "year": 1995,
+          "container": "Protein Science",
+          "url": "https://doi.org/10.1002/pro.5560041116",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1021/bi00007a001",
+          "title": "Recovery of Native Structure by Calcium Binding Site Mutants of Calmodulin upon Binding of sk-MLCK Target Peptides",
+          "authors": [
+            "Wendy A. Findlay",
+            "Stephen R. Martin",
+            "Kathy Beckingham",
+            "Peter M. Bayley"
+          ],
+          "year": 1995,
+          "container": "Biochemistry",
+          "url": "https://doi.org/10.1021/bi00007a001",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1111/febs.16467/v2/decision1",
+          "title": "Decision letter for \"Substrate recognition by Arg/Pro-rich insert domain in calcium/calmodulin-dependent protein kinase kinase for target protein kinases\"",
+          "authors": [],
+          "year": 2022,
+          "container": "",
+          "url": "https://doi.org/10.1111/febs.16467/v2/decision1",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        },
+        {
+          "doi": "10.1111/febs.16467/v1/decision1",
+          "title": "Decision letter for \"Substrate recognition by Arg/Pro-rich insert domain in calcium/calmodulin-dependent protein kinase kinase for target protein kinases\"",
+          "authors": [],
+          "year": 2022,
+          "container": "",
+          "url": "https://doi.org/10.1111/febs.16467/v1/decision1",
+          "source": "crossref_search",
+          "calibrated": false,
+          "usable_as_prior": false,
+          "note": "Search hit only. A title match is not a sourced rate."
+        }
+      ]
+    }
+  ]
+}

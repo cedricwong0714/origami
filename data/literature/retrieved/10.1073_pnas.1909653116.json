@@ -1,0 +1,23 @@
+{
+  "doi": "10.1073/pnas.1909653116",
+  "title": "Approaching infinite affinity through engineering of peptide\u2013protein interaction",
+  "authors": [
+    "Anthony H. Keeble",
+    "Paula Turkki",
+    "Samuel Stokes",
+    "Irsyad N. A. Khairil Anuar",
+    "Rolle Rahikainen",
+    "Vesa P. Hyt\u00f6nen",
+    "Mark Howarth"
+  ],
+  "container": "Proceedings of the National Academy of Sciences",
+  "year": 2019,
+  "type": "journal-article",
+  "abstract": "<jats:p>Much of life\u2019s complexity depends upon contacts between proteins with precise affinity and specificity. The successful application of engineered proteins often depends on high-stability binding to their target. In recent years, various approaches have enabled proteins to form irreversible covalent interactions with protein targets. However, the rate of such reactions is a major limitation to their use. Infinite affinity refers to the ideal where such covalent interaction occurs at the diffusion limit. Prototypes of infinite affinity pairs have been achieved using nonnatural reactive groups. After library-based evolution and rational design, here we establish a peptide\u2013protein pair composed of the regular 20 amino acids that link together through an amide bond at a rate approaching the diffusion limit. Reaction occurs in a few minutes with both partners at low nanomolar concentration. Stopped flow fluorimetry illuminated the conformational dynamics involved in docking and reaction. Hydrogen\u2013deuterium exchange mass spectrometry gave insight into the conformational flexibility of this split protein and the process of enhancing its reaction rate. We applied this reactive pair for specific labeling of a plasma membrane target in 1 min on live mammalian cells. Sensitive and specific detection was also confirmed by Western blot in a range of model organisms. The peptide\u2013protein pair allowed reconstitution of a critical mechanotransmitter in the cytosol of mammalian cells, restoring cell adhesion and migration. This simple genetic encoding for rapid irreversible reaction should provide diverse opportunities to enhance protein function by rapid detection, stable anchoring, and multiplexing of protein functionality.</jats:p>",
+  "url": "https://doi.org/10.1073/pnas.1909653116",
+  "source": "crossref",
+  "calibrated": false,
+  "europe_pmc_abstract": "Much of life's complexity depends upon contacts between proteins with precise affinity and specificity. The successful application of engineered proteins often depends on high-stability binding to their target. In recent years, various approaches have enabled proteins to form irreversible covalent interactions with protein targets. However, the rate of such reactions is a major limitation to their use. Infinite affinity refers to the ideal where such covalent interaction occurs at the diffusion limit. Prototypes of infinite affinity pairs have been achieved using nonnatural reactive groups. After library-based evolution and rational design, here we establish a peptide-protein pair composed of the regular 20 amino acids that link together through an amide bond at a rate approaching the diffusion limit. Reaction occurs in a few minutes with both partners at low nanomolar concentration. Stopped flow fluorimetry illuminated the conformational dynamics involved in docking and reaction. Hydrogen-deuterium exchange mass spectrometry gave insight into the conformational flexibility of this split protein and the process of enhancing its reaction rate. We applied this reactive pair for specific labeling of a plasma membrane target in 1 min on live mammalian cells. Sensitive and specific detection was also confirmed by Western blot in a range of model organisms. The peptide-protein pair allowed reconstitution of a critical mechanotransmitter in the cytosol of mammalian cells, restoring cell adhesion and migration. This simple genetic encoding for rapid irreversible reaction should provide diverse opportunities to enhance protein function by rapid detection, stable anchoring, and multiplexing of protein functionality.",
+  "pmid": "31822621",
+  "pmcid": "PMC6936558"
+}
