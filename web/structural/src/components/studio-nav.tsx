@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/lab", label: "Lab chassis" },
   { href: "/intake", label: "Data intake" },
   { href: "/learn", label: "Active learning" },
+  { href: "/wizard", label: "Wizard" },
   { href: "/guide", label: "Dependencies" },
 ];
 

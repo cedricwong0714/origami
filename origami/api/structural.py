@@ -18,6 +18,7 @@ from pathlib import Path
 from origami.api.kinetics import router as kinetics_router
 from origami.api.lab import router as lab_router
 from origami.api.meta import router as meta_router
+from origami.api.export import router as export_router
 from origami.api.ssdk import router as ssdk_router
 from origami.api.stability import router as stability_router
 from origami.linker_prior import ggggs_linker_rms_A
@@ -58,6 +59,7 @@ app.include_router(kinetics_router)
 app.include_router(lab_router)
 app.include_router(meta_router)
 app.include_router(ssdk_router)
+app.include_router(export_router)
 
 
 def _parse_n_list(raw: str | None) -> tuple[int, ...]:

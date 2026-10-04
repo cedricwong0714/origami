@@ -121,9 +121,19 @@ web/ctpr_scaffold_optimizer.html
 **GitLab Pages** (after CI deploy on `main`): project **Deploy → Pages** in GitLab shows the public URL.
 Static demos only: landing page + CTPR optimizer. The full chassis (SSDK learn, lab quality, multi-fidelity gates) needs `host_sa.py` + Next.js dev or Streamlit as above.
 
-Wiki UI includes **Dependencies** (`/guide`), **SSDK** luminescence gates, **Data intake**, and **Active learning** with multi-fidelity output when the API is running.
+Wiki UI includes **Dependencies** (`/guide`), **Wizard** (`/wizard`), **SSDK** luminescence gates, **Data intake**, and **Active learning** with multi-fidelity output when the API is running.
 
-**User manual:** [docs/USER_MANUAL.md](docs/USER_MANUAL.md). **Judges:** [docs/JUDGE.md](docs/JUDGE.md). **Model cards:** [docs/MODEL_CARDS.md](docs/MODEL_CARDS.md). **API:** [docs/API.md](docs/API.md).
+**User manual:** [docs/USER_MANUAL.md](docs/USER_MANUAL.md). **Judges:** [docs/JUDGE.md](docs/JUDGE.md). **Model cards:** [docs/MODEL_CARDS.md](docs/MODEL_CARDS.md). **API:** [docs/API.md](docs/API.md). **Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+Export a team protein (n = 3, 8, or 14) without inventing DNA:
+
+```bash
+origami export-genbank --n-repeats 8
+origami export-sbol --n-repeats 8
+origami export-sbml --json-body '{"mode":"recruitment_steady","c_free_M":1e-6}'
+origami passport --json-body '{"n_repeats":8}'
+origami benchmark
+```
 
 ### Validate a Learn Mode data package
 

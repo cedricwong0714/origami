@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (software interchange)
+
+### Added
+- Team-supplied CaM–M13 sequences for n = 3, 8, 14 in `data/constructs/team_cam_m13_series.json` with SHA-256 checksums and CamSol intrinsic scores (dry, pH stated as 7.4–7.6).
+- Protein GenBank and SBOL 3 XML export of those strings. Amino acids only; no codon table.
+- SBML Level 2 for the three shipped kinetics modes (recruitment Langmuir, lumped Spy adduct, NanoBiT). Rates come from existing slots or the caller.
+- Chassis JSON passport, batch CSV chassis table, labelled synthetic learner fixtures, PDB C-alpha size scales that do not replace the CTPR screw.
+- `origami export-genbank`, `export-sbol`, `export-sbml`, `passport`, `benchmark`, `synthetic`, `batch-chassis`. Matching `/api/export/*` routes.
+- Guided wizard page `/wizard`. Architecture diagram in `docs/ARCHITECTURE.md`. Notebook `notebooks/origami_chassis_demo.ipynb`.
+- Mechanism “profile” intake only accepts the three existing kinetics modes. A free-form ODE is rejected.
+
+### Not in this slice
+- SynBioHub upload, UI translation, offline packaging, COPASI as a runtime dependency.
+
 ## Unreleased — 2026-10-04 (chassis score at the primary next length)
 
 ### Added

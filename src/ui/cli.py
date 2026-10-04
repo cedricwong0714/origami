@@ -394,6 +394,94 @@ def _cmd_freeze_scaffold(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_export_genbank(args: argparse.Namespace) -> int:
+    from origami.export.constructs import ConstructError
+    from origami.export.genbank import genbank_for_n
+
+    try:
+        print(genbank_for_n(args.n_repeats), end="")
+    except ConstructError as exc:
+        print(f"export-genbank failed: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _cmd_export_sbol(args: argparse.Namespace) -> int:
+    from origami.export.constructs import ConstructError
+    from origami.export.sbol import sbol_for_n
+
+    try:
+        print(sbol_for_n(args.n_repeats), end="")
+    except ConstructError as exc:
+        print(f"export-sbol failed: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _cmd_export_sbml(args: argparse.Namespace) -> int:
+    import json
+
+    from origami.export.sbml import sbml_from_kinetics_body
+    from origami.kinetics.simulate import KineticsSimError
+
+    try:
+        print(sbml_from_kinetics_body(json.loads(args.json_body)), end="")
+    except (json.JSONDecodeError, KineticsSimError, ValueError) as exc:
+        print(f"export-sbml failed: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _cmd_passport(args: argparse.Namespace) -> int:
+    import json
+
+    from origami.export.passport import chassis_passport
+    from origami.ssdk.chassis import ChassisError
+
+    try:
+        print(json.dumps(chassis_passport(json.loads(args.json_body)), indent=2, default=str))
+    except (json.JSONDecodeError, ChassisError, ValueError) as exc:
+        print(f"passport failed: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
+def _cmd_benchmark(args: argparse.Namespace) -> int:
+    import json
+
+    from origami.export.benchmark import run_benchmark
+
+    report = run_benchmark()
+    print(json.dumps(report, indent=2))
+    return 0 if report["passed"] else 1
+
+
+def _cmd_synthetic(args: argparse.Namespace) -> int:
+    import json
+
+    from origami.export.synthetic import synthetic_learn_rows
+
+    n_values = [int(x) for x in args.n_values.split(",") if x.strip()]
+    print(json.dumps(synthetic_learn_rows(n_values, seed=args.seed), indent=2))
+    return 0
+
+
+def _cmd_batch_chassis(args: argparse.Namespace) -> int:
+    import json
+    from pathlib import Path
+
+    from origami.export.batch import batch_chassis_csv
+    from origami.ssdk.chassis import ChassisError
+
+    try:
+        text = Path(args.csv).read_text(encoding="utf-8")
+        print(json.dumps(batch_chassis_csv(text), indent=2, default=str))
+    except (OSError, ChassisError, ValueError) as exc:
+        print(f"batch-chassis failed: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
 def _cmd_compare_plate(args: argparse.Namespace) -> int:
     """Score a plate CSV against the checksummed scaffold freezes."""
     import hashlib
@@ -614,6 +702,34 @@ def main() -> None:
     ssdk.add_argument("--json-body", required=True, help="JSON object for POST /api/ssdk/learn")
     ssdk.add_argument("--full", action="store_true", help="Print the full JSON response")
     ssdk.set_defaults(func=_cmd_learn_ssdk)
+
+    exp_gb = sub.add_parser("export-genbank", help="Protein GenBank for a team n=3,8,14 sequence")
+    exp_gb.add_argument("--n-repeats", type=int, required=True)
+    exp_gb.set_defaults(func=_cmd_export_genbank)
+
+    exp_sbol = sub.add_parser("export-sbol", help="SBOL 3 XML for a team n=3,8,14 sequence")
+    exp_sbol.add_argument("--n-repeats", type=int, required=True)
+    exp_sbol.set_defaults(func=_cmd_export_sbol)
+
+    exp_sbml = sub.add_parser("export-sbml", help="SBML for a shipped kinetics mode")
+    exp_sbml.add_argument("--json-body", required=True)
+    exp_sbml.set_defaults(func=_cmd_export_sbml)
+
+    exp_pass = sub.add_parser("passport", help="JSON chassis passport")
+    exp_pass.add_argument("--json-body", required=True)
+    exp_pass.set_defaults(func=_cmd_passport)
+
+    bench = sub.add_parser("benchmark", help="Self-test literature tables and exporters")
+    bench.set_defaults(func=_cmd_benchmark)
+
+    syn = sub.add_parser("synthetic", help="Labelled dry learner fixtures (not wet data)")
+    syn.add_argument("--n-values", default="3,8,14")
+    syn.add_argument("--seed", type=int, default=0)
+    syn.set_defaults(func=_cmd_synthetic)
+
+    batch = sub.add_parser("batch-chassis", help="Chassis table from a CSV of n_repeats")
+    batch.add_argument("csv")
+    batch.set_defaults(func=_cmd_batch_chassis)
 
     ablate = sub.add_parser(
         "ablation",

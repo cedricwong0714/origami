@@ -1,0 +1,10 @@
+{
+  "Kd": "Dissociation constant. Concentration of ligand at which half of the sites are occupied at equilibrium, for a 1:1 Langmuir isotherm. Units M. The peptide CaM–M13 Kd in ORIGAMI is a literature slot, not a fusion measurement.",
+  "persistence_length": "Worm-like-chain bending length of the CTPR contour. Used only to decide whether the screw is treated as rigid versus a 15 nm WLC cutoff. Not a measured persistence length of the fusion.",
+  "C_eff": "Effective concentration of one tethered module at the other, from a Gaussian-chain model of the linker. Units molar. Not a bulk molarity in the tube.",
+  "physics_score": "Ranking score (1 − clash probability) × log10(1 + C_eff / 1 mM). The 1 mM denominator is a ranking convention, not a measured Km.",
+  "calibrated": "False until the team approves a wet dataset for a named claim. A green test run is not calibration.",
+  "fidelity": "0 = dry (physics or computational score). 1 = wet plate y. CamSol is fidelity 0.",
+  "CamSol": "Sequence-based intrinsic solubility score from the CamSol method. Dry. Not a measured soluble fraction.",
+  "Phillips_Tm": "Melting temperature from the Phillips 2012 CTPRa DSC length model. Not a melt of the Spy–CTPR–LgBiT fusion."
+}

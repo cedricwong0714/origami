@@ -90,6 +90,23 @@ Plate columns: `well`, `construct`, `n_repeats`, `batch`, `role`, `rlu`. Optiona
 
 CLI: `origami ssdk chassis`, `origami ssdk learn`, and `origami ssdk learn-plate`. `learn-ssdk` remains the same learn call.
 
+## Export
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/export/genbank/{n}` | Protein GenBank for team n = 3, 8, or 14 |
+| GET | `/api/export/sbol/{n}` | SBOL 3 XML of the same string |
+| POST | `/api/export/sbml` | Kinetics body; shipped modes only |
+| POST | `/api/export/passport` | Chassis snapshot JSON |
+| POST | `/api/export/batch` | `{csv_text}` with `n_repeats` |
+| POST | `/api/export/pdb` | `{pdb_text}` C-alpha Rg; does not replace the screw |
+| GET | `/api/export/benchmark` | File and exporter self-test |
+| POST | `/api/export/synthetic` | Labelled dry fixtures |
+| GET | `/api/export/tooltips` | Plain-language parameter notes |
+| POST | `/api/export/plate-report` | Markdown residuals vs frozen scaffolds |
+
+CLI: `origami export-genbank --n-repeats 8`, `origami export-sbol`, `origami export-sbml --json-body`, `origami passport`, `origami benchmark`.
+
 ## Errors
 
 HTTP 400 with `detail` means the body was rejected (non-integer n, sigma ≤ 0, fidelity not 0 or 1, non-finite number). The server does not fill the missing field from a prior.

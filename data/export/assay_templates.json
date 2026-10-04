@@ -1,0 +1,22 @@
+{
+  "version": "assay-templates-0.1",
+  "calibrated": false,
+  "note": "Column lists only. They do not invent y. Thermal shift is literature-only for this project.",
+  "templates": [
+    {
+      "id": "nanobit_dose_response",
+      "columns": ["well", "construct", "n_repeats", "batch", "role", "rlu", "calcium_uM", "output", "fidelity"],
+      "output": "luminescence"
+    },
+    {
+      "id": "spy_locking_timecourse",
+      "columns": ["well", "construct", "n_repeats", "batch", "role", "time_min", "fraction_locked", "output"],
+      "output": "locking_fraction"
+    },
+    {
+      "id": "thermal_shift_not_in_wet_plan",
+      "columns": ["n_repeats", "tm_C"],
+      "note": "Do not collect. Phillips 2012 remains the stability table."
+    }
+  ]
+}
