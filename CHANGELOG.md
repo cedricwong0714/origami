@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (length sweep)
+
+### Added
+- `POST /api/docking/sweep` scores every repeat count from 3 to 24 with the existing Phillips length-model melt and the existing affinity check. The studio page Choose a length draws melting temperature, bound fraction, LgBiT–SmBiT occupancy, SpyCatcher–SpyTag half-life, and clash on that sweep.
+- The marked length is the highest LgBiT–SmBiT occupancy among lengths above the assay temperature whose association holds. A tie takes the shorter scaffold. The mark is that ranking rule. `calibrated` stays false.
+
 ## Unreleased — 2026-10-04 (studio copy and model charts)
 
 ### Added

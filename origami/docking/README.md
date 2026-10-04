@@ -25,8 +25,11 @@ A missing radius stops clash, C_eff, and the tethered rate. The 25 Å placeholde
 ## Parameter sources
 Linker RMS: van Rosmalen, Krom, Merkx (2017), DOI 10.1021/acs.biochem.7b00902, via `origami.priors.LINKER_SIGMA_A`. Screw parameters stay in the geometry priors.
 
+## Length sweep
+`sweep_lengths` evaluates the Phillips length-model melt once, then the affinity check at every repeat count from 3 to 24. It does not add a rate or a cutoff. The marked length is the highest LgBiT–SmBiT occupancy among lengths that pass the assay-temperature comparison and whose association holds. A tie takes the shorter scaffold. That mark is a ranking rule, not a validated optimum. `calibrated` stays false.
+
 ## Tests
-`PYTHONPATH=/workspace python -m pytest tests/math_chassis/test_ssdk_chassis.py tests/math_chassis/test_docking_kinetics_engine.py -q`
+`PYTHONPATH=/workspace python -m pytest tests/unit_tests/test_docking_sweep.py tests/unit_tests/test_docking_affinity.py tests/math_chassis/test_ssdk_chassis.py tests/math_chassis/test_docking_kinetics_engine.py -q`
 
 ## Owner
 Dry-lab / math chassis maintainers.

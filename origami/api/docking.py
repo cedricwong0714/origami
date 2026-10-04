@@ -11,6 +11,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from origami.docking.affinity import AffinityError, docking_geometry, evaluate_affinity
+from origami.docking.sweep import SweepError, sweep_lengths
 
 router = APIRouter()
 
@@ -34,6 +35,27 @@ async def post_docking_affinity(request: Request) -> dict[str, Any]:
             radii_A=_radii(body.get("radii_A")),
         )
     except AffinityError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/api/docking/sweep")
+async def post_docking_sweep(request: Request) -> dict[str, Any]:
+    """Melt, holding, reporter, Spy half-life, and clash from n = 3 to 24."""
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON object required") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return sweep_lengths(
+            affinity=str(body.get("affinity", "")),
+            value=_number(body.get("value"), "value"),
+            unit=str(body.get("unit", "")),
+            graft_index=_optional_graft(body.get("graft_index")),
+            t_assay_C=_optional_assay(body.get("t_assay_C")),
+        )
+    except (AffinityError, SweepError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
@@ -71,6 +93,18 @@ def _indices(value: object) -> list[int] | None:
             raise AffinityError("each index must be an integer")
         parsed.append(item)
     return parsed
+
+
+def _optional_graft(value: object) -> int | None:
+    if value is None:
+        return None
+    return _integer(value, "graft_index")
+
+
+def _optional_assay(value: object) -> float | None:
+    if value is None:
+        return None
+    return _number(value, "t_assay_C")
 
 
 def _radii(value: object) -> list[float] | None:

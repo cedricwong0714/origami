@@ -9,6 +9,7 @@ const SECTIONS = [
     tabs: [
       { href: "/", label: "Screw" },
       { href: "/present", label: "Compare lengths" },
+      { href: "/design", label: "Choose a length" },
     ],
   },
   {
