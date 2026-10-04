@@ -6,15 +6,18 @@ Live hosting that survives the Cursor agent is documented in [`HOSTING.md`](HOST
 
 ## What Vercel can do
 
-Vercel can serve the **static** folder `web/checkpoint/`. That page loads a saved `n = 8` run. It does **not** execute `run_design`, numpy, or Streamlit.
+Vercel cannot run Streamlit, numpy, or `sandbox/modelling.py`.
 
-From the repo root:
+It **can** serve a saved snapshot of those models:
 
 ```bash
-npx vercel --cwd web/checkpoint
+python scripts/write_modelling_static.py
+npx vercel --cwd web/modelling-static --yes
 ```
 
-Or in the Vercel UI: set the project root to `web/checkpoint` and deploy as a static site.
+Project root: `web/modelling-static`. Bound fraction in the browser is the Langmuir formula with the saved peptide Kd. Clash, melt, and Spy lock are lookup tables written by the Python chassis.
+
+The older n = 8 checkpoint is still `web/checkpoint/`.
 
 ## What actually runs the models
 

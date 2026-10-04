@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ORIGAMI modelling snapshot</title>
+  <style>
+    :root { --ink:#242220; --muted:#5C564E; --line:#E3D9CC; --paper:#F3EFE9; --accent:#C45C12; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background: var(--paper); color: var(--ink); }
+    main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.6rem; margin: 0 0 0.4rem; }
+    .banner { background:#fff3d6; border:1px solid #e0c36a; padding:0.8rem 1rem; margin-bottom:1rem; }
+    .tabs { display:flex; flex-wrap:wrap; gap:0.4rem; margin:1rem 0; }
+    .tabs button { border:1px solid var(--line); background:#fff; padding:0.4rem 0.8rem; border-radius:999px; cursor:pointer; }
+    .tabs button.on { background:#242220; color:#fff; }
+    section { display:none; background:#fff; border:1px solid var(--line); padding:1rem; }
+    section.on { display:block; }
+    label { display:block; margin:0.5rem 0; font-size:0.9rem; }
+    input, select { padding:0.3rem 0.4rem; }
+    .metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:0.6rem; margin:0.8rem 0; }
+    .metric { border:1px solid var(--line); padding:0.6rem; }
+    .metric b { display:block; font-size:0.7rem; color:var(--muted); text-transform:uppercase; }
+    table { border-collapse:collapse; width:100%; font-size:0.8rem; }
+    th, td { border:1px solid var(--line); padding:0.25rem 0.4rem; text-align:right; }
+    th:first-child, td:first-child { text-align:left; }
+    canvas { width:100%; max-width:720px; height:220px; }
+    p, li { color:var(--muted); font-size:0.95rem; line-height:1.45; }
+    code { background:#F5F0E8; padding:0 0.25rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="banner">
+      This is a <strong>saved snapshot</strong> of the Python modelling sandbox.
+      Vercel cannot run Streamlit or numpy. Clash, melt, and distances here were
+      computed on the live chassis and written to <code>snapshot.json</code>.
+      They are not lab measurements.
+    </div>
+    <h1>ORIGAMI modelling snapshot</h1>
+    <p>Live sandbox on a laptop: <code>streamlit run sandbox/modelling.py --server.port 48621</code></p>
+    <div class="tabs">
+      <button class="on" data-tab="one">One length</button>
+      <button data-tab="series">Length series</button>
+      <button data-tab="bind">Binding</button>
+      <button data-tab="next">Next length</button>
+    </div>
+    <section id="one" class="on">
+      <p>Pick a repeat count. Distances and melt come from the saved screw and Phillips table. Clash is only filled for the saved 2BBM-sized spheres (22.5 Å).</p>
+      <label>Repeat count
+        <select id="n"></select>
+      </label>
+      <label><input type="checkbox" id="clash" /> Show clash from the saved 2BBM radii</label>
+      <div class="metrics" id="one-metrics"></div>
+    </section>
+    <section id="series">
+      <p>Phillips melting temperature vs n. Dotted marks are the planned lengths 3, 8, and 14.</p>
+      <canvas id="tm-chart" width="720" height="220"></canvas>
+      <div style="overflow:auto; max-height:18rem;"><table id="series-table"></table></div>
+    </section>
+    <section id="bind">
+      <p>Bound fraction uses the same Langmuir formula as the Python model: free / (free + Kd). Kd is the saved peptide value 0.19 nM. Spy lock is the saved Zakeri time course at 10 µM each. It is not recomputed in the browser.</p>
+      <label>Free concentration (M)
+        <input id="cfree" value="1e-8" />
+      </label>
+      <div class="metrics" id="bind-metrics"></div>
+      <canvas id="spy-chart" width="720" height="220"></canvas>
+    </section>
+    <section id="next">
+      <p>Empty-reading suggestion from the live learner at build time. Changing readings here does not re-fit a model.</p>
+      <div class="metrics" id="next-metrics"></div>
+    </section>
+  </main>
+  <script>
+    function metric(label, value) {
+      return "<div class='metric'><b>" + label + "</b>" + value + "</div>";
+    }
+    function lineChart(canvas, xs, ys, marks) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height, p = 28;
+      ctx.clearRect(0, 0, w, h);
+      const xmin = Math.min(...xs), xmax = Math.max(...xs);
+      const ymin = Math.min(...ys), ymax = Math.max(...ys);
+      const x = (v) => p + (v - xmin) / (xmax - xmin) * (w - 2 * p);
+      const y = (v) => h - p - (v - ymin) / (ymax - ymin || 1) * (h - 2 * p);
+      ctx.strokeStyle = "#C45C12";
+      ctx.beginPath();
+      xs.forEach((v, i) => { i ? ctx.lineTo(x(v), y(ys[i])) : ctx.moveTo(x(v), y(ys[i])); });
+      ctx.stroke();
+      (marks || []).forEach((m) => {
+        ctx.strokeStyle = "#8A8175";
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(x(m), p); ctx.lineTo(x(m), h - p); ctx.stroke();
+        ctx.setLineDash([]);
+      });
+    }
+    async function main() {
+      const snap = await fetch("./snapshot.json").then((r) => r.json());
+      const byN = Object.fromEntries(snap.series.map((r) => [r.n_repeats, r]));
+      const clashByN = Object.fromEntries(snap.series_with_2bbm_radii.map((r) => [r.n_repeats, r]));
+      const select = document.getElementById("n");
+      snap.series.forEach((r) => {
+        const o = document.createElement("option");
+        o.value = r.n_repeats;
+        o.textContent = "n = " + r.n_repeats;
+        if (r.n_repeats === 8) o.selected = true;
+        select.appendChild(o);
+      });
+      function renderOne() {
+        const n = Number(select.value);
+        const row = byN[n];
+        const clash = document.getElementById("clash").checked ? clashByN[n] : null;
+        let html = metric("Length along repeats (nm)", row.contour_nm.toFixed(3))
+          + metric("Melt (°C)", row.tm_C.toFixed(2))
+          + metric("Straight-line distance (Å)", row.chord_A.toFixed(2))
+          + metric("Repeats used", row.indices.join(", "));
+        if (clash && clash.clash_computable) {
+          html += metric("Overlap chance", clash.p_clash.toFixed(3))
+            + metric("Local concentration (M)", clash.c_eff_M.toExponential(3));
+        } else {
+          html += metric("Clash", "not in this snapshot unless 2BBM radii are on");
+        }
+        document.getElementById("one-metrics").innerHTML = html;
+      }
+      select.addEventListener("change", renderOne);
+      document.getElementById("clash").addEventListener("change", renderOne);
+      renderOne();
+
+      lineChart(
+        document.getElementById("tm-chart"),
+        snap.series.map((r) => r.n_repeats),
+        snap.series.map((r) => r.tm_C),
+        [3, 8, 14]
+      );
+      const keys = ["n_repeats", "contour_nm", "tm_C", "chord_A", "past_longest_cited_length"];
+      document.getElementById("series-table").innerHTML =
+        "<thead><tr>" + keys.map((k) => "<th>" + k + "</th>").join("") + "</tr></thead><tbody>" +
+        snap.series.map((row) => "<tr>" + keys.map((k) => "<td>" + row[k] + "</td>").join("") + "</tr>").join("") +
+        "</tbody>";
+
+      const kd = snap.bound_fraction_at_1e-8_M.kd_M;
+      function renderBind() {
+        const c = Number(document.getElementById("cfree").value);
+        const theta = c / (c + kd);
+        document.getElementById("bind-metrics").innerHTML =
+          metric("Kd (M)", kd.toExponential(2))
+          + metric("Fraction bound", theta.toExponential(4))
+          + metric("Saved row at 1e-8 M", snap.bound_fraction_at_1e-8_M.theta_ss.toExponential(4));
+      }
+      document.getElementById("cfree").addEventListener("input", renderBind);
+      renderBind();
+      lineChart(
+        document.getElementById("spy-chart"),
+        snap.spy_lock.time_s,
+        snap.spy_lock.adduct_M,
+        []
+      );
+
+      const nxt = snap.next_length_empty_readings;
+      document.getElementById("next-metrics").innerHTML =
+        metric("Measure this n", nxt.next_n)
+        + metric("Range", nxt.n_min + " to " + nxt.n_max)
+        + metric("Method", nxt.learner_family);
+
+      document.querySelectorAll(".tabs button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("on"));
+          document.querySelectorAll("section").forEach((s) => s.classList.remove("on"));
+          btn.classList.add("on");
+          document.getElementById(btn.dataset.tab).classList.add("on");
+        });
+      });
+    }
+    main().catch((err) => {
+      document.querySelector("h1").textContent = "Could not load snapshot.json: " + err;
+    });
+  </script>
+</body>
+</html>

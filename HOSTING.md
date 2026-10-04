@@ -38,4 +38,10 @@ but the service remains for more than a month.
 ## What stays local-only
 
 The Cloudflare Quick Tunnel from the agent is gone when this session ends.
-Vercel still cannot execute this Python stack.
+Vercel cannot execute Streamlit or numpy. It can serve `web/modelling-static/`
+(a saved lookup of the live chassis). Deploy:
+
+```bash
+python scripts/write_modelling_static.py
+npx vercel --cwd web/modelling-static --yes
+```
