@@ -54,12 +54,12 @@ Shared limits: `calibrated` is false. Human review is required before a wet-lab 
 | Entry | `POST /api/ssdk/learn`, wiki `/ssdk` and `/learn` |
 | Older learner | Set `learner` to `design_engine`. Residual Gaussian process on the docking physics score. `design_engine_next_n` is always returned |
 | Default learner | `sklearn` Matérn-2.5 residual on wet luminescence. `learner_family` is `sklearn_matern_residual`, or `design_engine_fallback` when no wet luminescence row exists |
-| Multi-fidelity luminescence | Dry fidelity 0 = physics score. Wet fidelity 1 = caller `y`. Matérn-5/2 with one length scale per feature. 2×2 coregionalization. Dry noise fixed at 0.1 (prior choice; dry points have no replicates). One output: luminescence |
+| Multi-fidelity luminescence | Dry fidelity 0 = physics score. Wet fidelity 1 = caller `y`. Matérn-5/2 with one length scale per feature. 2×2 coregionalization. Dry noise fixed at 0.1 (prior choice; dry points have no replicates). One output: luminescence. The feature row is the same matrix as the sklearn residual and the per-assay GPs (`feature_matrix_sha256`) |
 | Pass rule | Pass if μ − 1.96σ ≥ threshold. Threshold, assay CVs, and costs live in `data/config/active_learning_config.json` and are `unmeasured` or `prior_choice` until replaced |
 | Acquisition | Expected improvement divided by cost. Cost unit is arbitrary |
-| Not included | A joint model of five wet assays, heteroscedastic noise, constrained optimisation, batch expected improvement, ESM-2 features on this path |
+| Not included | A joint model of five wet assays, heteroscedastic noise as the primary σ, constrained optimisation, batch expected improvement from BoTorch |
 
-Sequence encoding for a later construct model prefers ESM-2 and falls back to one-hot when the libraries are absent. The SSDK path above does not call it.
+When `sequence` is set, composition, one-hot, or ESM-2 (with a one-hot fallback) is appended to that shared feature matrix. It is constant across repeat counts for one request.
 
 ## Lab intake
 

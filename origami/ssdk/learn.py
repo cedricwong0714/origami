@@ -34,7 +34,11 @@ from origami.physical.payload_radii import radii_for
 from origami.physical.structure import structural_report
 from origami.priors import DEFAULT_PAYLOAD_RADIUS_A, SPY_K_ON_PER_M_S
 from origami.ssdk.batch_acquire import select_batch
-from origami.ssdk.canonical_learner import construct_flags, fit_sklearn_luminescence
+from origami.ssdk.canonical_learner import (
+    construct_flags,
+    fit_sklearn_luminescence,
+    geometry_feature_matrix,
+)
 from origami.ssdk.literature_train import train_literature
 from origami.ssdk.multioutput import multioutput_block
 from origami.ssdk.multifidelity_luminescence import multifidelity_luminescence_block
@@ -113,6 +117,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     engine_next = result.next_experiment.n_repeats
     flags = construct_flags(body.get("construct") if isinstance(body.get("construct"), dict) else None)
     sequence_vector, sequence_method = _sequence_block(body)
+    X_all = geometry_feature_matrix(result, n_max, flags, sequence_vector)
     use_scatter = bool(body.get("use_heteroscedastic_std", False))
     try:
         canonical = fit_sklearn_luminescence(
@@ -123,12 +128,16 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
             sequence_vector=sequence_vector,
             sequence_method=sequence_method,
             use_heteroscedastic_std=use_scatter,
+            X_all=X_all,
         )
         outputs = multioutput_block(
             result,
             mf_obs_rows,
             n_max,
             body.get("construct") if isinstance(body.get("construct"), dict) else None,
+            sequence_vector=sequence_vector,
+            sequence_method=sequence_method,
+            X_all=X_all,
         )
         batch = select_batch(canonical, outputs, batch_size)
     except ValueError as exc:
@@ -186,7 +195,13 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         "multioutput": outputs,
         "batch": batch,
         "multifidelity_luminescence": _multifidelity_block(
-            result, mf_obs_rows, n_max
+            result,
+            mf_obs_rows,
+            n_max,
+            flags,
+            sequence_vector,
+            sequence_method,
+            X_all,
         ),
     }
 
@@ -222,9 +237,25 @@ def _quantification(body: dict[str, Any], rows: list[Any]) -> dict[str, Any]:
         raise SsdkLearnError(str(exc)) from exc
 
 
-def _multifidelity_block(result: Any, rows: list[dict[str, Any]], n_max: int) -> dict[str, Any]:
+def _multifidelity_block(
+    result: Any,
+    rows: list[dict[str, Any]],
+    n_max: int,
+    flags: dict[str, float],
+    sequence_vector: np.ndarray | None,
+    sequence_method: str,
+    X_all: np.ndarray,
+) -> dict[str, Any]:
     try:
-        return multifidelity_luminescence_block(result, rows, n_max)
+        return multifidelity_luminescence_block(
+            result,
+            rows,
+            n_max,
+            flags,
+            sequence_vector,
+            sequence_method,
+            X_all,
+        )
     except ValueError as exc:
         raise SsdkLearnError(str(exc)) from exc
 

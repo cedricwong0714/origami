@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (one feature matrix for the SSDK Gaussian processes)
+
+### Changed
+- Sklearn residual, the five per-assay multi-fidelity GPs, and the luminescence multi-fidelity GP now train and predict on one matrix (`geometry_feature_matrix`). Linker RMS and CaM/M13 placement are no longer dropped on the luminescence multi-fidelity path. The response records `feature_matrix_sha256` on all three blocks.
+- A non-luminescence observation is not a wet point for the luminescence multi-fidelity GP. It stays on its own assay GP.
+- Optional sequence features are appended to that same matrix, including the multi-fidelity luminescence fit. Model version for that block is `mf-lum-v0.2`.
+
 ## Unreleased — 2026-10-03 (plate versus freeze, blocked ODE error, standard-curve target)
 
 ### Added

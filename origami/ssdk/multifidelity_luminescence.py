@@ -15,7 +15,12 @@ from typing import Any
 
 import numpy as np
 
-from origami.ssdk.features import FEATURE_NAMES, ssdk_feature_vector
+from origami.ssdk.canonical_learner import (
+    construct_flags,
+    feature_matrix_sha256,
+    geometry_feature_matrix,
+)
+from origami.ssdk.features import FEATURE_NAMES
 from src.experiment_design.frozen_table import (
     cost_weighted_ei,
     load_config,
@@ -24,18 +29,31 @@ from src.experiment_design.frozen_table import (
 )
 from src.gp_model.multifidelity import MultiFidelityGP
 
-MODEL_VERSION = "mf-lum-v0.1"
+MODEL_VERSION = "mf-lum-v0.2"
 
 
 def multifidelity_luminescence_block(
     result: Any,
     observation_rows: list[dict[str, Any]],
     n_max: int,
+    flags: dict[str, float] | None = None,
+    sequence_vector: np.ndarray | None = None,
+    sequence_method: str = "none",
+    X_all: np.ndarray | None = None,
 ) -> dict[str, Any]:
-    """Build the ``multifidelity_luminescence`` section for ``learn_ssdk``."""
+    """Build the ``multifidelity_luminescence`` section for ``learn_ssdk``.
+
+    The feature matrix is ``geometry_feature_matrix``. A row whose
+    ``output`` is not luminescence is ignored here. It belongs to the
+    per-assay GP, not to this luminescence fit.
+    """
     cfg = load_config()
     by_n = {int(n): i for i, n in enumerate(result.candidates)}
     candidates = [int(n) for n in result.candidates]
+    if flags is None:
+        flags = construct_flags(None)
+    if X_all is None:
+        X_all = geometry_feature_matrix(result, n_max, flags, sequence_vector)
 
     X_train: list[np.ndarray] = []
     f_train: list[int] = []
@@ -44,6 +62,8 @@ def multifidelity_luminescence_block(
 
     wet_by_n: dict[int, float] = {}
     for row in observation_rows:
+        if row.get("output", "luminescence") != "luminescence":
+            continue
         n = int(row["n_repeats"])
         fid = int(row.get("fidelity", 1))
         if fid not in (0, 1):
@@ -51,13 +71,7 @@ def multifidelity_luminescence_block(
         if n not in by_n:
             continue
         idx = by_n[n]
-        feat = ssdk_feature_vector(
-            n,
-            float(result.physics_scores[idx]),
-            float(result.p_instability[idx]),
-            n_max,
-        )
-        X_train.append(feat)
+        X_train.append(X_all[idx])
         f_train.append(fid)
         y_train.append(float(row["y"]))
         sigma = row.get("sigma")
@@ -69,14 +83,7 @@ def multifidelity_luminescence_block(
         if n in wet_by_n:
             continue
         idx = by_n[n]
-        X_train.append(
-            ssdk_feature_vector(
-                n,
-                float(result.physics_scores[idx]),
-                float(result.p_instability[idx]),
-                n_max,
-            )
-        )
+        X_train.append(X_all[idx])
         f_train.append(0)
         y_train.append(float(result.physics_scores[idx]))
         wet_noise.append(None)
@@ -88,7 +95,9 @@ def multifidelity_luminescence_block(
         "confidence_tier": "hypothesis_only",
         "human_review_required": True,
         "feature_names": list(FEATURE_NAMES),
-        "sequence_encoding": "none_ssdk_geometry_only",
+        "feature_matrix_sha256": feature_matrix_sha256(X_all),
+        "sequence_encoding": sequence_method,
+        "linker_rms_A": float(flags["linker_rms_A"]),
         "config_placeholders_unmeasured": unmeasured_items(cfg),
         "threshold_luminescence": cfg["thresholds"]["luminescence"],
         "note": (
@@ -130,18 +139,7 @@ def multifidelity_luminescence_block(
     if caught:
         mf["warnings"] = [str(w.message) for w in caught]
 
-    X_grid = np.vstack(
-        [
-            ssdk_feature_vector(
-                n,
-                float(result.physics_scores[by_n[n]]),
-                float(result.p_instability[by_n[n]]),
-                n_max,
-            )
-            for n in candidates
-        ]
-    )
-    pred = gp.predict(X_grid, fidelity=1, include_noise=False)
+    pred = gp.predict(X_all, fidelity=1, include_noise=False)
     thresh = float(cfg["thresholds"]["luminescence"]["value"])
     best_wet = max(wet_by_n.values()) if wet_by_n else float(np.max(pred.mean))
 

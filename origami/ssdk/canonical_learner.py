@@ -8,6 +8,7 @@ names ``design_engine_fallback`` instead of pretending the families match.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 import numpy as np
@@ -65,6 +66,29 @@ def _with_sequence(X: np.ndarray, sequence_vector: np.ndarray | None) -> np.ndar
     return np.hstack([X, extra])
 
 
+def geometry_feature_matrix(
+    result: Any,
+    n_max: int,
+    flags: dict[str, float],
+    sequence_vector: np.ndarray | None = None,
+) -> np.ndarray:
+    """One feature matrix for every SSDK Gaussian process on this request.
+
+    Columns are the screw descriptors in ``FEATURE_NAMES``, then the
+    optional sequence block. The same array is what sklearn, the
+    per-assay multi-fidelity GPs, and the luminescence multi-fidelity
+    GP must see. Rebuilding it inside one of those fits is how the
+    linker flags used to drop out.
+    """
+    return _with_sequence(feature_matrix(result, n_max, flags), sequence_vector)
+
+
+def feature_matrix_sha256(matrix: np.ndarray) -> str:
+    """Checksum of the shared float64 feature matrix. Not a sequence checksum."""
+    payload = np.ascontiguousarray(matrix, dtype=np.float64).tobytes()
+    return hashlib.sha256(payload).hexdigest()
+
+
 def fit_sklearn_luminescence(
     result: Any,
     observation_rows: list[dict[str, Any]],
@@ -73,9 +97,12 @@ def fit_sklearn_luminescence(
     sequence_vector: np.ndarray | None = None,
     sequence_method: str = "none",
     use_heteroscedastic_std: bool = False,
+    X_all: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Residual GP of wet luminescence minus the docking physics score."""
     by_n = {int(n): i for i, n in enumerate(result.candidates)}
+    if X_all is None:
+        X_all = geometry_feature_matrix(result, n_max, flags, sequence_vector)
     X_rows: list[np.ndarray] = []
     y_obs: list[float] = []
     y_mech: list[float] = []
@@ -89,20 +116,7 @@ def fit_sklearn_luminescence(
         if n not in by_n:
             continue
         idx = by_n[n]
-        X_rows.append(
-            _with_sequence(
-                ssdk_feature_vector(
-                    n,
-                    float(result.physics_scores[idx]),
-                    float(result.p_instability[idx]),
-                    n_max,
-                    linker_rms_A=flags["linker_rms_A"],
-                    cam_on_scaffold=flags["cam_on_scaffold"],
-                    m13_on_scaffold=flags["m13_on_scaffold"],
-                ).reshape(1, -1),
-                sequence_vector,
-            )[0]
-        )
+        X_rows.append(X_all[idx])
         y_obs.append(float(row["y"]))
         y_mech.append(float(result.physics_scores[idx]))
         measured.add(n)
@@ -110,6 +124,7 @@ def fit_sklearn_luminescence(
         "calibrated": False,
         "confidence_tier": "hypothesis_only",
         "feature_names": list(FEATURE_NAMES),
+        "feature_matrix_sha256": feature_matrix_sha256(X_all),
         "sequence_encoding": sequence_method,
         "heteroscedastic": {
             "fitted": False,
@@ -126,7 +141,6 @@ def fit_sklearn_luminescence(
     residuals = np.asarray(y_obs) - np.asarray(y_mech)
     gp = ResidualGP(n_restarts=2)
     gp.fit(X_train, np.asarray(y_obs), np.asarray(y_mech))
-    X_all = _with_sequence(feature_matrix(result, n_max, flags), sequence_vector)
     mean, half = gp.predict(X_all, np.asarray(result.physics_scores, dtype=float))
     std = np.asarray(half, dtype=float) / 1.96
     scatter = residual_scatter(X_train, residuals, X_all)

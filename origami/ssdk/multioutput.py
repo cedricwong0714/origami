@@ -13,7 +13,12 @@ from typing import Any
 
 import numpy as np
 
-from origami.ssdk.canonical_learner import WET_OUTPUTS, construct_flags, feature_matrix
+from origami.ssdk.canonical_learner import (
+    WET_OUTPUTS,
+    construct_flags,
+    feature_matrix_sha256,
+    geometry_feature_matrix,
+)
 from src.experiment_design.frozen_table import Z95, load_config, passes, unmeasured_items
 from src.gp_model.multifidelity import MultiFidelityGP
 
@@ -32,16 +37,14 @@ def _rows_for(observation_rows: list[dict[str, Any]], output: str) -> list[dict[
 def fit_output(
     result: Any,
     rows: list[dict[str, Any]],
-    n_max: int,
-    flags: dict[str, float],
     output: str,
+    X_all: np.ndarray,
 ) -> dict[str, Any]:
     """Fit one output. Returns fitted=False when that output has no wet row."""
     wet = [r for r in rows if int(r.get("fidelity", 1)) == 1]
     if not wet:
         return {"output": output, "fitted": False, "calibrated": False}
     by_n = {int(n): i for i, n in enumerate(result.candidates)}
-    X_all = feature_matrix(result, n_max, flags)
     X_list = []
     f_list = []
     y_list = []
@@ -98,12 +101,19 @@ def multioutput_block(
     observation_rows: list[dict[str, Any]],
     n_max: int,
     construct: dict[str, Any] | None,
+    sequence_vector: np.ndarray | None = None,
+    sequence_method: str = "none",
+    X_all: np.ndarray | None = None,
 ) -> dict[str, Any]:
     flags = construct_flags(construct)
+    if X_all is None:
+        X_all = geometry_feature_matrix(result, n_max, flags, sequence_vector)
     cfg = load_config()
     outputs: dict[str, Any] = {}
     for name in WET_OUTPUTS:
-        outputs[name] = fit_output(result, _rows_for(observation_rows, name), n_max, flags, name)
+        outputs[name] = fit_output(
+            result, _rows_for(observation_rows, name), name, X_all
+        )
     gated = [name for name in THRESHOLDED if outputs[name]["fitted"]]
     if not gated:
         status = "NOT_GATED"
@@ -112,6 +122,8 @@ def multioutput_block(
     return {
         "calibrated": False,
         "model": "separate_multifidelity_gp_per_output",
+        "feature_matrix_sha256": feature_matrix_sha256(X_all),
+        "sequence_encoding": sequence_method,
         "overall_status": status,
         "gated_outputs": gated,
         "omitted_outputs": [name for name in WET_OUTPUTS if not outputs[name]["fitted"]],

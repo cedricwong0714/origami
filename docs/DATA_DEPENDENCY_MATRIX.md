@@ -20,7 +20,7 @@ Scope decisions (user, 2026-10-02):
 | Kinetics: Spy lumped rate (Zakeri 2012), CaM-M13 peptide Kd 0.19 nM | In priors |
 | Sensitivity (elasticities), ablation, cost-aware ranking, replicate choice | Done |
 | Multi-fidelity luminescence (dry physics + wet y) | Done on `/api/ssdk/learn`; luminescence only; thresholds/CVs from `data/config/active_learning_config.json` (unmeasured) |
-| Non-Euclidean kernels (ESM-2 / sequence) | Library in `src/gp_model/sequence_encoding.py`; SSDK MF path uses geometry features only |
+| Non-Euclidean kernels (ESM-2 / sequence) | Optional block on the shared SSDK feature matrix (sklearn, per-assay GP, and luminescence multi-fidelity). ESM-2 falls back to one-hot without torch |
 
 ## Needs lab data
 
