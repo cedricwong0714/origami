@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
 import {
   fetchKineticsSchema,
@@ -171,21 +172,12 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           {pane === "spy" ? "SpyCatcher–SpyTag" : pane === "nanobit" ? "LgBiT–SmBiT" : "Bound fraction"}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Type concentrations in moles per litre and run the calculation. None of
-          these rates were measured on our protein.
+          {pane === "spy"
+            ? "Mass-action time course for the covalent lock in a well-mixed solution. The curve is adduct versus time at the concentrations you type. Use it to see whether the lock finishes inside an assay window."
+            : pane === "nanobit"
+              ? "Reversible mass-action time course for LgBiT and SmBiT in a well-mixed solution. The curve is complex versus time. Use it to see whether the reporter assembles at the concentrations you type."
+              : "Langmuir isotherm for the CaM–M13 sensor. The curve is the fraction of sites occupied versus free concentration. The dot is the concentration you run. Use it to see whether that concentration saturates the sensor or sits on the slope."}
         </p>
-        <ul className="mt-3 max-w-2xl list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">
-          <li>
-            Bound fraction: free CaM–M13 peptide Kd 0.19 nM (Biochemistry 2006).
-            The 80 nM fusion figure is not used here.
-          </li>
-          <li>
-            Spy lock over time: Zakeri 2012 rate, 1.4×10³ M⁻¹ s⁻¹. No reverse rate is stored.
-          </li>
-          <li>
-            LgBiT–SmBiT complex: Dixon 2016 on and off rates. The printed Kd is 190 μM.
-          </li>
-        </ul>
       </header>
 
       {error ? (
@@ -231,9 +223,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">Bound fraction</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          Fraction bound = free concentration / (free concentration + Kd).
-          Kd is 0.19 nM (DOI 10.1021/bi060857u). The 95% band comes from the
-          uncertainty on that Kd.
+          θ = C_free / (C_free + Kd). Kd is the peptide value 0.19 nM. The 80 nM fusion figure is not this isotherm. The band on the single point comes from the uncertainty on that Kd.
         </p>
         <label className="mt-4 block text-sm">
           C<sub>free</sub> (M)
@@ -269,9 +259,27 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             </div>
             <div>
               <dt className="text-[#8A8278]">What this is</dt>
-              <dd>Literature Kd. Not measured here.</dd>
+              <dd>One point on the isotherm. Not a measurement on this fusion.</dd>
             </div>
           </dl>
+        ) : null}
+        {sim ? (
+          <SeriesChart
+            label="Bound fraction versus free concentration"
+            xLabel="Free concentration (M)"
+            yLabel="Fraction bound"
+            xLog
+            markerX={sim.recruitment.c_free_M}
+            series={[
+              {
+                color: "#C45C12",
+                points: Array.from({ length: 41 }, (_, index) => {
+                  const c = sim.recruitment.kd_M * 10 ** (-2 + index * 0.1);
+                  return { x: c, y: c / (c + sim.recruitment.kd_M) };
+                }),
+              },
+            ]}
+          />
         ) : null}
       </section>
       ) : null}
@@ -331,6 +339,14 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             </div>
           </dl>
         ) : null}
+        {nano?.time_s && nano.series.complex_M.length === nano.time_s.length ? (
+          <SeriesChart
+            label="LgBiT–SmBiT complex versus time"
+            xLabel="Time (s)"
+            yLabel="Complex (M)"
+            series={[{ color: "#C45C12", points: nano.time_s.map((time, index) => ({ x: time, y: nano.series.complex_M[index] ?? 0 })) }]}
+          />
+        ) : null}
         {nano?.warnings?.length ? (
           <ul className="mt-4 list-disc pl-5 text-sm text-[#5C564E]">
             {nano.warnings.map((warning) => (
@@ -345,9 +361,8 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">Spy lock over time</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          Starting rate is the Zakeri 2012 value (
-          {spyOn ? formatVal(spyOn) : "1.4×10³ M⁻¹ s⁻¹"}). Leave the lab boxes
-          empty. Fill a reverse rate and a bond rate only when you have measured them.
+          Default path: one irreversible step, adduct grows as k_on times Tag times Catcher. The starting k_on is{" "}
+          {spyOn ? formatVal(spyOn) : "the Zakeri 2012 rate"}. Leave the reverse and bond boxes empty. Filling both switches the model to reversible binding plus an irreversible lock.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
@@ -421,9 +436,22 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             </div>
             <div>
               <dt className="text-[#8A8278]">What this is</dt>
-              <dd>Literature rate. Not measured here.</dd>
+              <dd>The ODE at the concentrations you typed. Not a measurement on this fusion.</dd>
             </div>
           </dl>
+        ) : null}
+        {cov && cov.time_s.length > 0 ? (
+          <SeriesChart
+            label="Spy adduct versus time"
+            xLabel="Time (s)"
+            yLabel="Adduct (M)"
+            series={[
+              {
+                color: "#C45C12",
+                points: cov.time_s.map((time, index) => ({ x: time, y: cov.series.adduct_M[index] ?? 0 })),
+              },
+            ]}
+          />
         ) : null}
       </section>
       ) : null}

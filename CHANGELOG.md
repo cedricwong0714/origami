@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (studio copy and model charts)
+
+### Added
+- `GET /api/stability/curve` returns the Phillips length model from n = 3 to n = 24 for the melt chart.
+- The studio draws that melt curve, a docking concentration comparison, and kinetic isotherm or time-course plots.
+
+### Changed
+- Studio page text states the design question each model answers.
+
 ## Unreleased — 2026-10-04 (SSDK studio runs any repeat count)
 
 ### Added

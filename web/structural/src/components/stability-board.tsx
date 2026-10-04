@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
 import { PHILLIPS_PRINTED_DELTA_G_T_C } from "@/lib/thermo";
 import {
@@ -384,6 +385,7 @@ export function StabilityBoard() {
   const [runError, setRunError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [predicted, setPredicted] = useState<PredictedLength | null>(null);
+  const [curve, setCurve] = useState<PredictedLength[] | null>(null);
 
   async function runLength() {
     const n = Number(runN);
@@ -408,6 +410,22 @@ export function StabilityBoard() {
       setRunning(false);
     }
   }
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/stability/curve?t_assay_C=37")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const body = (await response.json()) as { points?: PredictedLength[] };
+        if (alive && body.points) setCurve(body.points);
+      })
+      .catch(() => {
+        if (alive) setCurve(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -450,11 +468,12 @@ export function StabilityBoard() {
             Melting temperature
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Type any repeat count from 3 to 24 and run it. Melting temperature and
-            unfolding energy (ΔG) come from a fit to Phillips et al. 2012 CTPRa
-            data (DOI 10.1002/pro.2018), evaluated at that count. “Passes at 37 °C”
-            means that calculated melt is above 37 °C. This is not a measurement
-            on our protein.
+            The curve is melting temperature versus scaffold length. Run a repeat
+            count to read that length on the curve. Pass means the calculated melt
+            is above 37 °C, so the scaffold model is still folded at an E. coli
+            assay temperature. The fit is Phillips et al. 2012 CTPRa DSC
+            (DOI 10.1002/pro.2018). Lengths the paper did not measure are the same
+            curve extended, not a copied table cell.
           </p>
           <Link
             href="/stability/calculator"
@@ -482,7 +501,7 @@ export function StabilityBoard() {
       <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          37 °C is the comparison temperature, not a temperature from the paper. The three planned lengths stay in the chart below. Any other count is calculated the same way.
+          37 °C is the assay line on the curve. It is an E. coli operating temperature, not a DSC setpoint. The dashed line on the plot is that cutoff.
         </p>
         <div className="mt-6 flex flex-wrap items-end gap-3">
           <label className="text-sm font-medium text-[#242220]">
@@ -588,7 +607,7 @@ export function StabilityBoard() {
               ))}
             </ul>
             <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
-              These three are the planned constructs. Use the box above for any other count from 3 to 24, including 14.
+              n = 3, 8, and 14 are the lengths planned for the build. The curve above is every count from 3 to 24.
             </p>
           </div>
           <div>
@@ -606,10 +625,46 @@ export function StabilityBoard() {
         </div>
       </section>
 
+      {curve && curve.some((point) => point.tm_C !== null) ? (
+        <section className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white p-5" aria-label="Melting temperature versus length">
+          <h2 className="font-heading text-2xl font-semibold">Melt versus repeat count</h2>
+          <p className="mt-2 max-w-2xl text-sm text-[#5C564E]">
+            Orange is the calculated melt. Grey lines are the 95% band of the fit. Blue is 37 °C. A vertical mark is the length you just ran.
+          </p>
+          <SeriesChart
+            label="Calculated melting temperature versus repeat count, with a 37 °C assay line"
+            xLabel="Repeat count"
+            yLabel="°C"
+            guideY={{ y: 37, label: "37 °C" }}
+            markerX={predicted?.n_repeats}
+            series={[
+              {
+                color: "#C8C1B6",
+                width: 1,
+                points: curve.flatMap((point) =>
+                  point.tm_interval_low === null ? [] : [{ x: point.n_repeats, y: point.tm_interval_low }],
+                ),
+              },
+              {
+                color: "#C8C1B6",
+                width: 1,
+                points: curve.flatMap((point) =>
+                  point.tm_interval_high === null ? [] : [{ x: point.n_repeats, y: point.tm_interval_high }],
+                ),
+              },
+              {
+                color: "#C45C12",
+                points: curve.flatMap((point) => (point.tm_C === null ? [] : [{ x: point.n_repeats, y: point.tm_C }])),
+              },
+            ]}
+          />
+        </section>
+      ) : null}
+
       <section className="mt-12" aria-label="Results">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Results</h2>
+        <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Planned lengths</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          One row per team length: n = 3, n = 8, and n = 14.
+          The same curve, read at n = 3, n = 8, and n = 14.
         </p>
         {data?.note ? <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#6F675C]">{data.note}</p> : null}
 

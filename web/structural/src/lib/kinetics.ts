@@ -97,6 +97,7 @@ export type NanoBitSim = {
     printed_kd_M: number;
     kinetic_kd_M: number;
   };
+  time_s?: number[];
   series: { complex_M: number[] };
 };
 

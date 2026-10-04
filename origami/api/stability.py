@@ -309,6 +309,58 @@ def stability_at_n(n_repeats: int, t_assay_C: float) -> dict[str, Any]:
     }
 
 
+def stability_curve(t_assay_C: float) -> dict[str, Any]:
+    """Length-model melt and ΔG at every repeat count from 3 to 24.
+
+    One fit, then a prediction at each n. Points past the longest cited
+    length stay in the curve and are marked. This is the shape used to
+    choose a length, not a table of printed cells.
+    """
+    panel = literature_panel(t_assay_C)
+    series_id = _CANONICAL_SERIES
+    lookup = {
+        (str(row["series_id"]), int(row["n_repeats"])): row for row in panel["rows"]
+    }
+    assay = float(panel["t_assay_C"])
+    tm_fit = fit_named_tm(series_id)
+    dg_fit = fit_named_delta_g(series_id)
+    points = []
+    for n_repeats in range(N_REPEATS_MIN, N_REPEATS_MAX + 1):
+        row = _confirm_row(
+            series_id,
+            n_repeats,
+            assay,
+            lookup.get((series_id, n_repeats)),
+            tm_fit,
+            dg_fit,
+        )
+        points.append(
+            {
+                "n_repeats": n_repeats,
+                "tm_C": row["tm_C"],
+                "tm_interval_low": row["tm_interval_low"],
+                "tm_interval_high": row["tm_interval_high"],
+                "delta_g": row["delta_g"],
+                "thermal_state": row["thermal_state"],
+                "past_longest_cited_length": row["past_longest_cited_length"],
+            }
+        )
+    return {
+        "calibrated": False,
+        "confidence_tier": "hypothesis_only",
+        "human_review_required": True,
+        "t_assay_C": assay,
+        "literature_series_id": series_id,
+        "model_name": MODEL_NAME,
+        "model_version": MODEL_VERSION,
+        "points": points,
+        "note": (
+            "Each point is the length model at that repeat count. "
+            "A point past the longest cited length is an extrapolation of that fit."
+        ),
+    }
+
+
 def _paper_tm(paper: dict[str, Any] | None) -> float | None:
     """Cited Tm from the lookup when that cell is a real table row."""
     if paper is None:
@@ -341,6 +393,17 @@ def get_stability_panel(
 ) -> dict[str, Any]:
     """Literature thermal panel for every named series and library n."""
     return literature_panel(t_assay_C)
+
+
+@router.get("/api/stability/curve")
+def get_stability_curve(
+    t_assay_C: float = Query(
+        default=DEFAULT_OPERATING_TEMPERATURE_C,
+        description=_ASSAY_DESCRIPTION,
+    ),
+) -> dict[str, Any]:
+    """Melting temperature and ΔG from n = 3 through n = 24."""
+    return stability_curve(t_assay_C)
 
 
 @router.get("/api/stability/predict")

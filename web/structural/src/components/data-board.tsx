@@ -267,9 +267,9 @@ export function DataBoard() {
             End separation
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
-            Add any repeat count from 3 to 24. Dark bar: distance along the axis.
-            Orange bar: straight-line distance between the ends. Blue whisker: 95%
-            range from the published crystals.
+            Compare lengths on the same screw. Dark bar: distance along the axis.
+            Orange bar: straight-line end distance, which is what docking uses as the chord.
+            Blue whisker: spread among the three crystal structures. Add a count from 3 to 24 to see whether a longer scaffold actually separates the ends.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -185,9 +185,7 @@ export function StructuralStudio() {
             CTPR screw
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#5C564E]">
-            Run a repeat count from 3 to 24. You get the backbone shape and the
-            distances on it. Source: published CTPR crystals PDB 2AVP, 2HYZ, and
-            2FO7. This is not a structure of the full fusion, and not a lab measurement.
+            This is the geometric model of the scaffold. A repeat count is placed on the deposited CTPR screw (PDB 2AVP, 2HYZ, 2FO7) so you can see graft position, end-to-end distance, and which way the ends face. SpyCatcher, the linkers, and LgBiT are not in the trace. Use the shape before you score stability or docking.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

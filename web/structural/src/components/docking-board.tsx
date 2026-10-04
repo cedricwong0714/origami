@@ -49,6 +49,48 @@ function sci(value: number | null | undefined): string {
   return value.toExponential(3);
 }
 
+function ConcentrationRuler({
+  cEff,
+  kd,
+  nanoKd,
+}: {
+  cEff: number;
+  kd: number;
+  nanoKd: number | null;
+}) {
+  const marks = [
+    { label: "Local concentration", value: cEff, color: "#C45C12" },
+    { label: "Your Kd", value: kd, color: "#242220" },
+    ...(nanoKd !== null && nanoKd > 0
+      ? [{ label: "LgBiT–SmBiT Kd", value: nanoKd, color: "#266FB1" }]
+      : []),
+  ].filter((mark) => mark.value > 0);
+  if (marks.length < 2) return null;
+  const logs = marks.map((mark) => Math.log10(mark.value));
+  const min = Math.min(...logs) - 0.4;
+  const max = Math.max(...logs) + 0.4;
+  const span = max - min || 1;
+  const width = 640;
+  const height = 96;
+  const xOf = (value: number) => 16 + ((Math.log10(value) - min) / span) * (width - 32);
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Log concentration comparison of local concentration, your Kd, and the LgBiT–SmBiT Kd">
+      <line x1={16} x2={width - 16} y1={36} y2={36} stroke="#E3D9CC" />
+      {marks.map((mark) => (
+        <g key={mark.label}>
+          <circle cx={xOf(mark.value)} cy={36} r={6} fill={mark.color} />
+          <text x={xOf(mark.value)} y={18} fill={mark.color} fontSize="11" textAnchor="middle">
+            {mark.label}
+          </text>
+          <text x={xOf(mark.value)} y={78} fill="#5C564E" fontSize="11" textAnchor="middle">
+            {mark.value.toExponential(1)} M
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 function downloadJson(filename: string, payload: unknown) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -138,8 +180,8 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
         {pane === "affinity"
-          ? "Type a dissociation constant (Kd) or an association constant (Ka), and a repeat count. The screw gives a local concentration. Bound fraction = local concentration / (local concentration + Kd). At or above one half, the constructs are held together, and that same concentration is applied to LgBiT–SmBiT and SpyCatcher–SpyTag."
-          : "Pick a repeat count. You get the straight-line distance between the two docking repeats, the clash probability, and the local concentration. Radii are the deposited SpyCatcher and LgBiT clash radii."}
+          ? "The screw turns a repeat count into a local concentration between the two docking sites. Your Kd or Ka is compared with that concentration. Bound fraction = local concentration / (local concentration + Kd). At or above one half, the constructs stay together, and the same concentration is applied to LgBiT–SmBiT and SpyCatcher–SpyTag. Use it to see whether a candidate affinity is tight enough for this length."
+          : "Straight-line distance between the two docking repeats on the screw, the chance those payloads clash, and the local concentration that distance produces. Radii are the deposited SpyCatcher and LgBiT sizes. Use it to see how length changes proximity."}
       </p>
 
       <section className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white p-6">
@@ -208,6 +250,14 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             {affinity.association_holds ? "Holds together" : "Does not hold together"}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{affinity.verdict}</p>
+          <ConcentrationRuler
+            cEff={affinity.c_eff_M}
+            kd={affinity.kd_M}
+            nanoKd={affinity.nanobit_printed_kd_M}
+          />
+          <p className="mt-2 text-sm text-[#5C564E]">
+            On this log scale, your Kd has to sit at or left of the local concentration to hold the constructs together. The LgBiT–SmBiT Kd shows how much higher that local concentration would need to be to occupy the reporter.
+          </p>
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-[#8A8278]">Bound fraction</dt>
@@ -257,6 +307,30 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
       {geometry && pane === "geometry" ? (
         <section className="mt-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
           <h2 className="text-lg font-medium">n = {geometry.docking.n_repeats}</h2>
+          <svg viewBox="0 0 640 72" className="mt-3 h-auto w-full" role="img" aria-label="Chord and its 95% band">
+            <line x1={40} x2={600} y1={28} y2={28} stroke="#E3D9CC" />
+            <line
+              x1={40 + (geometry.docking.chord_95_low_A / Math.max(geometry.docking.chord_95_high_A, 1)) * 520}
+              x2={40 + (geometry.docking.chord_A / Math.max(geometry.docking.chord_95_high_A, 1)) * 520}
+              y1={28}
+              y2={28}
+              stroke="#266FB1"
+              strokeWidth={4}
+            />
+            <circle
+              cx={40 + (geometry.docking.chord_A / Math.max(geometry.docking.chord_95_high_A, 1)) * 520}
+              cy={28}
+              r={6}
+              fill="#C45C12"
+            />
+            <text x={40} y={56} fill="#5C564E" fontSize="12">
+              0
+            </text>
+            <text x={560} y={56} fill="#5C564E" fontSize="12">
+              {geometry.docking.chord_95_high_A.toFixed(0)} Å
+            </text>
+          </svg>
+          <p className="mt-1 text-sm text-[#5C564E]">Orange dot: straight-line distance. Blue: from the low end of the 95% band to that distance.</p>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-[#8A8278]">Repeats</dt>

@@ -534,11 +534,13 @@ export function ThermoCalculator() {
             Unfolding energy vs temperature
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Pick a repeat count and a temperature. ΔG is the energy needed to unfold.
-            At the melting temperature, ΔG is 0. The paper’s printed ΔG is shown
-            separately. With the stored heat-capacity values, the calculated ΔG
-            at 10 °C is 0.5–5.0 kcal/mol higher than that printed number. The gap
-            is unexplained. This is not a measurement on our protein.
+            Turn a melting temperature into unfolding energy at the temperature you care about.
+            At the melt, ΔG is 0 for a two-state transition. Away from the melt, the curve needs
+            ΔHcal and ΔCp, or an anchor ΔG under the explicit assumption ΔCp = 0.
+            When the paper has a row, those values start the calculation. When it does not,
+            the length model supplies the melt and the anchor. With the stored heat-capacity
+            values, calculated ΔG at 10 °C sits 0.5–5.0 kcal/mol above the printed number.
+            That gap is unexplained. This is not a melt of our fusion.
           </p>
         </div>
         <Badge
@@ -553,7 +555,7 @@ export function ThermoCalculator() {
         <section className="rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
           <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
           <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
-            A cited melting temperature is filled in when the paper has one. ΔHcal and ΔCp stay empty until you type them.
+            The melt and the anchor start from a paper row when one exists, and from the length model when it does not. ΔHcal and ΔCp stay empty until you type them, because the curve away from the melt is not invented.
           </p>
 
           <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
