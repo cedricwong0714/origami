@@ -42,7 +42,7 @@ function formatVal(slot: RateSlot) {
   return `${slot.value.toExponential(2)} ${slot.units}`;
 }
 
-export function KineticsBoard() {
+export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "nanobit" }) {
   const [schema, setSchema] = useState<KineticsSchema | null>(null);
   const [sim, setSim] = useState<RecruitmentSim | null>(null);
   const [cov, setCov] = useState<CovalentSim | null>(null);
@@ -166,10 +166,12 @@ export function KineticsBoard() {
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
-        <h1 className="mt-1 text-3xl font-semibold">Binding</h1>
+        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Kinetic modelling</p>
+        <h1 className="mt-1 text-3xl font-semibold">
+          {pane === "spy" ? "SpyCatcher–SpyTag" : pane === "nanobit" ? "LgBiT–SmBiT" : "Bound fraction"}
+        </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Three calculations. Type concentrations in moles per litre. None of
+          Type concentrations in moles per litre and run the calculation. None of
           these rates were measured on our protein.
         </p>
         <ul className="mt-3 max-w-2xl list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">
@@ -200,7 +202,7 @@ export function KineticsBoard() {
         </div>
       ) : null}
 
-      {schema ? (
+      {schema && pane === "bound" ? (
         <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
           <h2 className="text-lg font-medium">Rates</h2>
           <p className="mt-1 text-sm text-[#5C564E]">
@@ -225,6 +227,7 @@ export function KineticsBoard() {
         </section>
       ) : null}
 
+      {pane === "bound" ? (
       <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">Bound fraction</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
@@ -271,7 +274,9 @@ export function KineticsBoard() {
           </dl>
         ) : null}
       </section>
+      ) : null}
 
+      {pane === "nanobit" ? (
       <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">LgBiT–SmBiT complex</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
@@ -334,7 +339,9 @@ export function KineticsBoard() {
           </ul>
         ) : null}
       </section>
+      ) : null}
 
+      {pane === "spy" ? (
       <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
         <h2 className="text-lg font-medium">Spy lock over time</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
@@ -419,6 +426,7 @@ export function KineticsBoard() {
           </dl>
         ) : null}
       </section>
+      ) : null}
     </main>
   );
 }

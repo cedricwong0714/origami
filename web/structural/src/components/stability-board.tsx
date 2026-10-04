@@ -361,10 +361,53 @@ function FitSummary({
   );
 }
 
+type PredictedLength = {
+  n_repeats: number;
+  tm_C: number | null;
+  tm_interval_low: number | null;
+  tm_interval_high: number | null;
+  delta_g: number | null;
+  delta_g_units: string | null;
+  delta_g_band_95_low: number | null;
+  delta_g_band_95_high: number | null;
+  thermal_state: string;
+  thermal_reason: string | null;
+  length_note: string | null;
+  past_longest_cited_length: boolean;
+};
+
 export function StabilityBoard() {
   const [data, setData] = useState<StabilityPanel | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [runN, setRunN] = useState("14");
+  const [runError, setRunError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [predicted, setPredicted] = useState<PredictedLength | null>(null);
+
+  async function runLength() {
+    const n = Number(runN);
+    if (!Number.isInteger(n) || n < 3 || n > 24) {
+      setRunError("Repeat count must be an integer from 3 to 24.");
+      setPredicted(null);
+      return;
+    }
+    setRunning(true);
+    setRunError(null);
+    try {
+      const response = await fetch(`/api/stability/predict?n=${n}&t_assay_C=37`);
+      const body = (await response.json()) as { detail?: string; row?: PredictedLength };
+      if (!response.ok || !body.row) {
+        throw new Error(body.detail || "The length model did not return a melting temperature.");
+      }
+      setPredicted(body.row);
+    } catch (err: unknown) {
+      setPredicted(null);
+      setRunError(err instanceof Error ? err.message : "The length model did not return a melting temperature.");
+    } finally {
+      setRunning(false);
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -407,10 +450,11 @@ export function StabilityBoard() {
             Melting temperature
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Run n = 3, 8, and 14. Melting temperature and unfolding energy (ΔG)
-            come from a fit to Phillips et al. 2012 CTPRa data (DOI 10.1002/pro.2018).
-            “Passes at 37 °C” means that calculated melt is above 37 °C. This is
-            not a measurement on our protein.
+            Type any repeat count from 3 to 24 and run it. Melting temperature and
+            unfolding energy (ΔG) come from a fit to Phillips et al. 2012 CTPRa
+            data (DOI 10.1002/pro.2018), evaluated at that count. “Passes at 37 °C”
+            means that calculated melt is above 37 °C. This is not a measurement
+            on our protein.
           </p>
           <Link
             href="/stability/calculator"
@@ -438,8 +482,80 @@ export function StabilityBoard() {
       <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Lengths are fixed at the three planned constructs. 37 °C is the comparison temperature, not a temperature from the paper.
+          37 °C is the comparison temperature, not a temperature from the paper. The three planned lengths stay in the chart below. Any other count is calculated the same way.
         </p>
+        <div className="mt-6 flex flex-wrap items-end gap-3">
+          <label className="text-sm font-medium text-[#242220]">
+            Repeat count
+            <input
+              className="mt-1 block h-11 w-28 rounded-lg border border-[#E3D9CC] px-3"
+              type="number"
+              min={3}
+              max={24}
+              value={runN}
+              onChange={(event) => setRunN(event.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="h-11 rounded-full bg-[#242220] px-5 text-sm text-white disabled:opacity-50"
+            onClick={() => void runLength()}
+            disabled={running}
+          >
+            {running ? "Running…" : "Run melting temperature"}
+          </button>
+        </div>
+        {runError ? <p className="mt-3 text-sm text-[#9B2C2C]">{runError}</p> : null}
+        {predicted ? (
+          <dl className="mt-6 grid gap-4 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-[#8A8278]">n</dt>
+              <dd className="font-mono text-lg">{predicted.n_repeats}</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">State at 37 °C</dt>
+              <dd>{predicted.thermal_state}</dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Calculated melt</dt>
+              <dd className="font-mono">
+                {predicted.tm_C === null ? "Not determined" : `${predicted.tm_C.toFixed(2)} °C`}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">95% band</dt>
+              <dd className="font-mono">
+                {predicted.tm_interval_low === null || predicted.tm_interval_high === null
+                  ? "Not reported"
+                  : `${predicted.tm_interval_low.toFixed(2)}–${predicted.tm_interval_high.toFixed(2)} °C`}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">Calculated ΔG</dt>
+              <dd className="font-mono">
+                {predicted.delta_g === null
+                  ? "Not determined"
+                  : `${predicted.delta_g.toFixed(2)} ${predicted.delta_g_units ?? ""}`.trim()}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[#8A8278]">ΔG 95% band</dt>
+              <dd className="font-mono">
+                {predicted.delta_g_band_95_low === null || predicted.delta_g_band_95_high === null
+                  ? "Not reported"
+                  : `${predicted.delta_g_band_95_low.toFixed(2)}–${predicted.delta_g_band_95_high.toFixed(2)}`}
+              </dd>
+            </div>
+            {predicted.length_note ? (
+              <p className="sm:col-span-2 text-[#5C564E]">{predicted.length_note}</p>
+            ) : null}
+            {predicted.past_longest_cited_length ? (
+              <p className="sm:col-span-2 text-[#5C564E]">
+                This count is past the longest length in the paper. The number is the length model outside that range.
+              </p>
+            ) : null}
+          </dl>
+        ) : null}
 
         {canonicalCopy ? (
           <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
@@ -472,7 +588,7 @@ export function StabilityBoard() {
               ))}
             </ul>
             <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
-              These three repeat counts are fixed on this screen. They match the team&apos;s CTPR lengths and cannot be changed here.
+              These three are the planned constructs. Use the box above for any other count from 3 to 24, including 14.
             </p>
           </div>
           <div>

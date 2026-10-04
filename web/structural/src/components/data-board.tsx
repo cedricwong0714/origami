@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StudioNav } from "@/components/studio-nav";
 import { fetchPrediction, fmt, type PredictResponse } from "@/lib/sa";
 
-const N_LIST = [3, 8, 14];
+const DEFAULT_LENGTHS = [3, 8, 14];
 
 function csvEscape(value: string | number | boolean): string {
   const text = String(value);
@@ -188,16 +188,28 @@ function ChordChart({ data }: { data: PredictResponse }) {
 }
 
 export function DataBoard() {
+  const [lengths, setLengths] = useState<number[]>(DEFAULT_LENGTHS);
+  const [draft, setDraft] = useState("10");
   const [data, setData] = useState<PredictResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const lengthKey = lengths.join(",");
 
   useEffect(() => {
     let alive = true;
-    fetchPrediction(N_LIST)
+    setLoading(true);
+    setError(null);
+    const requested = lengthKey.split(",").map((item) => Number(item));
+    fetchPrediction(requested)
       .then((payload) => {
-        if (alive) setData(payload);
+        if (!alive) return;
+        if (payload.constructs.length === 0) {
+          setData(null);
+          setError("No screw was returned for those repeat counts.");
+          return;
+        }
+        setData(payload);
       })
       .catch((err: unknown) => {
         if (alive) setError(err instanceof Error ? err.message : "Could not load measurements.");
@@ -208,7 +220,21 @@ export function DataBoard() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [lengthKey]);
+
+  function addLength() {
+    const n = Number(draft);
+    if (!Number.isInteger(n) || n < 3 || n > 24) {
+      setError("Repeat count must be an integer from 3 to 24.");
+      return;
+    }
+    setError(null);
+    setLengths((current) => (current.includes(n) ? current : [...current, n].sort((a, b) => a - b)));
+  }
+
+  function removeLength(n: number) {
+    setLengths((current) => (current.length === 1 ? current : current.filter((item) => item !== n)));
+  }
 
   const caption = useMemo(() => (data ? captionFor(data) : ""), [data]);
 
@@ -218,7 +244,7 @@ export function DataBoard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "origami-backbone-n3-8-14.csv";
+    link.download = "origami-backbone.csv";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -235,15 +261,15 @@ export function DataBoard() {
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">
-            Data presentation · backbone only
+            Structural analysis · compare lengths
           </p>
           <h1 className="mt-2 font-heading text-4xl text-[#242220] md:text-5xl">
-            n = 3, 8, 14
+            End separation
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
-            The three planned lengths, from the same screw model as the Screw page.
-            Dark bar: distance along the axis. Orange bar: straight-line distance
-            between the ends. Blue whisker: 95% range from the published crystals.
+            Add any repeat count from 3 to 24. Dark bar: distance along the axis.
+            Orange bar: straight-line distance between the ends. Blue whisker: 95%
+            range from the published crystals.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -257,6 +283,33 @@ export function DataBoard() {
           {data?.source === "snapshot" ? <Badge variant="outline">Saved file. API is down.</Badge> : null}
         </div>
       </header>
+
+      <div className="mt-6 flex flex-wrap items-end gap-2">
+        {lengths.map((n) => (
+          <button
+            key={n}
+            type="button"
+            className="rounded-full border border-[#E3D9CC] bg-white px-3 py-1 text-sm"
+            onClick={() => removeLength(n)}
+          >
+            n = {n} ×
+          </button>
+        ))}
+        <label className="text-sm">
+          Add repeat count
+          <input
+            className="ml-2 h-9 w-20 rounded-lg border border-[#E3D9CC] px-2"
+            type="number"
+            min={3}
+            max={24}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        </label>
+        <Button type="button" onClick={addLength}>
+          Add to chart
+        </Button>
+      </div>
 
       {loading ? (
         <p className="mt-10 flex items-center gap-2 text-sm text-[#8A8175]">

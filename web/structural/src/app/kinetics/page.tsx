@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function KineticsPage() {
-  return <KineticsBoard />;
+  return <KineticsBoard pane="bound" />;
 }

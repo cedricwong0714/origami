@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (SSDK studio runs any repeat count)
+
+### Added
+- `GET /api/stability/predict` evaluates the Phillips 2012 CTPRa DSC length model at any repeat count from 3 to 24, including n = 14 when the paper has no table cell.
+- `POST /api/docking/affinity` compares a typed Kd or Ka with the screw’s local concentration. Held means bound fraction at least 1/2 (Langmuir midpoint, not a paper cutoff). LgBiT–SmBiT and SpyCatcher–SpyTag are scored at that concentration only when the association holds.
+- Studio navigation is the four SSDK slices: structural analysis, stability confirmation, docking verification, kinetic modelling. The compare chart accepts repeat counts other than 3, 8, and 14.
+
+### Changed
+- Lab intake, plate upload, the guide page, and the single-length page are not in the studio navigation.
+
 ## Unreleased — 2026-10-04 (literature metadata fetch)
 
 ### Added

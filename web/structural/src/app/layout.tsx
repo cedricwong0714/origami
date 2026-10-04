@@ -13,7 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ORIGAMI structural analysis",
   description:
-    "CTPR screw, melting temperature, binding, and next-length tools for Hong Kong team ORIGAMI. Numbers are calculations or published values, not lab measurements of this fusion.",
+    "SSDK studio: structural analysis, stability confirmation, docking verification, and kinetic modelling. Calculations, not lab measurements of this fusion.",
 };
 
 export default function RootLayout({

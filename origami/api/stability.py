@@ -34,8 +34,10 @@ from origami.stability.series import (
     DEFAULT_OPERATING_TEMPERATURE_C,
     PHILLIPS_2012_CTPRA_DSC,
 )
+from origami.priors import N_REPEATS_MAX, N_REPEATS_MIN
 from origami.stability.thermo import (
     ThermoInputError,
+    _PHILLIPS_TABLE_I_DELTA_G_T_C,
     effective_enthalpy_delta_cp_zero,
     gibbs_helmholtz_curves,
     gibbs_helmholtz_report,
@@ -260,6 +262,53 @@ def _confirm_row(
     }
 
 
+def stability_at_n(n_repeats: int, t_assay_C: float) -> dict[str, Any]:
+    """Length-model melting temperature and ΔG at one repeat count.
+
+    The number is the Phillips 2012 CTPRa DSC length fit evaluated at
+    ``n_repeats``. A missing table row is not left blank. The ΔG anchor
+    temperature is the Table I temperature, 10 °C, because that is the
+    column the fit was trained on.
+    """
+    if isinstance(n_repeats, bool) or not isinstance(n_repeats, int):
+        raise ValueError("n_repeats must be an integer")
+    if n_repeats < N_REPEATS_MIN or n_repeats > N_REPEATS_MAX:
+        raise ValueError(f"n_repeats must be in [{N_REPEATS_MIN}, {N_REPEATS_MAX}]")
+    panel = literature_panel(t_assay_C)
+    series_id = _CANONICAL_SERIES
+    lookup = {
+        (str(row["series_id"]), int(row["n_repeats"])): row for row in panel["rows"]
+    }
+    assay = float(panel["t_assay_C"])
+    tm_fit = fit_named_tm(series_id)
+    dg_fit = fit_named_delta_g(series_id)
+    row = _confirm_row(
+        series_id,
+        n_repeats,
+        assay,
+        lookup.get((series_id, n_repeats)),
+        tm_fit,
+        dg_fit,
+    )
+    return {
+        "calibrated": False,
+        "confidence_tier": "hypothesis_only",
+        "human_review_required": True,
+        "n_repeats": n_repeats,
+        "t_assay_C": assay,
+        "literature_series_id": series_id,
+        "anchor_temperature_C": _PHILLIPS_TABLE_I_DELTA_G_T_C,
+        "anchor_note": (
+            "Length-model ΔG is the fit to the Phillips 2012 Table I "
+            "unfolding ΔG column, which that table states at 10 °C. "
+            "It is not a temperature correction."
+        ),
+        "model_name": MODEL_NAME,
+        "model_version": MODEL_VERSION,
+        "row": row,
+    }
+
+
 def _paper_tm(paper: dict[str, Any] | None) -> float | None:
     """Cited Tm from the lookup when that cell is a real table row."""
     if paper is None:
@@ -292,6 +341,21 @@ def get_stability_panel(
 ) -> dict[str, Any]:
     """Literature thermal panel for every named series and library n."""
     return literature_panel(t_assay_C)
+
+
+@router.get("/api/stability/predict")
+def get_stability_predict(
+    n: int = Query(..., description="Repeat count from 3 to 24."),
+    t_assay_C: float = Query(
+        default=DEFAULT_OPERATING_TEMPERATURE_C,
+        description=_ASSAY_DESCRIPTION,
+    ),
+) -> dict[str, Any]:
+    """Length-model Tm and ΔG at any repeat count, including n = 14."""
+    try:
+        return stability_at_n(n, t_assay_C)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/api/stability/confirm")

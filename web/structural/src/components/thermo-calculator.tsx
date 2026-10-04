@@ -16,7 +16,6 @@ import {
   loadThermoPrefill,
   postEffectiveEnthalpy,
   postThermoCurve,
-  repeatCounts,
   type EffectiveEnthalpy,
   type EnergyUnits,
   type ThermoCurve,
@@ -329,7 +328,6 @@ export function ThermoCalculator() {
   const [deltaH, setDeltaH] = useState("");
   const [deltaCp, setDeltaCp] = useState("");
   const [nText, setNText] = useState("3");
-  const [nOptions, setNOptions] = useState<number[]>([]);
   const [snapshot, setSnapshot] = useState<LiteratureIndex | null>(null);
   const [prefill, setPrefill] = useState<ThermoPrefill | null>(null);
   const [anchorG, setAnchorG] = useState("");
@@ -340,6 +338,7 @@ export function ThermoCalculator() {
   const [effective, setEffective] = useState<EffectiveEnthalpy | null>(null);
   const [effectiveNote, setEffectiveNote] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [modelNote, setModelNote] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -358,7 +357,6 @@ export function ThermoCalculator() {
     loadSnapshotIndex().then(async (index) => {
       if (!alive) return;
       setSnapshot(index);
-      setNOptions(repeatCounts(index, CANONICAL_SERIES_ID));
       if (!Number.isInteger(n) || n < 1) {
         setPrefill(null);
         return;
@@ -372,6 +370,35 @@ export function ThermoCalculator() {
       setAnchorG(next.deltaG === null ? "" : String(next.deltaG));
       setAnchorTRef(next.deltaGTemperatureC === null ? "" : String(next.deltaGTemperatureC));
       setAnchorUnits(next.deltaGUnits?.toLowerCase().includes("kj") ? "kJ" : "kcal");
+      setModelNote(null);
+      if (next.tmC === null && Number.isInteger(n) && n >= 3 && n <= 24) {
+        const response = await fetch(`/api/stability/predict?n=${n}&t_assay_C=37`);
+        if (!alive) return;
+        if (response.ok) {
+          const body = (await response.json()) as {
+            anchor_temperature_C?: number;
+            row?: {
+              tm_C?: number | null;
+              delta_g?: number | null;
+              past_longest_cited_length?: boolean;
+            };
+          };
+          const row = body.row;
+          if (row && typeof row.tm_C === "number") {
+            setTmC(String(row.tm_C));
+            if (typeof row.delta_g === "number") {
+              setAnchorG(String(row.delta_g));
+              setAnchorTRef(String(body.anchor_temperature_C ?? PHILLIPS_PRINTED_DELTA_G_T_C));
+              setAnchorUnits("kcal");
+            }
+            setModelNote(
+              row.past_longest_cited_length
+                ? "No paper row at this length. Melting temperature and anchor ΔG are the length model, past the longest cited length."
+                : "No paper row at this length. Melting temperature and anchor ΔG are the length model.",
+            );
+          }
+        }
+      }
       setEffective(null);
       setEffectiveNote(null);
       setCurve(null);
@@ -491,7 +518,6 @@ export function ThermoCalculator() {
   const sigmas = identity ? citedSigmas(prefill, identity.tmC, anchorValue, anchorUnits) : null;
   const bothPrinted = sigmas !== null && sigmas.deltaGSigma !== null && sigmas.tmSigmaC !== null;
   const printsColumn = seriesPrintsDeltaG(snapshot, CANONICAL_SERIES_ID);
-  const otherCounts = nOptions.filter((n) => !(TEAM_LENGTHS as readonly number[]).includes(n));
   const energy = energyUnitLabel(units, "energy");
   const entropy = energyUnitLabel(units, "entropy");
   const anchorEnergy = energyUnitLabel(anchorUnits, "energy");
@@ -544,28 +570,21 @@ export function ThermoCalculator() {
                 </ChoiceButton>
               ))}
             </div>
+            <label className="mt-4 block text-sm font-medium text-[#242220]">
+              Any repeat count from 3 to 24
+              <input
+                className="mt-2 h-11 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 text-base text-[#242220]"
+                type="number"
+                min={3}
+                max={24}
+                value={nText}
+                onChange={(event) => setNText(event.target.value)}
+              />
+            </label>
             <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
-              n = 3, n = 8, and n = 14 are the lengths on the confirmation page. Other lengths appear when this paper measured them.
+              A paper cell is filled in when one exists. Otherwise the length model supplies the melting temperature and the anchor ΔG, including n = 14.
             </p>
-            {otherCounts.length > 0 ? (
-              <label className="mt-4 block text-sm font-medium text-[#242220]">
-                Other repeat count in this paper
-                <select
-                  className="mt-2 h-11 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 text-base text-[#242220]"
-                  value={(TEAM_LENGTHS as readonly number[]).includes(Number(nText)) ? "" : nText}
-                  onChange={(event) => {
-                    if (event.target.value) setNText(event.target.value);
-                  }}
-                >
-                  <option value="">Choose a measured length</option>
-                  {otherCounts.map((n) => (
-                    <option key={n} value={n}>
-                      n = {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
+            {modelNote ? <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{modelNote}</p> : null}
           </div>
 
           <div className="mt-8 border-t border-[#E3D9CC] pt-8">
@@ -579,7 +598,11 @@ export function ThermoCalculator() {
               value={tmC}
               onChange={(event) => setTmC(event.target.value)}
             />
-            {caption ? <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{caption}</p> : null}
+            {modelNote ? (
+              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{modelNote}</p>
+            ) : caption ? (
+              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{caption}</p>
+            ) : null}
           </div>
 
           <div className="mt-8 border-t border-[#E3D9CC] pt-8">

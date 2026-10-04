@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
+from origami.api.docking import router as docking_router
 from origami.api.kinetics import router as kinetics_router
 from origami.api.lab import router as lab_router
 from origami.api.meta import router as meta_router
@@ -55,6 +56,7 @@ app.add_middleware(
 # Literature thermal lookup on this same app. The router only reads
 # stability_panel. It does not change scaffold prediction routes.
 app.include_router(stability_router)
+app.include_router(docking_router)
 app.include_router(kinetics_router)
 app.include_router(lab_router)
 app.include_router(meta_router)
