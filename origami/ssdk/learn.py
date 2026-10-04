@@ -39,6 +39,7 @@ from origami.ssdk.canonical_learner import (
     fit_sklearn_luminescence,
     geometry_feature_matrix,
 )
+from origami.ssdk.chassis import ChassisError, evaluate_chassis
 from origami.ssdk.literature_train import train_literature
 from origami.ssdk.multioutput import multioutput_block
 from origami.ssdk.multifidelity_luminescence import multifidelity_luminescence_block
@@ -167,6 +168,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         X_all,
     )
     recommendation = _recommendation(family, next_n, engine_next, batch, multifidelity)
+    chassis_at_next_n = _chassis_at_next_n(body, next_n, radii, radius_origin)
     return {
         "calibrated": False,
         "confidence_tier": "hypothesis_only",
@@ -206,6 +208,7 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         "batch": batch,
         "multifidelity_luminescence": multifidelity,
         "recommendation": recommendation,
+        "chassis_at_next_n": chassis_at_next_n,
     }
 
 
@@ -234,6 +237,57 @@ def _recommendation(
             "These models are not required to name the same length."
         ),
     }
+
+
+def _chassis_at_next_n(
+    body: dict[str, Any],
+    next_n: int,
+    radii: list[float],
+    radius_origin: str,
+) -> dict[str, Any]:
+    """Score the primary next length with the chassis command's evaluation.
+
+    Caller radii are forwarded. The default placeholder radius is not
+    treated as a measured radius, so clash and C_eff stay uncomputed.
+    Kinetics runs only when the posted block is the chassis block,
+    including ``mode``. A learn-style kinetics dict without ``mode``
+    is not filled with default concentrations. ``slices`` stay as they
+    were.
+    """
+    chassis_body: dict[str, Any] = {"n_repeats": next_n}
+    if radius_origin != "placeholder":
+        chassis_body["radii_A"] = radii
+    kinetics = body.get("kinetics")
+    if isinstance(kinetics, dict) and "mode" in kinetics:
+        chassis_body["kinetics"] = kinetics
+    for key in ("indices", "linker_sigma_A", "lab_tm_C", "t_assay_C"):
+        if body.get(key) is not None:
+            chassis_body[key] = body[key]
+    try:
+        snapshot = evaluate_chassis(chassis_body)
+    except ChassisError as exc:
+        return {
+            "computable": False,
+            "calibrated": False,
+            "n_repeats": next_n,
+            "error": str(exc),
+            "replaces_slices": False,
+            "note": (
+                "The chassis evaluation at the primary next length was not computed. "
+                "slices are unchanged."
+            ),
+        }
+    if radius_origin == "pdb_derived" and isinstance(snapshot.get("docking"), dict):
+        snapshot["docking"]["radius_origin"] = "pdb_derived"
+    snapshot["radius_origin_on_learn"] = radius_origin
+    snapshot["replaces_slices"] = False
+    snapshot["note"] = (
+        "Same evaluation as origami ssdk chassis, at recommendation.next_n. "
+        "slices.structure, slices.stability, slices.docking, and slices.kinetics "
+        "are the library rows and are not replaced. "
+        "calibrated stays false. A kinetics block without mode is not filled in."
+    )
+    return snapshot
 
 
 def _quantification(body: dict[str, Any], rows: list[Any]) -> dict[str, Any]:

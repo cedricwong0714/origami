@@ -53,7 +53,7 @@ Shared limits: `calibrated` is false. Human review is required before a wet-lab 
 |---|---|
 | Entry | `POST /api/ssdk/learn`, wiki `/ssdk` and `/learn` |
 | Older learner | Set `learner` to `design_engine`. Residual Gaussian process on the docking physics score. `design_engine_next_n` is always returned |
-| Default learner | `sklearn` Matérn-2.5 residual on wet luminescence. `learner_family` is `sklearn_matern_residual`, or `design_engine_fallback` when no wet luminescence row exists |
+| Default learner | `sklearn` Matérn-2.5 residual on wet luminescence. `learner_family` is `sklearn_matern_residual`, or `design_engine_fallback` when no wet luminescence row exists. `chassis_at_next_n` scores that primary length with the chassis command. `slices` stay the library rows |
 | Multi-fidelity luminescence | Dry fidelity 0 = physics score. Wet fidelity 1 = caller `y`. Matérn-5/2 with one length scale per feature. 2×2 coregionalization. Dry noise fixed at 0.1 (prior choice; dry points have no replicates). One output: luminescence. The feature row is the same matrix as the sklearn residual and the per-assay GPs (`feature_matrix_sha256`) |
 | Pass rule | Pass if μ − 1.96σ ≥ threshold. Threshold, assay CVs, and costs live in `data/config/active_learning_config.json` and are `unmeasured` or `prior_choice` until replaced |
 | Acquisition | Expected improvement divided by cost. Cost unit is arbitrary |

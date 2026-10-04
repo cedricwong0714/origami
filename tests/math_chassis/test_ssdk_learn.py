@@ -76,6 +76,65 @@ def test_three_lengths_fit_the_residual_and_do_not_edit_stability():
     assert any("sigma was omitted" in note for note in report["warnings"])
 
 
+def test_chassis_snapshot_follows_the_primary_next_length():
+    """The primary next length is scored by the same chassis as the chassis command.
+
+    The y values are absent. This checks wiring, not a wet result.
+    """
+    from origami.physical.geometry import build_ctpr
+    from origami.physical.structure import structural_report
+
+    report = learn_ssdk({"n_min": 8, "n_max": 12, "observations": []})
+    snap = report["chassis_at_next_n"]
+    assert snap["n_repeats"] == report["recommendation"]["next_n"]
+    assert snap["n_repeats"] == report["next_n"]
+    assert snap["calibrated"] is False
+    assert snap["replaces_slices"] is False
+    assert snap["kinetics"]["computable"] is False
+    assert snap["docking"]["clash_computable"] is False
+    expected = structural_report(build_ctpr(snap["n_repeats"]))
+    assert snap["structure"]["contour_nm"] == pytest.approx(expected.contour_nm)
+    assert snap["structure"]["rigid_screw"] is expected.rigid_screw
+    assert report["slices"]["kinetics"]["computable"] is False
+    assert "clash_computable" not in report["slices"]["docking"]["rows"][0]
+
+
+def test_caller_radii_and_kinetics_mode_reach_the_snapshot_only():
+    report = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 12,
+            "payload_radii_A": [20.0, 22.0],
+            "kinetics": {"mode": "covalent_timecourse"},
+            "observations": [],
+        }
+    )
+    snap = report["chassis_at_next_n"]
+    assert snap["docking"]["clash_computable"] is True
+    assert snap["docking"]["radii_A"] == [20.0, 22.0]
+    assert snap["kinetics"]["computable"] is True
+    assert snap["calibrated"] is False
+    thinner = learn_ssdk(
+        {
+            "n_min": 8,
+            "n_max": 12,
+            "observations": [],
+            "kinetics": {"k_lock_per_M_s": 1400.0},
+        }
+    )
+    assert thinner["slices"]["kinetics"]["computable"] is True
+    assert thinner["chassis_at_next_n"]["kinetics"]["computable"] is False
+
+
+def test_bad_indices_keep_the_learn_response():
+    report = learn_ssdk(
+        {"n_min": 8, "n_max": 10, "observations": [], "indices": [1]}
+    )
+    assert report["next_n"] in range(8, 11)
+    assert report["chassis_at_next_n"]["computable"] is False
+    assert report["slices"]["structure"]["rows"]
+
+
 def test_api_rejects_a_non_positive_sigma():
     response = client.post(
         "/api/ssdk/learn",

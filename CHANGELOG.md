@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (chassis score at the primary next length)
+
+### Added
+- `chassis_at_next_n` on the learn response. It is `evaluate_chassis` at `recommendation.next_n`. Caller radii are forwarded. The default placeholder radius is not treated as a measured radius, so clash stays uncomputed. Kinetics runs only when the posted block includes `mode`. `slices` are unchanged. `calibrated` stays false.
+- The SSDK learn panel and the learn page list the primary next length beside the design-engine length, the luminescence multi-fidelity length, and the batch, plus contour, clash, and kinetics from that chassis snapshot.
+
 ## Unreleased — 2026-10-04 (one SSDK command for chassis, learn, and plate)
 
 ### Added

@@ -264,12 +264,34 @@ type MfCandidate = {
   physics_score: number;
 };
 
+type ChassisAtNext = {
+  n_repeats: number;
+  calibrated: boolean;
+  note?: string;
+  error?: string;
+  structure?: { contour_nm: number; axial_span_A: number; rigid_screw: boolean };
+  stability?: { tm_C: number; delta_g: number; past_longest_cited_length: boolean };
+  docking?: { clash_computable: boolean; chord_A?: number };
+  kinetics?: { computable: boolean };
+};
+
+type LearnRecommendation = {
+  primary_family: string;
+  next_n: number;
+  design_engine_next_n: number;
+  multifidelity_luminescence_n: number | null;
+  batch_n: number[];
+  note: string;
+};
+
 type LearnReport = {
   next_n: number;
   gp_fitted: boolean;
   learner_family?: string;
   learner_requested?: string;
   design_engine_next_n?: number;
+  recommendation?: LearnRecommendation;
+  chassis_at_next_n?: ChassisAtNext;
   canonical?: {
     sequence_encoding?: string;
     heteroscedastic?: { fitted: boolean };
@@ -385,10 +407,34 @@ function LearnLuminescencePanel() {
       {mf ? (
         <div className="mt-4 space-y-3 text-sm">
           <p>
-            Model {mf.model_version}. MF fitted: {String(mf.fitted)}. Legacy next_n:{" "}
-            {learn?.next_n}. Threshold {formatNumber(mf.threshold_luminescence.value)} (
+            Model {mf.model_version}. MF fitted: {String(mf.fitted)}. Primary next n:{" "}
+            {learn?.recommendation?.next_n ?? learn?.next_n}. Threshold{" "}
+            {formatNumber(mf.threshold_luminescence.value)} (
             {mf.threshold_luminescence.status}).
           </p>
+          {learn?.recommendation ? (
+            <p>
+              Primary ({learn.recommendation.primary_family}) n = {learn.recommendation.next_n}.
+              Design-engine n = {learn.recommendation.design_engine_next_n}. Multi-fidelity
+              luminescence n ={" "}
+              {learn.recommendation.multifidelity_luminescence_n ?? "none"}. Batch n ={" "}
+              {learn.recommendation.batch_n.join(", ") || "none"}. These lengths are not averaged.
+            </p>
+          ) : null}
+          {learn?.chassis_at_next_n ? (
+            <p>
+              Chassis at n = {learn.chassis_at_next_n.n_repeats}: contour{" "}
+              {formatNumber(learn.chassis_at_next_n.structure?.contour_nm)} nm, Phillips Tm{" "}
+              {formatNumber(learn.chassis_at_next_n.stability?.tm_C)} °C, clash{" "}
+              {learn.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed"},
+              kinetics{" "}
+              {learn.chassis_at_next_n.kinetics?.computable ? "computed" : "not computed"}.
+              calibrated = {String(learn.chassis_at_next_n.calibrated)}.
+              {learn.chassis_at_next_n.error
+                ? ` Snapshot error: ${learn.chassis_at_next_n.error}`
+                : ""}
+            </p>
+          ) : null}
           {mf.config_placeholders_unmeasured.length ? (
             <p className="text-[#8A8278]">
               Unmeasured placeholders: {mf.config_placeholders_unmeasured.join(", ")}

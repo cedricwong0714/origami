@@ -12,7 +12,7 @@ The docking score is `(1 − P_instability) × log10(1 + C_eff / 1 mM)`. The 1 m
 Surrogate rows: repeat count, readout, optional sigma. Optional payload radii in angstroms. Optional kinetics block with SpyTag and SpyCatcher concentrations and an optional lab k_lock.
 
 ## Outputs
-A posterior mean and 95% band at each candidate length, the next length to measure, screw contour, Phillips 2012 CTPRa DSC Tm and ΔG at the highlighted lengths, and a kinetics time course only when that block is posted. `calibrated` is false. `gp_fitted` is true only at three or more distinct lengths.
+A posterior mean and 95% band at each candidate length, the next length to measure, screw contour, Phillips 2012 CTPRa DSC Tm and ΔG at the highlighted lengths, and a kinetics time course only when that block is posted. `recommendation` names the primary next length and lists the design-engine length, the luminescence multi-fidelity length, and the batch. `chassis_at_next_n` is the chassis evaluation at the primary length. It does not replace `slices`. Clash on that snapshot is computed only when radii were supplied. Kinetics on that snapshot run only when `kinetics.mode` is present. `calibrated` is false. `gp_fitted` is true only at three or more distinct lengths.
 
 `literature_training` is a second pair of residual GPs. The rows are the Phillips et al. 2012 CTPRa DSC table (DOI 10.1002/pro.2018): printed Tm and printed unfolding ΔG at 10 °C. The physics score is the length model of that same table. This lab plan has no DSC and no thermal shift, so the recommended length in that block is not a wet-lab instruction. Surrogate luminescence is not written into those rows.
 

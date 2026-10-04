@@ -179,6 +179,14 @@ def _print_learn_summary(result: dict) -> None:
     print(f"overall_status: {multi.get('overall_status')}")
     print(f"omitted_outputs: {', '.join(multi.get('omitted_outputs') or []) or 'none'}")
     print(f"feature_matrix_sha256: {digest}")
+    chassis = result.get("chassis_at_next_n") or {}
+    structure = chassis.get("structure") or {}
+    docking = chassis.get("docking") or {}
+    kinetics = chassis.get("kinetics") or {}
+    print(f"chassis_n: {chassis.get('n_repeats')}")
+    print(f"chassis_contour_nm: {structure.get('contour_nm')}")
+    print(f"chassis_clash_computable: {docking.get('clash_computable')}")
+    print(f"chassis_kinetics_computable: {kinetics.get('computable')}")
     print("calibrated: false")
 
 

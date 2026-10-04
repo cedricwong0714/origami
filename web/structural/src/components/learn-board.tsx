@@ -56,6 +56,21 @@ type LearnReport = {
   next_n: number;
   next_reason: string;
   radius_origin: string;
+  recommendation?: {
+    primary_family: string;
+    next_n: number;
+    design_engine_next_n: number;
+    multifidelity_luminescence_n: number | null;
+    batch_n: number[];
+  };
+  chassis_at_next_n?: {
+    n_repeats: number;
+    calibrated: boolean;
+    structure?: { contour_nm: number; rigid_screw: boolean };
+    stability?: { tm_C: number; past_longest_cited_length: boolean };
+    docking?: { clash_computable: boolean };
+    kinetics?: { computable: boolean };
+  };
   warnings: string[];
   candidates: Candidate[];
   multifidelity_luminescence?: {
@@ -397,6 +412,36 @@ export function LearnBoard() {
           <p className="mt-2">
             Measure repeat count <strong>{report.next_n}</strong>. {report.next_reason}
           </p>
+          {report.recommendation ? (
+            <p className="mt-2 text-[#5C564E]">
+              Primary ({report.recommendation.primary_family}) n = {report.recommendation.next_n}.
+              Design-engine n = {report.recommendation.design_engine_next_n}. Multi-fidelity
+              luminescence n = {report.recommendation.multifidelity_luminescence_n ?? "none"}. Batch
+              n = {report.recommendation.batch_n.join(", ") || "none"}. These lengths are not
+              averaged.
+            </p>
+          ) : null}
+          {report.chassis_at_next_n ? (
+            <p className="mt-2 text-[#5C564E]">
+              Chassis at n = {report.chassis_at_next_n.n_repeats}: contour{" "}
+              {report.chassis_at_next_n.structure
+                ? `${formatNumber(report.chassis_at_next_n.structure.contour_nm)} nm`
+                : "omitted"}
+              ,{" "}
+              {report.chassis_at_next_n.structure?.rigid_screw
+                ? "rigid under the 15 nm cutoff"
+                : "past the 15 nm cutoff"}
+              . Phillips Tm{" "}
+              {report.chassis_at_next_n.stability?.tm_C == null
+                ? "omitted"
+                : `${formatNumber(report.chassis_at_next_n.stability.tm_C)} °C`}
+              . Clash{" "}
+              {report.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed"}.
+              Kinetics{" "}
+              {report.chassis_at_next_n.kinetics?.computable ? "computed" : "not computed"}.
+              calibrated = {String(report.chassis_at_next_n.calibrated)}.
+            </p>
+          ) : null}
           <p className="mt-2 text-[#5C564E]">
             {report.gp_fitted
               ? "The kernel hyperparameters were fit on three or more lengths."

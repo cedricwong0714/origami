@@ -167,6 +167,8 @@ def test_learn_ssdk_cli_prints_the_family():
     assert proc.returncode == 0
     assert "primary_family: design_engine_fallback" in proc.stdout
     assert "feature_matrix_sha256:" in proc.stdout
+    assert "chassis_n:" in proc.stdout
+    assert "chassis_kinetics_computable: False" in proc.stdout
     assert "calibrated: false" in proc.stdout
 
 

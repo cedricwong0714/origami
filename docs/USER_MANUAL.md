@@ -176,7 +176,7 @@ curl -s http://127.0.0.1:41287/api/ssdk/learn \
   -d '{"n_min":8,"n_max":14,"observations":[{"n_repeats":8,"y":0.4,"fidelity":1,"source":"surrogate"}]}'
 ```
 
-Read `multifidelity_luminescence` for the gate. Read `next_n` for the older residual GP. They can disagree. Both are uncalibrated.
+Read `recommendation` for the four next lengths: primary, design-engine, luminescence multi-fidelity, and the batch. They can disagree. Read `chassis_at_next_n` for the screw, Phillips length curve, clash, and kinetics at the primary length. That block does not replace `slices`. Both stay uncalibrated.
 
 ## 8. Numbers you must not treat as measurements
 
