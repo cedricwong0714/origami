@@ -66,6 +66,13 @@ function sci(value: number | null | undefined): string {
   return value.toExponential(3);
 }
 
+function plain(value: number | null | undefined, digits = 2): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+  const abs = Math.abs(value);
+  if (abs !== 0 && (abs >= 1000 || abs < 0.01)) return value.toExponential(3);
+  return value.toFixed(digits);
+}
+
 function finitePoints(points: SweepPoint[], read: (point: SweepPoint) => number | null) {
   return points.flatMap((point) => {
     const y = read(point);
@@ -297,16 +304,16 @@ export function DesignBoard() {
               <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-[#8A8278]">Melting temperature</dt>
-                  <dd className="font-mono">{sci(focus.tm_C)} °C</dd>
+                  <dd className="font-mono">{plain(focus.tm_C)} °C</dd>
                 </div>
                 <div>
                   <dt className="text-[#8A8278]">Unfolding ΔG at the anchor temperature</dt>
-                  <dd className="font-mono">{sci(focus.delta_g)} kcal/mol</dd>
+                  <dd className="font-mono">{plain(focus.delta_g)} kcal/mol</dd>
                 </div>
                 <div>
                   <dt className="text-[#8A8278]">Bound fraction</dt>
                   <dd className="font-mono">
-                    {sci(focus.association_theta)}{" "}
+                    {plain(focus.association_theta, 3)}{" "}
                     {focus.association_holds === null
                       ? ""
                       : focus.association_holds
@@ -331,7 +338,7 @@ export function DesignBoard() {
                 </div>
                 <div>
                   <dt className="text-[#8A8278]">Clash probability</dt>
-                  <dd className="font-mono">{sci(focus.p_clash)}</dd>
+                  <dd className="font-mono">{plain(focus.p_clash, 3)}</dd>
                 </div>
                 <div>
                   <dt className="text-[#8A8278]">Chord</dt>
