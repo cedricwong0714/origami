@@ -182,28 +182,28 @@ export function StructuralStudio() {
             Hong Kong team · ISEF 2026 · ORIGAMI
           </p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-[#242220] md:text-5xl">
-            Structural analysis
+            CTPR screw
           </h1>
           <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#5C564E]">
-            Screw measurements of the CTPR backbone. No enzyme radii, no clash,
-            no effective concentration. These are deposited-geometry predictions,
-            not a crystal of the fusion and not a wet-lab distance.
+            Run a repeat count from 3 to 24. You get the backbone shape and the
+            distances on it. Source: published CTPR crystals PDB 2AVP, 2HYZ, and
+            2FO7. This is not a structure of the full fusion, and not a lab measurement.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="secondary"
             className="rounded-full bg-[#242220] text-white"
-            title="Predictions are not calibrated to wet-lab measurements on this chassis."
+            title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
-            calibrated = false
+            Not a lab measurement
           </Badge>
           {data?.source === "snapshot" ? (
-            <Badge variant="outline">wiki snapshot</Badge>
+            <Badge variant="outline">Saved file. API is down. n = 8 graft may be the old repeat.</Badge>
           ) : null}
           {data?.source === "live" ? (
             <Badge variant="outline" className="border-[#266FB1] text-[#266FB1]">
-              live chassis
+              live model
             </Badge>
           ) : null}
         </div>
@@ -260,8 +260,9 @@ export function StructuralStudio() {
           </p>
           <ConstructStrip labels={data?.n_to_c ?? ["FL", "rigid_spacer", "rigid_spacer", "FL", "SpyCatcher", "CTPR", "flx", "flx", "flx", "LgBiT"]} />
           <p className="text-sm text-[#6F675C]">
-            Only the orange CTPR block is measured. SpyCatcher, flx×3, and LgBiT
-            stay labels until they have lengths. The m13 graft is the 2nd repeat of n=3, the 3rd of n=8, and the 7th of n=14.
+            Only the orange CTPR block is in this model. SpyCatcher, the three
+            flexible linkers, and LgBiT are labels. The M13 peptide sits on
+            repeat 2 of n = 3, repeat 4 of n = 8, and repeat 7 of n = 14.
           </p>
         </CardContent>
       </Card>
@@ -333,9 +334,9 @@ export function StructuralStudio() {
             <CardTitle className="font-heading text-2xl">What this predicts</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-relaxed text-[#5C564E]">
-            <p>Rise, twist, pitch, contour, WLC comparison, facing, and junction chords on the deposited screw.</p>
-            <p>It does not fold the fusion, dock SpyCatcher, or report NanoBiT complementation.</p>
-            <p>95% bands are deposited sample scatter through a Jacobian, not a wet-lab confidence interval.</p>
+            <p>Length along the repeats, straight-line distance between two repeats, how far the helix bows off the axis, and whether the ends face the same way.</p>
+            <p>Clash, local concentration, and luminescence are on other pages. They need radii or concentrations this page does not use.</p>
+            <p>The 95% band is the spread among the published crystal structures. It is not a lab error bar.</p>
           </CardContent>
         </Card>
       </section>
@@ -345,8 +346,8 @@ export function StructuralStudio() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Metric label="End chord" value={`${fmt(construct.end_junction.chord_A)} Å`} hint={`${fmt(construct.end_junction.chord_95_low_A, 1)}–${fmt(construct.end_junction.chord_95_high_A, 1)} Å 95% band`} />
               <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° screw phase, repeat 0 to ${construct.n_repeats - 1}`} />
-              <Metric label="Contour" value={`${fmt(construct.contour_nm, 3)} nm`} hint={`WLC RMS ${fmt(construct.wlc_end_to_end_rms_nm, 3)} nm`} />
-              <Metric label="Facing cosine" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 same face, −1 opposite" />
+              <Metric label="Length along repeats" value={`${fmt(construct.contour_nm, 3)} nm`} hint="Sum of the repeat steps. Not the straight-line end distance." />
+              <Metric label="Facing" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 = ends face the same way. −1 = opposite." />
               {construct.m13_graft ? (
                 <Metric
                   label={`m13 repeat ${construct.m13_graft.repeat_1based}`}
@@ -589,11 +590,11 @@ export function StructuralStudio() {
               <Card className="border-[#E3D9CC] bg-white shadow-none">
                 <CardContent className="space-y-3 pt-6 text-sm leading-relaxed text-[#5C564E]">
                   <p>
-                    <strong>Suggested wiki caption.</strong> Computational CTPR screw for
-                    n = {construct.n_repeats} from a Kabsch fit to deposited Cα of PDB
-                    2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).
-                    End chord {fmt(construct.end_junction.chord_A)} Å. Not a crystal of
-                    the Hong Kong team fusion. calibrated = false.
+                    <strong>Wiki caption.</strong> CTPR screw for n = {construct.n_repeats},
+                    fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7
+                    (Kajander et al. 2007, DOI 10.1107/S0907444907024353).
+                    Straight-line distance between the ends: {fmt(construct.end_junction.chord_A)} Å.
+                    Not a structure of this fusion. Not a lab measurement.
                   </p>
                   {data.notes.map((note) => (
                     <p key={note}>{note}</p>
@@ -606,7 +607,7 @@ export function StructuralStudio() {
       ) : null}
 
       <footer className="mt-12 border-t border-[#E3D9CC] pt-6 text-xs leading-relaxed text-[#8A8175]">
-        Hong Kong team · ORIGAMI structural chassis ·{" "}
+        Hong Kong team · ORIGAMI ·{" "}
         <a
           className="underline decoration-[#E3D9CC] underline-offset-2 hover:decoration-[#C45C12]"
           href="https://gitlab.ISEF.org/2026/software/hong-kong-team/origami"
@@ -615,7 +616,7 @@ export function StructuralStudio() {
         >
           GitLab repository
         </a>
-        . Passing software tests is not scientific validation.
+        . A green software test is not a lab result.
       </footer>
     </div>
   );

@@ -404,10 +404,13 @@ export function StabilityBoard() {
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">Stability</p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-[#242220] md:text-5xl">
-            Stability confirmation
+            Melting temperature
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Melting temperature and unfolding ΔG at n = 3, n = 8, and n = 14 come from a length fit to Phillips et al. 2012 CTPRa DSC (DOI 10.1002/pro.2018). Whether a construct passes at 37 °C is judged from the calculated melt, not from a wet-lab measurement. Nothing on this page is calibrated to our chassis data (calibrated = false).
+            Run n = 3, 8, and 14. Melting temperature and unfolding energy (ΔG)
+            come from a fit to Phillips et al. 2012 CTPRa data (DOI 10.1002/pro.2018).
+            “Passes at 37 °C” means that calculated melt is above 37 °C. This is
+            not a measurement on our protein.
           </p>
           <Link
             href="/stability/calculator"
@@ -419,23 +422,23 @@ export function StabilityBoard() {
         <div className="flex flex-wrap gap-2">
           <Badge
             className="rounded-full bg-[#242220] text-white"
-            title="Literature fits are not calibrated to wet-lab measurements on this chassis."
+            title="Calculated from a published length fit. Not measured on this fusion."
           >
-            calibrated = {data ? String(data.calibrated) : "false"}
+            Not a lab measurement
           </Badge>
           {data?.source === "live" ? (
             <Badge variant="outline" className="border-[#266FB1] text-[#266FB1]">
-              live chassis
+              live model
             </Badge>
           ) : null}
-          {data?.source === "snapshot" ? <Badge variant="outline">wiki snapshot</Badge> : null}
+          {data?.source === "snapshot" ? <Badge variant="outline">Saved file. API is down.</Badge> : null}
         </div>
       </header>
 
       <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          The model is anchored to Phillips et al. 2012 CTPRa DSC. The lengths stay fixed. The comparison at 37 °C uses the calculated melt.
+          Lengths are fixed at the three planned constructs. 37 °C is the comparison temperature, not a temperature from the paper.
         </p>
 
         {canonicalCopy ? (

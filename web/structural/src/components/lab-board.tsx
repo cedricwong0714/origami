@@ -224,15 +224,12 @@ export function LabBoard() {
       <StudioNav />
       <header className="mb-8">
         <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
-        <h1 className="mt-1 text-3xl font-semibold">Lab chassis</h1>
+        <h1 className="mt-1 text-3xl font-semibold">Lab numbers</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Paste the measurements from the experiments you are actually running.
-          Empty boxes stay empty. The page fits a calcium curve, a SpyCatcher
-          lock time course, and the four-tube bridge. It records gels and
-          concentration without turning mass into a radius. Melting temperature,
-          payload radius, and a separate reversible lock step are not on this
-          form, because those experiments are not in the plan.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          Paste numbers you have already measured. Empty boxes stay empty.
+          The page can fit a calcium curve, a Spy lock time course, and the
+          four-tube bridge. A gel or a concentration is recorded as itself.
+          It does not become a radius or a melting temperature.
         </p>
       </header>
 
@@ -391,7 +388,7 @@ export function LabBoard() {
       </section>
 
       <Button type="button" onClick={onRun} disabled={running}>
-        {running ? "Running" : "Run lab chassis"}
+        {running ? "Running" : "Fit the numbers you pasted"}
       </Button>
 
       {report ? <Report report={report} /> : null}
@@ -412,7 +409,7 @@ function Report({ report }: { report: LabRun }) {
     <section className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 text-sm leading-relaxed">
       <h2 className="text-lg font-semibold">Results</h2>
       <p className="mt-2 text-[#5C564E]">
-        calibrated = false. The residual model is unfitted
+        No luminescence model was fit to these rows. The fit stays unfitted
         {report.residual_gp.n_rows > 0
           ? ` (${report.residual_gp.n_rows} stored rows). `
           : ". "}

@@ -67,14 +67,13 @@ function comparisonCsv(data: PredictResponse): string {
 
 function captionFor(data: PredictResponse): string {
   const bits = data.constructs.map((row) => {
-    return `n=${row.n_repeats}: end chord ${fmt(row.end_junction.chord_A, 1)} Å (95% ${fmt(row.end_junction.chord_95_low_A, 1)}–${fmt(row.end_junction.chord_95_high_A, 1)} Å), facing cosine ${fmt(row.end_junction.facing_cosine, 2)}`;
+    return `n=${row.n_repeats}: straight-line end distance ${fmt(row.end_junction.chord_A, 1)} Å (95% ${fmt(row.end_junction.chord_95_low_A, 1)}–${fmt(row.end_junction.chord_95_high_A, 1)} Å), facing ${fmt(row.end_junction.facing_cosine, 2)} (1 = same way, −1 = opposite)`;
   });
   return [
-    "Figure. Computational CTPR backbone for the Hong Kong team fusion drawing.",
-    "Measured block is the CTPR screw only (SpyCatcher–CTPR–flx×3–LgBiT lengths are not included).",
-    "Geometry is a Kabsch screw fit to deposited Cα of PDB 2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).",
+    "Figure. CTPR screw for the planned lengths. SpyCatcher, the flexible linkers, and LgBiT are not in these distances.",
+    "Fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).",
     bits.join(". ") + ".",
-    "95% bands are deposited sample scatter, not a wet-lab interval. calibrated = false. This is not a crystal structure of the fusion.",
+    "The 95% band is the spread among those crystal structures. This is not a structure of the fusion and not a lab measurement.",
   ].join(" ");
 }
 
@@ -242,18 +241,20 @@ export function DataBoard() {
             n = 3, 8, 14
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
-            Side-by-side comparison for the team lengths n = 3, 8, and 14. Dark bars show axial span along the screw axis; orange bars show end-to-end chord on the same scale. Blue whiskers mark the 95% chord band from deposited-structure scatter (not a wet-lab interval).
+            The three planned lengths, from the same screw model as the Screw page.
+            Dark bar: distance along the axis. Orange bar: straight-line distance
+            between the ends. Blue whisker: 95% range from the published crystals.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge
             className="rounded-full bg-[#242220] text-white"
-            title="These backbone numbers are not calibrated to wet-lab measurements."
+            title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
-            calibrated = false
+            Not a lab measurement
           </Badge>
-          {data?.source === "live" ? <Badge variant="outline">live chassis</Badge> : null}
-          {data?.source === "snapshot" ? <Badge variant="outline">wiki snapshot</Badge> : null}
+          {data?.source === "live" ? <Badge variant="outline">live model</Badge> : null}
+          {data?.source === "snapshot" ? <Badge variant="outline">Saved file. API is down.</Badge> : null}
         </div>
       </header>
 
@@ -282,7 +283,7 @@ export function DataBoard() {
             <CardContent>
               <ChordChart data={data} />
               <p className="mt-2 text-xs text-[#8A8175]">
-                Bar height is linear in Å. The orange bar is taller than the ink bar by the helical bow (chord minus axial span). The whisker sits on the chord only.
+                Heights are in Å. Orange minus dark is the bow: how far the helix leaves a straight axis. The whisker is only on the straight-line distance.
               </p>
             </CardContent>
           </Card>

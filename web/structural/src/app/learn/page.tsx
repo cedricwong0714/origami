@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { LearnBoard } from "@/components/learn-board";
 
 export const metadata: Metadata = {
-  title: "Surrogate active learning · ORIGAMI",
+  title: "Next length · ORIGAMI",
   description:
-    "Residual Gaussian process on surrogate readouts across CTPR lengths. calibrated = false.",
+    "Suggest the next repeat count from the docking score, or from luminescence readings you type.",
 };
 
 export default function LearnPage() {

@@ -65,6 +65,13 @@ type ChassisReport = {
   };
 };
 
+function plainLearner(family: string | undefined): string {
+  if (family === "sklearn_matern_residual") return "luminescence fit";
+  if (family === "design_engine") return "docking-score fit";
+  if (family === "design_engine_fallback") return "docking-score fit, because no luminescence was entered";
+  return family || "not named";
+}
+
 function formatNumber(value: number | null | undefined): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return "omitted";
   const abs = Math.abs(value);
@@ -188,16 +195,14 @@ export function SsdkBoard() {
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">SSDK</p>
-        <h1 className="mt-1 text-3xl font-semibold">Four chassis</h1>
+        <p className="text-sm uppercase tracking-wide text-[#8A8278]">One repeat count</p>
+        <h1 className="mt-1 text-3xl font-semibold">Score one length</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          One length runs the screw, the Phillips melting-temperature model, the
-          docking chord, and kinetics. Clash and effective concentration wait
-          for both payload radii. A typed melting temperature is compared with
-          37 °C and does not replace the literature curve. Kinetics uses a
-          concentration you enter, or the Zakeri lock rate until you replace it.
-          Empty fields stay empty.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          Always returned: screw length, Phillips melting temperature, and the
+          straight-line distance between two repeats. Clash and local
+          concentration appear only if you type two radii in Å. Binding runs
+          only if you pick a mode and type concentrations. A melting temperature
+          you type is compared with 37 °C and does not replace the Phillips number.
         </p>
       </header>
       {error ? (
@@ -245,7 +250,7 @@ export function SsdkBoard() {
           </div>
         ) : null}
         <Button type="button" className="mt-4" onClick={onRun} disabled={running}>
-          {running ? "Running" : "Run four chassis"}
+          {running ? "Running" : "Run this length"}
         </Button>
       </section>
       {report ? <Results report={report} /> : null}
@@ -375,23 +380,20 @@ function LearnLuminescencePanel() {
 
   return (
     <section className="mt-10 rounded-xl border border-[#E3D9CC] bg-white p-5">
-      <h2 className="text-lg font-semibold">Predictions &amp; gates (luminescence)</h2>
+      <h2 className="text-lg font-semibold">Which length to measure next</h2>
       <p className="mt-2 max-w-2xl text-sm text-[#5C564E]">
-        Two-fidelity GP: dry = docking physics score, wet = your{" "}
-        <code className="rounded bg-[#F5F0E8] px-1">y</code> with{" "}
-        <code className="rounded bg-[#F5F0E8] px-1">fidelity: 1</code>. Pass uses μ − 1.96σ ≥
-        threshold from config (placeholder until measured).{" "}
-        <a className="underline" href="/intake">
-          Plate intake
-        </a>
-        . <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+        Optional. Paste luminescence readings as JSON. y is the reading.
+        fidelity 1 means a lab reading. fidelity 0 means a computed score.
+        With no lab reading, the suggestion comes from the docking score alone.
+        A “pass” compares the lower end of the 95% range with a threshold we
+        have not measured. Do not put that pass on the wiki.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Field label="n_min" value={nMin} onChange={setNMin} />
-        <Field label="n_max" value={nMax} onChange={setNMax} />
+        <Field label="Shortest length" value={nMin} onChange={setNMin} />
+        <Field label="Longest length" value={nMax} onChange={setNMax} />
       </div>
       <label className="mt-3 block text-sm">
-        Wet observations (JSON)
+        Readings (JSON)
         <textarea
           className="mt-1 min-h-[88px] w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-xs"
           value={obsJson}
@@ -399,7 +401,7 @@ function LearnLuminescencePanel() {
         />
       </label>
       <Button type="button" className="mt-4" onClick={onLearn} disabled={learnRunning}>
-        {learnRunning ? "Learning…" : "Run active learning"}
+        {learnRunning ? "Running…" : "Suggest a next length"}
       </Button>
       {learnError ? (
         <p className="mt-3 text-sm text-red-800">{learnError}</p>
@@ -407,55 +409,52 @@ function LearnLuminescencePanel() {
       {mf ? (
         <div className="mt-4 space-y-3 text-sm">
           <p>
-            Model {mf.model_version}. MF fitted: {String(mf.fitted)}. Primary next n:{" "}
-            {learn?.recommendation?.next_n ?? learn?.next_n}. Threshold{" "}
-            {formatNumber(mf.threshold_luminescence.value)} (
-            {mf.threshold_luminescence.status}).
+            Use n = {learn?.recommendation?.next_n ?? learn?.next_n}. The pass
+            threshold is {formatNumber(mf.threshold_luminescence.value)} and its
+            status is {mf.threshold_luminescence.status}.
           </p>
           {learn?.recommendation ? (
             <p>
-              Primary ({learn.recommendation.primary_family}) n = {learn.recommendation.next_n}.
-              Design-engine n = {learn.recommendation.design_engine_next_n}. Multi-fidelity
-              luminescence n ={" "}
-              {learn.recommendation.multifidelity_luminescence_n ?? "none"}. Batch n ={" "}
-              {learn.recommendation.batch_n.join(", ") || "none"}. These lengths are not averaged.
+              Luminescence fit says n = {learn.recommendation.next_n}. Docking-score
+              fit says n = {learn.recommendation.design_engine_next_n}. Luminescence
+              with dry and lab readings says n ={" "}
+              {learn.recommendation.multifidelity_luminescence_n ?? "none"}. Lengths
+              to run together: {learn.recommendation.batch_n.join(", ") || "none"}.
+              These are four answers. They are not averaged. Use the first.
             </p>
           ) : null}
           {learn?.chassis_at_next_n ? (
             <p>
-              Chassis at n = {learn.chassis_at_next_n.n_repeats}: contour{" "}
-              {formatNumber(learn.chassis_at_next_n.structure?.contour_nm)} nm, Phillips Tm{" "}
-              {formatNumber(learn.chassis_at_next_n.stability?.tm_C)} °C, clash{" "}
-              {learn.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed"},
-              kinetics{" "}
+              At that length: screw length{" "}
+              {formatNumber(learn.chassis_at_next_n.structure?.contour_nm)} nm, melting
+              temperature {formatNumber(learn.chassis_at_next_n.stability?.tm_C)} °C,
+              clash{" "}
+              {learn.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed (no radii)"},
+              binding{" "}
               {learn.chassis_at_next_n.kinetics?.computable ? "computed" : "not computed"}.
-              calibrated = {String(learn.chassis_at_next_n.calibrated)}.
               {learn.chassis_at_next_n.error
-                ? ` Snapshot error: ${learn.chassis_at_next_n.error}`
+                ? ` Error: ${learn.chassis_at_next_n.error}`
                 : ""}
             </p>
           ) : null}
           {mf.config_placeholders_unmeasured.length ? (
             <p className="text-[#8A8278]">
-              Unmeasured placeholders: {mf.config_placeholders_unmeasured.join(", ")}
+              Still unmeasured, so do not treat a pass as a result: {mf.config_placeholders_unmeasured.join(", ")}
             </p>
           ) : null}
           <p className="text-[#5C564E]">{mf.note}</p>
           {mf.recommended_evaluation ? (
             <p>
-              Cost-weighted EI recommends n = {mf.recommended_evaluation.n_repeats} via{" "}
-              {mf.recommended_evaluation.evaluation_type} (score{" "}
-              {formatNumber(mf.recommended_evaluation.acquisition_score)}).
+              Luminescence model picks n = {mf.recommended_evaluation.n_repeats} (
+              score {formatNumber(mf.recommended_evaluation.acquisition_score)}, higher
+              means more worth measuring).
             </p>
           ) : null}
           {learn?.learner_family ? (
             <p>
-              Learner {learn.learner_requested} ran as {learn.learner_family}. Reported next n is{" "}
-              {learn.next_n}. Design-engine next n is {learn.design_engine_next_n}. Sequence
-              encoding {learn.canonical?.sequence_encoding ?? "none"}. Residual-scatter model{" "}
-              {learn.canonical?.heteroscedastic?.fitted ? "fitted" : "not fitted"} (it does not
-              replace the assay CV). Multi-output status {learn.multioutput?.overall_status}.
-              Omitted assays: {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
+              Method used: {plainLearner(learn.learner_family)}. Suggested length:{" "}
+              {learn.next_n}. Assays with no reading stay blank:{" "}
+              {(learn.multioutput?.omitted_outputs || []).join(", ") || "none"}.
             </p>
           ) : null}
           {learn?.multioutput ? (
@@ -507,9 +506,9 @@ function LearnLuminescencePanel() {
                   <th className="py-2 pr-2">n</th>
                   <th className="py-2 pr-2">μ</th>
                   <th className="py-2 pr-2">σ</th>
-                  <th className="py-2 pr-2">lower 95%</th>
-                  <th className="py-2 pr-2">pass</th>
-                  <th className="py-2">EI/cost</th>
+                    <th className="py-2 pr-2">low end of 95% range</th>
+                  <th className="py-2 pr-2">pass (unmeasured cutoff)</th>
+                  <th className="py-2">worth measuring</th>
                 </tr>
               </thead>
               <tbody>
@@ -544,20 +543,20 @@ function Results({ report }: { report: ChassisReport }) {
     <section className="space-y-4 text-sm leading-relaxed">
       <Card title="Structure">
         <p>
-          Contour {formatNumber(report.structure.contour_nm)} nm. Axial span{" "}
-          {formatNumber(report.structure.axial_span_A)} Å.{" "}
+          Length along the repeats: {formatNumber(report.structure.contour_nm)} nm.
+          Distance along the axis: {formatNumber(report.structure.axial_span_A)} Å.{" "}
           {report.structure.rigid_screw
-            ? `Rigid: the contour is within ${formatNumber(report.structure.persistence_length_nm)} nm.`
-            : `Flexible: the contour is past ${formatNumber(report.structure.persistence_length_nm)} nm.`}
+            ? `Treated as a rigid screw because the length is within ${formatNumber(report.structure.persistence_length_nm)} nm.`
+            : `Treated as flexible because the length is past ${formatNumber(report.structure.persistence_length_nm)} nm.`}
         </p>
       </Card>
       <Card title="Stability">
         <p>
-          Phillips Tm {formatNumber(stability.tm_C)} °C
+          Melting temperature from Phillips 2012: {formatNumber(stability.tm_C)} °C
           {stability.tm_95_lower_C != null
             ? ` (95% band ${formatNumber(stability.tm_95_lower_C)} to ${formatNumber(stability.tm_95_upper_C)})`
             : ""}
-          . Unfolding ΔG {formatNumber(stability.delta_g)} kcal mol⁻¹.
+          . Unfolding energy ΔG {formatNumber(stability.delta_g)} kcal/mol.
           {stability.past_longest_cited_length
             ? " This length is past the longest cited row."
             : ""}
@@ -574,21 +573,22 @@ function Results({ report }: { report: ChassisReport }) {
       </Card>
       <Card title="Docking">
         <p>
-          Indexes {docking.indices.join(" and ")}. Chord {formatNumber(docking.chord_A)} Å
-          (95% band {formatNumber(docking.chord_95_low_A)} to {formatNumber(docking.chord_95_high_A)}).
-          Facing cosine {formatNumber(docking.facing_cosine)}.
+          Repeats {docking.indices.join(" and ")} (0 is the SpyCatcher end).
+          Straight-line distance {formatNumber(docking.chord_A)} Å
+          (95% range {formatNumber(docking.chord_95_low_A)} to {formatNumber(docking.chord_95_high_A)}).
+          Facing {formatNumber(docking.facing_cosine)} (1 = same way, −1 = opposite).
         </p>
         {docking.clash_computable ? (
           <p>
-            Clash probability {formatNumber(docking.p_clash)}. Effective concentration{" "}
-            {formatNumber(docking.c_eff_M)} M
+            Chance the two payloads overlap: {formatNumber(docking.p_clash)} (0 to 1).
+            Local concentration from the linker: {formatNumber(docking.c_eff_M)} M
             {docking.c_eff_95_lower_M != null
               ? ` (95% band ${formatNumber(docking.c_eff_95_lower_M)} to ${formatNumber(docking.c_eff_95_upper_M)})`
               : ""}
             .
           </p>
         ) : (
-          <p>Clash and effective concentration were not computed. {docking.missing?.join(" ")}</p>
+          <p>Clash and local concentration need two radii. {docking.missing?.join(" ")}</p>
         )}
         {docking.local_kinetics?.computable && docking.local_kinetics.spy ? (
           <p>
@@ -604,14 +604,14 @@ function Results({ report }: { report: ChassisReport }) {
             stay empty.
           </p>
         ) : (
-          <p>Tethered rates wait for an effective concentration.</p>
+          <p>Lock rate at this distance needs the local concentration, which needs two radii.</p>
         )}
       </Card>
       <Card title="Kinetics">
         {kinetics.computable ? (
           <p>
             {kinetics.simulation?.mode === "recruitment_steady"
-              ? `Steady occupancy ${formatNumber(kinetics.simulation.recruitment?.theta_ss)} (95% band ${formatNumber(kinetics.simulation.recruitment?.theta_95_lower)} to ${formatNumber(kinetics.simulation.recruitment?.theta_95_upper)}).`
+              ? `Fraction bound ${formatNumber(kinetics.simulation.recruitment?.theta_ss)} (95% range ${formatNumber(kinetics.simulation.recruitment?.theta_95_lower)} to ${formatNumber(kinetics.simulation.recruitment?.theta_95_upper)}).`
               : kinetics.simulation?.mode === "nanobit_complementation"
                 ? `Equilibrium complex ${formatNumber(kinetics.simulation.equilibrium_complex_M)} M. k_off/k_on ${formatNumber(kinetics.simulation.rates_used?.kinetic_kd_M)} M. Printed Kd ${formatNumber(kinetics.simulation.rates_used?.printed_kd_M)} M.`
                 : "The covalent time course ran from the posted concentrations."}{" "}

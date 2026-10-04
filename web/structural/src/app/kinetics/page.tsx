@@ -4,7 +4,7 @@ import { KineticsBoard } from "@/components/kinetics-board";
 export const metadata: Metadata = {
   title: "Scaffold kinetics · ORIGAMI",
   description:
-    "Literature-prior kinetics emulation with vacant lab Spy rates. calibrated = false, hypothesis_only.",
+    "Bound fraction, Spy lock over time, and LgBiT–SmBiT complex from published rates. Not measured on this fusion.",
 };
 
 export default function KineticsPage() {

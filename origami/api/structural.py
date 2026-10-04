@@ -160,32 +160,33 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
     face = float(end["facing_cosine"])
     if bool(construct["rigid_screw"]):
         regime = (
-            f"n = {n_repeats} is a rigid screw. Contour is "
-            f"{construct['contour_nm']:.3f} nm, at or under the 15 nm project cutoff."
+            f"n = {n_repeats} is a rigid screw. Length along the repeats is "
+            f"{construct['contour_nm']:.3f} nm, at or under the 15 nm cutoff."
         )
     else:
         regime = (
-            f"n = {n_repeats} is past the 15 nm project cutoff. Contour is "
-            f"{construct['contour_nm']:.3f} nm. The worm-like-chain RMS is a "
-            "comparison; the rigid-screw chord is an approximation on this length."
+            f"n = {n_repeats} is past the 15 nm project cutoff. Length along the repeats is "
+            f"{construct['contour_nm']:.3f} nm. The straight-line distance is an approximation at this length."
         )
     if n_repeats > 8:
-        same_face = "Repeat index 8 is the first same-face return (Δi = 8, 360°). That repeat is on this scaffold."
+        same_face = "The ends face the same way again at repeat 8. That repeat is on this scaffold."
     else:
-        same_face = "Repeat index 8 is the first same-face return (Δi = 8, 360°). That repeat is not on this scaffold."
+        same_face = "The ends face the same way again at repeat 8. That repeat is not on this scaffold."
     lines = [
         regime,
         (
-            f"The end chord (repeat 0 to {n_repeats - 1}) is "
+            f"Straight-line distance from repeat 0 to repeat {n_repeats - 1} is "
             f"{end['chord_A']:.2f} Å "
             f"(95% band {end['chord_95_low_A']:.1f}–{end['chord_95_high_A']:.1f} Å). "
             f"The helical bow is {reach['end_bow_A']:.2f} Å "
-            f"({100 * reach['end_bow_fraction_of_chord']:.1f}% of the chord)."
+            f"({100 * reach['end_bow_fraction_of_chord']:.1f}% of that distance). "
+            "Bow is the straight-line distance minus the distance along the axis."
         ),
         (
-            f"Screw phase from repeat 0 to repeat {n_repeats - 1} is {phase:.1f}° "
+            f"Turn from repeat 0 to repeat {n_repeats - 1} is {phase:.1f}° "
             f"({phase_mod:.1f}° modulo 360). "
             f"Facing cosine is {face:.3f}, equal to cos of that phase. "
+            f"1 means the ends face the same way. -1 means they face opposite ways. "
             f"{same_face}"
         ),
     ]
@@ -200,13 +201,13 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             else "That graft repeat is outside the (GGGGS)3 comparison window of at least one end."
         )
         lines.append(
-            f"The m13 graft is repeat {graft['repeat_1based']} of {n_repeats} "
-            f"(index {graft['repeat_index']}, counting 0 at the SpyCatcher side). "
-            f"Chord to the N-end junction is {to_n['chord_A']:.2f} Å "
+            f"The M13 graft is repeat {graft['repeat_1based']} of {n_repeats} "
+            f"(index {graft['repeat_index']}, counting 0 at the SpyCatcher end). "
+            f"Straight-line distance to the N-end is {to_n['chord_A']:.2f} Å "
             f"(95% {to_n['chord_95_low_A']:.1f}–{to_n['chord_95_high_A']:.1f}). "
-            f"Chord to the C-end junction is {to_c['chord_A']:.2f} Å "
+            f"Straight-line distance to the C-end is {to_c['chord_A']:.2f} Å "
             f"(95% {to_c['chord_95_low_A']:.1f}–{to_c['chord_95_high_A']:.1f}). "
-            "These are screw junctions, not SpyCatcher-to-graft or graft-to-LgBiT distances. "
+            "These distances are on the CTPR screw. They do not include SpyCatcher or LgBiT. "
             f"{window}"
         )
     elif reach["repeats_near_both_ends"]:
@@ -220,7 +221,7 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             "window of both ends. No m13 graft was named for this n."
         )
     lines.append(
-        "Passing this prediction is not scientific validation. calibrated stays false."
+        "These distances come from published CTPR crystals. They are not a measurement of this fusion."
     )
     return lines
 

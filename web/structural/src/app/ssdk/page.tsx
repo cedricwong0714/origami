@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { SsdkBoard } from "@/components/ssdk-board";
 
 export const metadata: Metadata = {
-  title: "SSDK chassis · ORIGAMI",
+  title: "One length · ORIGAMI",
   description:
-    "Structure, stability, docking, and kinetics for one CTPR length. calibrated = false.",
+    "Screw, melting temperature, docking distance, and optional binding for one repeat count.",
 };
 
 export default function SsdkPage() {

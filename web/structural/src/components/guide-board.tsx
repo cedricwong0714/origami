@@ -39,33 +39,31 @@ export function GuideBoard() {
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Handoff</p>
-        <h1 className="mt-1 text-3xl font-semibold">Data dependencies</h1>
+        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
+        <h1 className="mt-1 text-3xl font-semibold">What you can run</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          A repeat count is scored with the deposited CTPR screw, a Phillips lookup that
-          does not blend series, a Cα clash calculation, and kinetics only when the
-          concentrations or a named prior are explicit. Surrogate luminescence does not
-          edit those outputs. It is a separate Gaussian process: dry scores and wet
-          readouts are different fidelities, and a pass uses a threshold marked unmeasured
-          until a plate-reader CV exists.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>. Empty lab
-          fields stay empty. A recommendation is the next well, not a validated construct.
+          Screw, melting temperature, ΔG vs temperature, binding, and one-length
+          scoring run now with no plate. Next-length suggestions also run; a pass
+          or fail on that page uses a cutoff that has not been measured. Plate
+          file and lab numbers wait until you paste real readings. Empty boxes
+          stay empty.
         </p>
       </header>
       {error ? <p className="text-sm text-red-800">{error}</p> : null}
       {deps ? (
         <div className="space-y-6 text-sm leading-relaxed">
-          <ListBlock title="Built without wet-lab data" items={deps.no_lab_data} />
-          <ListBlock title="Waiting on lab measurements" items={deps.needs_lab_data} />
-          <ListBlock title="Your dry-lab inputs" items={deps.team_dry_lab} />
-          <ListBlock title="Out of scope" items={deps.out_of_scope} />
+          <ListBlock title="Runs now, no plate" items={deps.no_lab_data} />
+          <ListBlock title="Needs a measurement" items={deps.needs_lab_data} />
+          <ListBlock title="Still open" items={deps.team_dry_lab} />
+          <ListBlock title="Not in this project" items={deps.out_of_scope} />
         </div>
       ) : null}
       {cfg ? (
         <section className="mt-8 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm">
-          <h2 className="text-lg font-semibold">Active-learning placeholders</h2>
+          <h2 className="text-lg font-semibold">Cutoffs that are not measured yet</h2>
           <p className="mt-2 text-[#5C564E]">
-            Config {cfg.config.version}. Unmeasured:{" "}
+            Config {cfg.config.version}. Do not treat a pass as a result until these
+            are replaced with measured values:{" "}
             {cfg.placeholders_unmeasured.length
               ? cfg.placeholders_unmeasured.join(", ")
               : "none"}
@@ -73,15 +71,15 @@ export function GuideBoard() {
           </p>
           <p className="mt-2">
             <Link className="underline" href="/ssdk">
-              SSDK gates
+              One length
             </Link>{" "}
             ·{" "}
             <Link className="underline" href="/intake">
-              Plate intake
+              Plate file
             </Link>{" "}
             ·{" "}
             <Link className="underline" href="/learn">
-              Active learning
+              Next length
             </Link>
           </p>
         </section>

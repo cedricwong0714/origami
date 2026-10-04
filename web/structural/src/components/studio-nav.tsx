@@ -4,17 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Structural run" },
-  { href: "/present", label: "Present data" },
-  { href: "/stability", label: "Stability check" },
-  { href: "/stability/calculator", label: "Estimate ΔG" },
-  { href: "/kinetics", label: "Kinetics" },
-  { href: "/ssdk", label: "SSDK" },
-  { href: "/lab", label: "Lab chassis" },
-  { href: "/intake", label: "Data intake" },
-  { href: "/learn", label: "Active learning" },
-  { href: "/wizard", label: "Wizard" },
-  { href: "/guide", label: "Dependencies" },
+  { href: "/", label: "Screw" },
+  { href: "/present", label: "Compare 3, 8, 14" },
+  { href: "/stability", label: "Melting temperature" },
+  { href: "/stability/calculator", label: "ΔG vs temperature" },
+  { href: "/kinetics", label: "Binding" },
+  { href: "/ssdk", label: "One length" },
+  { href: "/lab", label: "Lab numbers" },
+  { href: "/intake", label: "Plate file" },
+  { href: "/learn", label: "Next length" },
+  { href: "/wizard", label: "Step by step" },
+  { href: "/guide", label: "What you can run" },
 ];
 
 export function StudioNav() {

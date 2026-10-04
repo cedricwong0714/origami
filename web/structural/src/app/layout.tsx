@@ -13,7 +13,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ORIGAMI structural analysis",
   description:
-    "Wiki-ready CTPR backbone measurements for Hong Kong team ORIGAMI. Predictions are not calibrated to wet-lab data (calibrated = false).",
+    "CTPR screw, melting temperature, binding, and next-length tools for Hong Kong team ORIGAMI. Numbers are calculations or published values, not lab measurements of this fusion.",
 };
 
 export default function RootLayout({

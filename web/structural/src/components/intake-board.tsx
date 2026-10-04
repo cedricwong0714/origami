@@ -89,12 +89,13 @@ export function IntakeBoard() {
       <StudioNav />
       <header className="mb-8">
         <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
-        <h1 className="mt-1 text-3xl font-semibold">Data intake</h1>
+        <h1 className="mt-1 text-3xl font-semibold">Plate file</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Paste a plate-reader export with one row per well. Each batch needs blank wells;
-          their mean is subtracted from that batch&apos;s samples. Replicates give a
-          standard error of the mean, and a single well gets no uncertainty. Nothing is
-          stored. <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          Paste one row per well. Blank wells are subtracted within each batch.
+          Several wells give an uncertainty. One well does not. Nothing is saved
+          on this page. Scoring against a saved prediction needs a calcium_uM
+          column. That saved luminescence band is a ±30% placeholder, so a pass
+          or fail is not a result.
         </p>
       </header>
 
@@ -152,8 +153,8 @@ export function IntakeBoard() {
               </tbody>
             </table>
             <p className="border-t border-[#E3D9CC] px-3 py-2 text-xs text-[#8A8278]">
-              {frozen.untested_predictions.length} frozen keys have no matching plate column or calcium.
-              calibrated = false.
+              {frozen.untested_predictions.length} saved predictions have no matching plate column or calcium.
+              The luminescence band is still the ±30% placeholder.
             </p>
           </div>
         ) : null}
@@ -192,9 +193,9 @@ export function IntakeBoard() {
       <section>
         <h2 className="mb-2 text-lg font-semibold">2. Grouped ablation</h2>
         <p className="mb-2 text-sm text-[#5C564E]">
-          Paste JSON with X, y_obs, y_mech and groups. Each group is held out in turn, so the
-          score measures transfer to a new batch. The tree layer is justified only if it lowers
-          held-out error in every fold.
+          Optional. Paste a table of inputs, observed readings, model readings, and
+          group names. Each group is left out in turn. Use this only when you
+          already have those columns. It does not replace the screw or the melt.
         </p>
         <textarea
           aria-label="Ablation JSON"

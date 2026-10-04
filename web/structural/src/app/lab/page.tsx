@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { LabBoard } from "@/components/lab-board";
 
 export const metadata: Metadata = {
-  title: "Lab chassis · ORIGAMI",
+  title: "Lab numbers · ORIGAMI",
   description:
-    "Intake for concentration, calcium EC50, SpyCatcher lock kinetics, and the four-tube bridge. calibrated = false.",
+    "Paste measured concentration, calcium curve, Spy lock, and four-tube bridge numbers. Empty boxes stay empty.",
 };
 
 export default function LabPage() {

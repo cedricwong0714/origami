@@ -4,7 +4,7 @@ import { IntakeBoard } from "@/components/intake-board";
 export const metadata: Metadata = {
   title: "Data intake · ORIGAMI",
   description:
-    "Plate-reader CSV import with per-batch blank correction, and the grouped ablation check. calibrated = false.",
+    "Paste a plate file. Blanks are subtracted per batch. A pass against a saved luminescence band is a placeholder.",
 };
 
 export default function IntakePage() {

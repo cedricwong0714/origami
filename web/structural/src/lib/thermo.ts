@@ -61,7 +61,7 @@ export const EFFECTIVE_EQUATION = [
 ].join("\n");
 
 export const CURVE_LABEL =
-  "Curves are calculated from the ΔHcal, ΔCp, and melting temperature you entered. They are not calibrated to wet-lab data (calibrated = false) and they are not a measurement of the Hong Kong team fusion.";
+  "Curves use the enthalpy, heat capacity, and melting temperature you entered. They are calculations, not a measurement of this fusion.";
 
 export type EnergyUnits = "kcal" | "kJ";
 

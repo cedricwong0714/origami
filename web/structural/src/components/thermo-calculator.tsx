@@ -505,17 +505,21 @@ export function ThermoCalculator() {
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">Stability</p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-[#242220] md:text-5xl">
-            Estimate ΔG at other temperatures
+            Unfolding energy vs temperature
           </h1>
           <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
-            Table values and prefill come from Phillips et al. 2012 CTPRa DSC (DOI 10.1002/pro.2018). At the melting temperature, ΔG is 0 for a two-state melt. The paper&apos;s printed value is always shown on its own. Estimates here are not calibrated to wet-lab data (calibrated = false).
+            Pick a repeat count and a temperature. ΔG is the energy needed to unfold.
+            At the melting temperature, ΔG is 0. The paper’s printed ΔG is shown
+            separately. With the stored heat-capacity values, the calculated ΔG
+            at 10 °C is 0.5–5.0 kcal/mol higher than that printed number. The gap
+            is unexplained. This is not a measurement on our protein.
           </p>
         </div>
         <Badge
           className="rounded-full bg-[#242220] text-white"
-          title="Temperature estimates are not calibrated to wet-lab measurements on this chassis."
+          title="Calculated from published table values. Not measured on this fusion."
         >
-          calibrated = false
+          Not a lab measurement
         </Badge>
       </header>
 
@@ -740,7 +744,7 @@ export function ThermoCalculator() {
                 </div>
                 <p className="text-sm leading-relaxed text-[#5C564E]">ΔG(T) under the assumption that ΔCp is 0.</p>
                 <p className="text-sm leading-relaxed text-[#5C564E]">
-                  This estimate is an extrapolation (confidence tier: hypothesis_only). It is not calibrated to wet-lab data (calibrated = false).
+                  This curve assumes heat capacity does not change with temperature. It is a calculation, not a measurement on our protein.
                 </p>
                 {effective.human_review_required ? (
                   <p className="text-sm leading-relaxed text-[#5C564E]">A person should review this estimate before it is used.</p>
@@ -778,7 +782,7 @@ export function ThermoCalculator() {
                 <CurveChart title="ΔH(T)" units={prettyUnits(curve.delta_h_units)} color="#242220" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_h} />
                 <CurveChart title="ΔS(T)" units={prettyUnits(curve.delta_s_units)} color="#266FB1" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_s} />
                 <p className="text-sm leading-relaxed text-[#5C564E]">{curve.result_label || CURVE_LABEL}</p>
-                <p className="text-sm text-[#242220]">These curves are not calibrated to wet-lab data (calibrated = false).</p>
+                <p className="text-sm text-[#242220]">These curves use the enthalpy and heat capacity you typed. They are calculations, not a measurement on our protein.</p>
                 {pending ? <p className="text-sm text-[#8A8175]">Updating the curves…</p> : null}
                 {curve.warnings.length > 0 ? (
                   <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">

@@ -4,10 +4,10 @@ import { useState } from "react";
 import { StudioNav } from "@/components/studio-nav";
 
 const STEPS = [
-  "Objective",
-  "Scaffold n",
-  "Chassis",
-  "Passport / export",
+  "What this is",
+  "Repeat count",
+  "Scores",
+  "Summary file",
 ];
 
 export function WizardBoard() {
@@ -52,10 +52,11 @@ export function WizardBoard() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
-      <h1 className="text-2xl font-semibold">Guided chassis snapshot</h1>
+      <h1 className="text-2xl font-semibold">Step through one length</h1>
       <p className="mt-2 text-sm text-[#5C564E]">
-        Objective → repeat count → structure/stability/docking → passport. This
-        does not invent wet data. calibrated stays false.
+        Pick n = 3, 8, or 14. You get the screw, the melting temperature, and
+        the straight-line docking distance, then a JSON summary. No radii means
+        no clash. Nothing here is a lab measurement.
       </p>
       <ol className="mt-4 flex flex-wrap gap-2">
         {STEPS.map((label, i) => (
@@ -90,7 +91,7 @@ export function WizardBoard() {
       {step === 1 ? (
         <section className="mt-6 space-y-3">
           <label className="block text-sm">
-            n_repeats
+            Repeat count
             <input
               className="ml-2 border px-2 py-1"
               type="number"
@@ -105,13 +106,13 @@ export function WizardBoard() {
             onClick={runChassis}
             type="button"
           >
-            Evaluate chassis
+            Score this length
           </button>
         </section>
       ) : null}
       {step >= 2 ? (
         <section className="mt-6">
-          <h2 className="font-medium">Chassis JSON</h2>
+          <h2 className="font-medium">Scores for this length</h2>
           <pre className="mt-2 max-h-64 overflow-auto rounded bg-[#F7F1E8] p-3 text-xs">
             {chassis}
           </pre>
@@ -120,13 +121,13 @@ export function WizardBoard() {
             onClick={runPassport}
             type="button"
           >
-            Build passport
+            Build summary file
           </button>
         </section>
       ) : null}
       {step >= 3 ? (
         <section className="mt-6">
-          <h2 className="font-medium">Passport</h2>
+          <h2 className="font-medium">Summary file</h2>
           <pre className="mt-2 max-h-64 overflow-auto rounded bg-[#F7F1E8] p-3 text-xs">
             {passport}
           </pre>

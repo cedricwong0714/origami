@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { WizardBoard } from "@/components/wizard-board";
 
 export const metadata: Metadata = {
-  title: "Design wizard · ORIGAMI",
-  description: "Step through chassis evaluation and a software passport.",
+  title: "Step through one length · ORIGAMI",
+  description: "Pick n = 3, 8, or 14 and read the screw, melt, and docking distance.",
 };
 
 export default function WizardPage() {

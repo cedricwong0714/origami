@@ -19,12 +19,22 @@ import {
 const DEFAULT_C_FREE = 1e-8;
 const DEFAULT_TAG = 10e-6;
 
+const SLOT_LABEL: Record<string, string> = {
+  cam_m13_kd_M: "CaM–M13 peptide Kd",
+  spy_k_on_per_M_s: "Spy lock rate",
+  spy_k_rev_per_s: "Spy reverse rate",
+  spy_k_bond_per_s: "Spy bond rate",
+  nanobit_kd_M: "LgBiT–SmBiT Kd",
+  nanobit_k_on_per_M_s: "LgBiT–SmBiT on-rate",
+  nanobit_k_off_per_s: "LgBiT–SmBiT off-rate",
+};
+
 function slotBadge(slot: RateSlot) {
   if (slot.origin === "literature_prior" && slot.status === "literature") {
-    return "Literature prior (not our assay)";
+    return "Published value";
   }
-  if (slot.status === "vacant") return "Vacant lab field";
-  return "User supplied";
+  if (slot.status === "vacant") return "Empty until you measure it";
+  return "Value you typed";
 }
 
 function formatVal(slot: RateSlot) {
@@ -157,20 +167,23 @@ export function KineticsBoard() {
       <StudioNav />
       <header className="mb-8">
         <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
-        <h1 className="mt-1 text-3xl font-semibold">Scaffold kinetics</h1>
+        <h1 className="mt-1 text-3xl font-semibold">Binding</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          These numbers let the models run so you can test the math. They are
-          literature priors, not our assay. In about two weeks, put lab rates in
-          the empty override boxes. CaM–M13 uses the peptide K<sub>d</sub>, not a
-          fusion K<sub>d</sub>. Spy locking uses Zakeri’s apparent second-order
-          rate as a lumped irreversible step. Reversible off-rate and lock-rate
-          stay vacant until you measure them. NanoBiT complementation uses the
-          Dixon k<sub>on</sub> and k<sub>off</sub>. The printed 190 μM K<sub>d</sub>{" "}
-          is shown beside k<sub>off</sub>/k<sub>on</sub> and is not substituted
-          into that ODE.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>,{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">hypothesis_only</code>.
+          Three calculations. Type concentrations in moles per litre. None of
+          these rates were measured on our protein.
         </p>
+        <ul className="mt-3 max-w-2xl list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">
+          <li>
+            Bound fraction: free CaM–M13 peptide Kd 0.19 nM (Biochemistry 2006).
+            The 80 nM fusion figure is not used here.
+          </li>
+          <li>
+            Spy lock over time: Zakeri 2012 rate, 1.4×10³ M⁻¹ s⁻¹. No reverse rate is stored.
+          </li>
+          <li>
+            LgBiT–SmBiT complex: Dixon 2016 on and off rates. The printed Kd is 190 μM.
+          </li>
+        </ul>
       </header>
 
       {error ? (
@@ -189,8 +202,10 @@ export function KineticsBoard() {
 
       {schema ? (
         <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-medium">Rate slots</h2>
-          <p className="mt-1 text-sm text-[#5C564E]">{schema.note}</p>
+          <h2 className="text-lg font-medium">Rates</h2>
+          <p className="mt-1 text-sm text-[#5C564E]">
+            Published values are filled in. Empty rows stay empty until you measure them.
+          </p>
           <ul className="mt-4 space-y-3">
             {schema.rate_slots.map((slot) => (
               <li
@@ -198,8 +213,7 @@ export function KineticsBoard() {
                 className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#F0E8DC] pb-3 last:border-0"
               >
                 <div>
-                  <span className="font-mono text-sm">{slot.name}</span>
-                  <p className="text-xs text-[#8A8278]">{slot.notes}</p>
+                  <span className="text-sm">{SLOT_LABEL[slot.name] ?? slot.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{slotBadge(slot)}</Badge>
@@ -212,10 +226,11 @@ export function KineticsBoard() {
       ) : null}
 
       <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium">Recruitment steady state</h2>
+        <h2 className="text-lg font-medium">Bound fraction</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          θ<sub>ss</sub> = C<sub>free</sub> / (C<sub>free</sub> + K<sub>d</sub>).
-          Uses the Biochemistry 2006 peptide K<sub>d</sub> (DOI 10.1021/bi060857u).
+          Fraction bound = free concentration / (free concentration + Kd).
+          Kd is 0.19 nM (DOI 10.1021/bi060857u). The 95% band comes from the
+          uncertainty on that Kd.
         </p>
         <label className="mt-4 block text-sm">
           C<sub>free</sub> (M)
@@ -230,16 +245,16 @@ export function KineticsBoard() {
           onClick={() => void runRecruitment()}
           className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
         >
-          Run recruitment
+          Run bound fraction
         </button>
         {sim ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">θ_ss</dt>
+              <dt className="text-[#8A8278]">Fraction bound</dt>
               <dd className="font-mono text-lg">{sim.recruitment.theta_ss.toExponential(4)}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">95% band (Kd interval)</dt>
+              <dt className="text-[#8A8278]">95% range from the Kd</dt>
               <dd className="font-mono">
                 {sim.recruitment.theta_95_lower.toExponential(3)} –{" "}
                 {sim.recruitment.theta_95_upper.toExponential(3)}
@@ -250,20 +265,19 @@ export function KineticsBoard() {
               <dd className="font-mono">{sim.recruitment.kd_M.toExponential(3)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Tier</dt>
-              <dd>{sim.confidence_tier}</dd>
+              <dt className="text-[#8A8278]">What this is</dt>
+              <dd>Literature Kd. Not measured here.</dd>
             </div>
           </dl>
         ) : null}
       </section>
 
       <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium">NanoBiT complementation</h2>
+        <h2 className="text-lg font-medium">LgBiT–SmBiT complex</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          d[complex]/dt = k<sub>on</sub> [Lg][Sm] − k<sub>off</sub> [complex].
-          Both concentrations are required. There is no default mix. The
-          equilibrium uses k<sub>off</sub>/k<sub>on</sub> from Dixon et al. 2016
-          (DOI 10.1021/acschembio.5b00753).
+          Type both starting concentrations. There is no default mix. The
+          amount of complex at equilibrium uses Dixon et al. 2016
+          (DOI 10.1021/acschembio.5b00753). Printed Kd is 190 μM.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
@@ -290,7 +304,7 @@ export function KineticsBoard() {
           onClick={() => void runNanoBit()}
           className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
         >
-          Run NanoBiT
+          Run complex
         </button>
         {nano ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
@@ -322,13 +336,11 @@ export function KineticsBoard() {
       </section>
 
       <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-medium">Spy covalent time course</h2>
+        <h2 className="text-lg font-medium">Spy lock over time</h2>
         <p className="mt-1 text-sm text-[#5C564E]">
-          Pre-filled k<sub>on</sub> is the Zakeri 2012 literature prior (
-          {spyOn ? formatVal(spyOn) : "1.4e3 M^-1 s^-1"}), labeled as not our
-          assay. Leave lab boxes empty to run the lumped irreversible path.
-          Fill both k<sub>rev</sub> and k<sub>bond</sub> only when you have lab
-          numbers.
+          Starting rate is the Zakeri 2012 value (
+          {spyOn ? formatVal(spyOn) : "1.4×10³ M⁻¹ s⁻¹"}). Leave the lab boxes
+          empty. Fill a reverse rate and a bond rate only when you have measured them.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
@@ -348,7 +360,7 @@ export function KineticsBoard() {
             />
           </label>
           <label className="block text-sm">
-            Lab k<sub>on</sub> override (M⁻¹ s⁻¹), empty = literature
+            Your Spy rate (M⁻¹ s⁻¹). Leave empty to use the published rate.
             <input
               className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
               value={labOn}
@@ -357,7 +369,7 @@ export function KineticsBoard() {
             />
           </label>
           <label className="block text-sm">
-            Lab k<sub>rev</sub> (s⁻¹), empty = vacant
+            Reverse rate (per second). Leave empty.
             <input
               className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
               value={labRev}
@@ -366,7 +378,7 @@ export function KineticsBoard() {
             />
           </label>
           <label className="block text-sm sm:col-span-2">
-            Lab k<sub>bond</sub> (s⁻¹), empty = vacant
+            Bond rate (per second). Leave empty.
             <input
               className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
               value={labBond}
@@ -380,7 +392,7 @@ export function KineticsBoard() {
           onClick={() => void runCovalent()}
           className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
         >
-          Run covalent
+          Run Spy lock
         </button>
         {cov ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
@@ -401,8 +413,8 @@ export function KineticsBoard() {
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Tier</dt>
-              <dd>{cov.confidence_tier}</dd>
+              <dt className="text-[#8A8278]">What this is</dt>
+              <dd>Literature rate. Not measured here.</dd>
             </div>
           </dl>
         ) : null}

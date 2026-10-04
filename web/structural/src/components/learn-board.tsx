@@ -118,12 +118,11 @@ function LiteraturePanel({ training }: { training: LiteratureTraining | null }) 
   }
   return (
     <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm leading-relaxed">
-      <h2 className="text-lg font-semibold">Literature models, already trained</h2>
-      <p className="mt-2 text-[#5C564E]">{training.reason}</p>
+      <h2 className="text-lg font-semibold">Published melting data, already loaded</h2>
       <p className="mt-2 text-[#5C564E]">
-        Each physics score is the length model fit to these same printed cells.
-        The Gaussian process learns the leftover of that fit.{" "}
-        <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+        Phillips 2012 melting temperature and unfolding energy. This lab does
+        not measure either one. These rows do not use the luminescence numbers
+        below, and they are not a request to run a melt.
       </p>
       <Track title="Melting temperature" track={training.tm} />
       <Track title="Unfolding ΔG at 10 °C, as printed" track={training.delta_g} />
@@ -136,28 +135,23 @@ function Track({ title, track }: { title: string; track: LitTrack }) {
     <div className="mt-5">
       <h3 className="font-medium">{title}</h3>
       <p className="mt-1 text-[#5C564E]">
-        Trained on lengths {track.training_lengths.join(", ")}. Units: {track.units}.{" "}
-        {track.gp_fitted
-          ? "Three or more cited lengths, so the kernel was fit."
-          : "Fewer than three cited lengths, so the kernel was not optimized."}{" "}
-        Alpha is {formatNumber(track.alpha)}. {track.noise_note} {track.identifiability_note}{" "}
-        Longest cited length is{" "}
-        {track.longest_cited_n ?? "omitted"}.
+        Published lengths {track.training_lengths.join(", ")}. Units: {track.units}.
+        Longest published length: {track.longest_cited_n ?? "not in the table"}.
       </p>
       <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
         {track.training_rows.map((row) => (
           <li key={row.n_repeats}>
-            n = {row.n_repeats}: printed {formatNumber(row.y)}
-            {row.sigma == null ? ", sigma omitted" : ` ± ${formatNumber(row.sigma)}`}, residual{" "}
-            {formatNumber(row.residual)}
+            n = {row.n_repeats}: published {formatNumber(row.y)}
+            {row.sigma == null ? ", no uncertainty printed" : ` ± ${formatNumber(row.sigma)}`}.
+            Difference from the length fit: {formatNumber(row.residual)}
           </li>
         ))}
       </ul>
       <p className="mt-2">
-        If this observable were measured, the next length would be{" "}
+        If the next length were chosen from this table alone, it would be{" "}
         <strong>{track.next_n_if_this_observable_were_measured}</strong>
-        {track.next_past_longest_cited_length ? " (past the longest cited length)" : ""}.{" "}
-        {track.next_reason}
+        {track.next_past_longest_cited_length ? " (longer than any published row)" : ""}.
+        This lab is not measuring melts.
       </p>
       <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
         {track.preview.map((row) => (
@@ -296,21 +290,16 @@ export function LearnBoard() {
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">SSDK</p>
-        <h1 className="mt-1 text-3xl font-semibold">Surrogate active learning</h1>
+        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Which length next</p>
+        <h1 className="mt-1 text-3xl font-semibold">Next length to measure</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
-          Enter the surrogate readout at each scaffold length you have measured.
-          The docking score is the physics term. The Gaussian process learns the
-          residual between that score and your readout. One or two lengths shift
-          the residual and leave the slope at 1. Three or more distinct lengths
-          fit the kernel. The next length is the one to measure, not a validated
-          design. Structure and the Phillips melting-temperature model are shown
-          beside that choice and are not overwritten by the surrogate. A second
-          pair of models, below, is already trained on the Phillips 2012 CTPRa
-          DSC table. That table is melting temperature and unfolding ΔG. This
-          lab plan does not measure either one, so those models are not a
-          request to run a melt, and they do not use the surrogate readout.{" "}
-          <code className="rounded bg-[#F5F0E8] px-1">calibrated = false</code>.
+          Leave the reading blank and you still get a suggestion from the docking
+          score. Type a luminescence reading (y) and an optional uncertainty to
+          adjust that score. The number to use is the first next length. Other
+          methods may name a different length. They are not averaged. A pass
+          uses a cutoff we have not measured. Do not put that pass on the wiki.
+          The screw and the melting temperature are shown beside the suggestion
+          and are not changed by the reading.
         </p>
       </header>
 
@@ -324,10 +313,10 @@ export function LearnBoard() {
       ) : null}
 
       <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
-        <h2 className="text-lg font-semibold">Surrogate rows</h2>
+        <h2 className="text-lg font-semibold">Luminescence readings</h2>
         <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
-          Leave a reading blank if that length has not been measured. An empty
-          uncertainty stays empty.
+          Repeat count, reading, optional uncertainty. Leave the reading blank
+          if that length has not been measured.
         </p>
         <div className="mt-4 space-y-2">
           {rows.map((row, index) => (
@@ -341,14 +330,14 @@ export function LearnBoard() {
               <input
                 aria-label={`Surrogate reading ${index + 1}`}
                 className="rounded-lg border border-[#E3D9CC] px-3 py-2"
-                placeholder="Surrogate y"
+                placeholder="Reading"
                 value={row.y}
                 onChange={(event) => update(index, "y", event.target.value)}
               />
               <input
                 aria-label={`Sigma ${index + 1}`}
                 className="rounded-lg border border-[#E3D9CC] px-3 py-2"
-                placeholder="Sigma, optional"
+                placeholder="Uncertainty, optional"
                 value={row.sigma}
                 onChange={(event) => update(index, "sigma", event.target.value)}
               />
@@ -390,15 +379,15 @@ export function LearnBoard() {
           </label>
         </div>
         <label className="mt-3 block text-sm">
-          Acquisition
+            How to pick the next length
           <select
             className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
             value={acquisition}
             onChange={(event) => setAcquisition(event.target.value)}
           >
-            <option value="ucb">Upper confidence bound</option>
-            <option value="ei">Expected improvement</option>
-            <option value="entropy">Posterior entropy</option>
+            <option value="ucb">High score and high uncertainty</option>
+            <option value="ei">Largest expected gain</option>
+            <option value="entropy">Highest uncertainty</option>
           </select>
         </label>
         <Button type="button" className="mt-4" onClick={onRun} disabled={running}>
@@ -410,20 +399,20 @@ export function LearnBoard() {
         <section className="rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 text-sm leading-relaxed">
           <h2 className="text-lg font-semibold">Next measurement</h2>
           <p className="mt-2">
-            Measure repeat count <strong>{report.next_n}</strong>. {report.next_reason}
+            Measure repeat count <strong>{report.next_n}</strong>. This is the length to run next. It is not a claim that the design works.
           </p>
           {report.recommendation ? (
             <p className="mt-2 text-[#5C564E]">
-              Primary ({report.recommendation.primary_family}) n = {report.recommendation.next_n}.
-              Design-engine n = {report.recommendation.design_engine_next_n}. Multi-fidelity
-              luminescence n = {report.recommendation.multifidelity_luminescence_n ?? "none"}. Batch
-              n = {report.recommendation.batch_n.join(", ") || "none"}. These lengths are not
-              averaged.
+              Luminescence fit: n = {report.recommendation.next_n}. Docking-score
+              fit: n = {report.recommendation.design_engine_next_n}. Luminescence
+              with dry and lab readings: n = {report.recommendation.multifidelity_luminescence_n ?? "none"}.
+              Lengths to run together: {report.recommendation.batch_n.join(", ") || "none"}.
+              Use the first. They are not averaged.
             </p>
           ) : null}
           {report.chassis_at_next_n ? (
             <p className="mt-2 text-[#5C564E]">
-              Chassis at n = {report.chassis_at_next_n.n_repeats}: contour{" "}
+              At n = {report.chassis_at_next_n.n_repeats}: length along the repeats{" "}
               {report.chassis_at_next_n.structure
                 ? `${formatNumber(report.chassis_at_next_n.structure.contour_nm)} nm`
                 : "omitted"}
@@ -431,22 +420,20 @@ export function LearnBoard() {
               {report.chassis_at_next_n.structure?.rigid_screw
                 ? "rigid under the 15 nm cutoff"
                 : "past the 15 nm cutoff"}
-              . Phillips Tm{" "}
+              . Melting temperature{" "}
               {report.chassis_at_next_n.stability?.tm_C == null
                 ? "omitted"
                 : `${formatNumber(report.chassis_at_next_n.stability.tm_C)} °C`}
               . Clash{" "}
-              {report.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed"}.
-              Kinetics{" "}
+              {report.chassis_at_next_n.docking?.clash_computable ? "computed" : "not computed (no radii)"}.
+              Binding{" "}
               {report.chassis_at_next_n.kinetics?.computable ? "computed" : "not computed"}.
-              calibrated = {String(report.chassis_at_next_n.calibrated)}.
             </p>
           ) : null}
           <p className="mt-2 text-[#5C564E]">
-            {report.gp_fitted
-              ? "The kernel hyperparameters were fit on three or more lengths."
-              : "Fewer than three lengths, so the slope on the physics score stays 1 and the kernel was not optimized."}{" "}
-            Alpha is {formatNumber(report.alpha)}. Docking radii are {report.radius_origin}.{" "}
+            {report.radius_origin === "caller"
+              ? "Clash used the radii you typed."
+              : "No radii were typed, so clash used the CaM–M13 size from PDB 2BBM only inside the docking score. It is not a measured radius."}{" "}
             {report.slices.docking.note}
           </p>
           <div className="mt-4 overflow-x-auto">
