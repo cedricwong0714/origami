@@ -7,3 +7,15 @@ services:
     envVars:
       - key: PORT
         value: "8501"
+
+  # FastAPI backend for the Next.js studio (web/structural). Pair with Vercel + STRUCTURAL_API_URL.
+  - type: web
+    name: origami-structural-api
+    runtime: python
+    plan: free
+    buildCommand: pip install ".[ui]"
+    startCommand: uvicorn origami.api.structural:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/meta/dependencies
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"

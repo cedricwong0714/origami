@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (Vercel + Render deploy)
+
+### Added
+- `web/structural/DEPLOY.md` documents deploying the studio on Vercel with the FastAPI calculator on Render.
+- On Vercel builds, Next.js skips static export and rewrites `/api/*` to `STRUCTURAL_API_URL`.
+- `render.yaml` includes an `origami-structural-api` Python service for the calculator API.
+
 ## Unreleased — 2026-10-04 (studio dark mode)
 
 ### Added

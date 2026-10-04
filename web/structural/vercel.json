@@ -1,0 +1,9 @@
+{
+  "$comment": "Primary /api proxy is configured in next.config.ts when STRUCTURAL_API_URL is set on Vercel. This file adds sensible cache headers for HTML.",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
+  ]
+}
