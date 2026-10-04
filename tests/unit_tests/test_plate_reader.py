@@ -59,6 +59,29 @@ def test_missing_columns_rejected():
         parse_plate_csv("well,rlu\nA1,1\n", "p")
 
 
+def test_output_and_fidelity_are_not_averaged_together():
+    text = (
+        "well,construct,n_repeats,batch,role,rlu,output,fidelity\n"
+        "A1,c,8,b1,blank,0,,\n"
+        "B1,c,8,b1,sample,110,luminescence,1\n"
+        "C1,c,8,b1,sample,50,locking_fraction,1\n"
+    )
+    rows = {row["output"]: row for row in parse_plate_csv(text, "p.csv")["observations"]}
+    assert rows["luminescence"]["y"] == pytest.approx(110.0)
+    assert rows["locking_fraction"]["y"] == pytest.approx(50.0)
+    assert rows["luminescence"]["fidelity"] == 1
+
+
+def test_unknown_output_is_rejected():
+    text = (
+        "well,construct,n_repeats,batch,role,rlu,output\n"
+        "A1,c,8,b1,blank,0,\n"
+        "B1,c,8,b1,sample,10,titer\n"
+    )
+    with pytest.raises(PlateReaderError, match="output"):
+        parse_plate_csv(text, "p.csv")
+
+
 def test_file_checksum_recorded_and_file_untouched(tmp_path):
     f = tmp_path / "plate.csv"
     f.write_text(HEAD + "A1,c,8,b1,blank,1\nB1,c,8,b1,sample,11\n")

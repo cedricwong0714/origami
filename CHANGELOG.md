@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (one SSDK command for chassis, learn, and plate)
+
+### Added
+- `origami ssdk chassis`, `origami ssdk learn`, and `origami ssdk learn-plate`. The plate command takes observations from the CSV and every other learn field from `--json-body`.
+- Optional plate columns `output` and `fidelity`. Replicates are averaged only when those match. A locking row stays a locking observation.
+- `recommendation` on the learn response names the primary next length and lists the design-engine length, the luminescence multi-fidelity length, and the batch. Those lengths are not averaged.
+
 ## Unreleased — 2026-10-04 (one feature matrix for the SSDK Gaussian processes)
 
 ### Changed

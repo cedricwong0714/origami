@@ -162,16 +162,48 @@ def _cmd_learn_ssdk(args: argparse.Namespace) -> int:
     if args.full:
         print(json.dumps(result, indent=2))
         return 0
-    batch = [row["n_repeats"] for row in result.get("batch", {}).get("selected", [])]
+    _print_learn_summary(result)
+    return 0
+
+
+def _print_learn_summary(result: dict) -> None:
+    """One decision summary for learn-ssdk and origami ssdk learn."""
+    recommendation = result.get("recommendation") or {}
     multi = result.get("multioutput") or {}
-    print(f"learner_family: {result.get('learner_family')}")
-    print(f"next_n: {result.get('next_n')}")
-    print(f"design_engine_next_n: {result.get('design_engine_next_n')}")
+    digest = (result.get("canonical") or {}).get("feature_matrix_sha256")
+    print(f"primary_family: {recommendation.get('primary_family')}")
+    print(f"next_n: {recommendation.get('next_n')}")
+    print(f"design_engine_next_n: {recommendation.get('design_engine_next_n')}")
+    print(f"multifidelity_luminescence_n: {recommendation.get('multifidelity_luminescence_n')}")
+    print(f"batch: {recommendation.get('batch_n')}")
     print(f"overall_status: {multi.get('overall_status')}")
     print(f"omitted_outputs: {', '.join(multi.get('omitted_outputs') or []) or 'none'}")
-    print(f"batch: {batch}")
+    print(f"feature_matrix_sha256: {digest}")
     print("calibrated: false")
-    return 0
+
+
+def _plate_learn_options(args: argparse.Namespace) -> dict:
+    """Merge a JSON learn body with CLI bounds. Observations stay in the CSV."""
+    import json
+
+    raw = getattr(args, "json_body", None)
+    if raw:
+        body = json.loads(raw)
+        if not isinstance(body, dict):
+            raise ValueError("JSON object required")
+        if "observations" in body:
+            raise ValueError("observations come from the plate file; do not pass them")
+    else:
+        body = {}
+    if getattr(args, "n_min", None) is not None:
+        body["n_min"] = args.n_min
+    elif "n_min" not in body:
+        body["n_min"] = 3
+    if getattr(args, "n_max", None) is not None:
+        body["n_max"] = args.n_max
+    elif "n_max" not in body:
+        body["n_max"] = 24
+    return body
 
 
 def _cmd_learn_plate(args: argparse.Namespace) -> int:
@@ -183,11 +215,46 @@ def _cmd_learn_plate(args: argparse.Namespace) -> int:
     from origami.ssdk.plate_pipeline import learn_from_plate
 
     try:
-        result = learn_from_plate(args.csv, n_min=args.n_min, n_max=args.n_max)
-    except (PlateReaderError, SsdkLearnError, OSError, UnicodeDecodeError) as exc:
+        result = learn_from_plate(args.csv, **_plate_learn_options(args))
+    except (PlateReaderError, SsdkLearnError, OSError, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
         print(f"learn-plate failed: {exc}", file=sys.stderr)
         return 2
-    print(json.dumps(result, indent=2))
+    if getattr(args, "full", False) or not getattr(args, "summary", False):
+        print(json.dumps(result, indent=2))
+        return 0
+    _print_learn_summary(result)
+    return 0
+
+
+def _cmd_ssdk_chassis(args: argparse.Namespace) -> int:
+    """Print one structure, stability, docking, and kinetics evaluation."""
+    import json
+
+    from origami.ssdk.chassis import ChassisError, evaluate_chassis
+
+    try:
+        body = json.loads(args.json_body)
+        if not isinstance(body, dict):
+            raise ValueError("JSON object required")
+        report = evaluate_chassis(body)
+    except (json.JSONDecodeError, ChassisError, ValueError) as exc:
+        print(f"ssdk chassis failed: {exc}", file=sys.stderr)
+        return 2
+    if args.full:
+        print(json.dumps(report, indent=2))
+        return 0
+    structure = report["structure"]
+    stability = report["stability"]
+    docking = report["docking"]
+    kinetics = report["kinetics"]
+    print(f"n_repeats: {report['n_repeats']}")
+    print(f"contour_nm: {structure['contour_nm']}")
+    print(f"rigid_screw: {structure['rigid_screw']}")
+    print(f"tm_C: {stability['tm_C']}")
+    print(f"delta_g: {stability['delta_g']}")
+    print(f"clash_computable: {docking.get('clash_computable')}")
+    print(f"kinetics_computable: {kinetics.get('computable')}")
+    print("calibrated: false")
     return 0
 
 
@@ -498,9 +565,39 @@ def main() -> None:
         help="Run the SSDK learner on a plate-reader CSV",
     )
     lp.add_argument("csv")
-    lp.add_argument("--n-min", type=int, default=3)
-    lp.add_argument("--n-max", type=int, default=24)
+    lp.add_argument("--n-min", type=int, default=None)
+    lp.add_argument("--n-max", type=int, default=None)
+    lp.add_argument(
+        "--json-body",
+        default=None,
+        help="Learn options other than observations (construct, kinetics, quantify_luminescence)",
+    )
+    lp.add_argument("--summary", action="store_true", help="Print the decision summary instead of JSON")
     lp.set_defaults(func=_cmd_learn_plate)
+
+    ssdk_cmd = sub.add_parser(
+        "ssdk",
+        help="One entry for chassis evaluation and the shared learner",
+    )
+    ssdk_sub = ssdk_cmd.add_subparsers(dest="ssdk_command", required=True)
+    chassis_cmd = ssdk_sub.add_parser("chassis", help="Structure, stability, docking, and kinetics")
+    chassis_cmd.add_argument("--json-body", required=True)
+    chassis_cmd.add_argument("--full", action="store_true")
+    chassis_cmd.set_defaults(func=_cmd_ssdk_chassis)
+    ssdk_learn = ssdk_sub.add_parser("learn", help="Same learner as learn-ssdk")
+    ssdk_learn.add_argument("--json-body", required=True)
+    ssdk_learn.add_argument("--full", action="store_true")
+    ssdk_learn.set_defaults(func=_cmd_learn_ssdk)
+    ssdk_plate = ssdk_sub.add_parser(
+        "learn-plate",
+        help="Plate CSV plus the same learn options, printed as the decision summary",
+    )
+    ssdk_plate.add_argument("csv")
+    ssdk_plate.add_argument("--json-body", default=None)
+    ssdk_plate.add_argument("--n-min", type=int, default=None)
+    ssdk_plate.add_argument("--n-max", type=int, default=None)
+    ssdk_plate.add_argument("--full", action="store_true")
+    ssdk_plate.set_defaults(func=_cmd_learn_plate, summary=True)
 
     ssdk = sub.add_parser(
         "learn-ssdk",

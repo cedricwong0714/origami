@@ -137,7 +137,10 @@ From the repo root, with the venv active, the `origami` command includes:
 | `origami compare-plate PLATE.csv` | Score blank-corrected wells against the scaffold freezes. Optional column `calcium_uM` |
 | `origami import-plate PATH` | Parse a plate CSV |
 | `origami learn-plate PATH` | Plate → SSDK learner |
-| `origami learn-ssdk --json-body '{...}'` | Print learner family, next n, batch, and overall status. `--full` prints the JSON |
+| `origami learn-ssdk --json-body '{...}'` | Print the primary next n, the other recommenders, and the shared feature checksum. `--full` prints the JSON |
+| `origami ssdk chassis --json-body '{"n_repeats":8}'` | One structure, stability, docking, and kinetics evaluation |
+| `origami ssdk learn --json-body '{...}'` | Same learner as `learn-ssdk` |
+| `origami ssdk learn-plate PLATE.csv --json-body '{...}'` | Plate rows are the observations. The JSON supplies construct, kinetics, or `quantify_luminescence`. Optional CSV columns: `output`, `fidelity` |
 | `origami ablation` | Grouped ablation (see `--help`) |
 | `origami pipeline` | Demo verification path (not the wiki) |
 

@@ -46,7 +46,7 @@ Optional: `indices`, `radii_A` (two Å values), `lab_tm_C`, `kinetics`.
 
 `acquisition` is `ucb`, `ei`, or `entropy`. `learner` is `sklearn` (default) or `design_engine`. `fidelity` is 0 (dry) or 1 (wet); omitted means 1. `output` is one of `luminescence`, `locking_fraction`, `expression`, `solubility`, `purity` (default luminescence). Optional `sequence` uses composition unless `sequence_encoding` is `onehot` or `esm2`. `batch_size` is 1 to 12. Set `quantify_luminescence` true with `standard_curve` (`amount` and `rlu` lists) and `amount_units` to convert luminescence rows from RLU to amount before the learner sees them. Other outputs are not converted. Omit the flag and `y` stays as sent.
 
-Read `learner_family` and `next_n` for the recommendation that was actually used. `design_engine_next_n` is always the older residual GP. `multioutput.overall_status` is PASS, FAIL, or NOT_GATED. `batch.selected` is the plate of lengths. `canonical.heteroscedastic.replaces_assay_cv` is false. `canonical.feature_matrix_sha256`, `multioutput.feature_matrix_sha256`, and `multifidelity_luminescence.feature_matrix_sha256` are the same matrix: screw features, construct flags, and the optional sequence block.
+Read `recommendation.primary_family` and `recommendation.next_n` for the length the software treats as primary. `recommendation.design_engine_next_n`, `recommendation.multifidelity_luminescence_n`, and `recommendation.batch_n` are the other models. They are not required to agree. Read `learner_family` and `next_n` for the same primary choice. `design_engine_next_n` is always the older residual GP. `multioutput.overall_status` is PASS, FAIL, or NOT_GATED. `batch.selected` is the plate of lengths. `canonical.heteroscedastic.replaces_assay_cv` is false. `canonical.feature_matrix_sha256`, `multioutput.feature_matrix_sha256`, and `multifidelity_luminescence.feature_matrix_sha256` are the same matrix: screw features, construct flags, and the optional sequence block.
 
 CLI: `origami learn-ssdk --json-body '{"n_min":8,"n_max":12,"observations":[]}'`
 
@@ -86,7 +86,9 @@ Quality example:
 {"quality": {"inter_day_rlu": [100, 108, 92, 101]}}
 ```
 
-Plate columns: `well`, `construct`, `n_repeats`, `batch`, `role`, `rlu`. Optional `calcium_uM`. `role=blank` is subtracted inside each batch.
+Plate columns: `well`, `construct`, `n_repeats`, `batch`, `role`, `rlu`. Optional `calcium_uM`, `output`, and `fidelity`. `role=blank` is subtracted inside each batch. `output` is one of the five wet assays. `fidelity` is 0 or 1. Empty cells mean luminescence and wet.
+
+CLI: `origami ssdk chassis`, `origami ssdk learn`, and `origami ssdk learn-plate`. `learn-ssdk` remains the same learn call.
 
 ## Errors
 

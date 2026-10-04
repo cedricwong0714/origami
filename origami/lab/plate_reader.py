@@ -6,14 +6,17 @@ Input is a long-format CSV, one row per well, with columns:
 Optional ``calcium_uM`` is free calcium in µM. When that column is
 present, sample wells must fill it, and replicates are averaged only
 when construct, repeat count, batch, and calcium all match. Blanks stay
-per batch.
+per batch. Optional ``output`` is one of the five wet assays. Optional
+``fidelity`` is 0 (dry) or 1 (wet). An empty cell means luminescence
+and wet. Replicates are not averaged across different outputs or fidelities.
 
 Processing is deterministic and explicit:
   1. Blank correction: for each batch, the mean RLU of that batch's blank
      wells is subtracted from every sample well in the same batch. A batch
      with samples but no blanks is rejected rather than left uncorrected.
-  2. Replicates: sample wells sharing (construct, n_repeats, batch) are
-     averaged. ``sigma`` is the standard error of the mean, using the
+  2. Replicates: sample wells sharing construct, repeat count, batch,
+     calcium, output, and fidelity are averaged. ``sigma`` is the standard
+     error of the mean, using the
      unbiased sample SD (n - 1) divided by sqrt(n). With a single well the
      sigma is omitted (None), never invented.
   3. The input file SHA-256 is recorded so the rows trace to raw data.
@@ -32,6 +35,8 @@ import math
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
+
+from origami.ssdk.canonical_learner import WET_OUTPUTS
 
 REQUIRED_COLUMNS = ("well", "construct", "n_repeats", "batch", "role", "rlu")
 NORMALIZATION_METHOD = "blank_subtracted_RLU"
@@ -58,9 +63,12 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
     if missing:
         raise PlateReaderError(f"missing required columns: {missing}")
 
-    has_calcium = "calcium_uM" in (reader.fieldnames or [])
+    fieldnames = reader.fieldnames or []
+    has_calcium = "calcium_uM" in fieldnames
+    has_output = "output" in fieldnames
+    has_fidelity = "fidelity" in fieldnames
     blanks: dict[str, list[float]] = defaultdict(list)
-    samples: dict[tuple[str, int, str, float | None], list[float]] = defaultdict(list)
+    samples: dict[tuple[str, int, str, float | None, str, int], list[float]] = defaultdict(list)
     for line, row in enumerate(reader, start=2):
         role = (row["role"] or "").strip().lower()
         batch = (row["batch"] or "").strip()
@@ -79,7 +87,9 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
             if not construct:
                 raise PlateReaderError(f"line {line}: construct is empty")
             calcium = _sample_calcium(row, line, has_calcium)
-            samples[(construct, int(n_f), batch, calcium)].append(rlu)
+            output = _sample_output(row, line, has_output)
+            fidelity = _sample_fidelity(row, line, has_fidelity)
+            samples[(construct, int(n_f), batch, calcium, output, fidelity)].append(rlu)
         else:
             raise PlateReaderError(f"line {line}: role must be 'sample' or 'blank', got {role!r}")
 
@@ -87,7 +97,7 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
         raise PlateReaderError("no sample wells found")
 
     out_rows: list[dict[str, Any]] = []
-    for (construct, n_repeats, batch, calcium), values in sorted(
+    for (construct, n_repeats, batch, calcium, output, fidelity), values in sorted(
         samples.items(), key=_sample_sort_key
     ):
         if batch not in blanks:
@@ -107,10 +117,14 @@ def parse_plate_csv(text: str, source: str, sha256: str | None = None) -> dict[s
                 "n_repeats": n_repeats,
                 "y": mean,
                 "sigma": sigma,
-                "source": f"{source}:{construct}:{batch}:{_calcium_label(calcium)}",
+                "source": (
+                    f"{source}:{construct}:{batch}:{_calcium_label(calcium)}:{output}:f{fidelity}"
+                ),
                 "construct": construct,
                 "batch": batch,
                 "calcium_uM": calcium,
+                "output": output,
+                "fidelity": fidelity,
                 "n_wells": n,
                 "blank_mean_rlu": blank_mean,
                 "units": "RLU",
@@ -143,15 +157,40 @@ def _calcium_label(calcium: float | None) -> str:
     return f"{calcium:g}uM"
 
 
+def _sample_output(row: dict[str, str], line: int, has_output: bool) -> str:
+    if not has_output:
+        return "luminescence"
+    raw = (row.get("output") or "").strip()
+    if raw == "":
+        return "luminescence"
+    if raw not in WET_OUTPUTS:
+        raise PlateReaderError(
+            f"line {line}: output must be one of {', '.join(WET_OUTPUTS)}, got {raw!r}"
+        )
+    return raw
+
+
+def _sample_fidelity(row: dict[str, str], line: int, has_fidelity: bool) -> int:
+    if not has_fidelity:
+        return 1
+    raw = (row.get("fidelity") or "").strip()
+    if raw == "":
+        return 1
+    value = _finite(raw, "fidelity", line)
+    if value not in (0.0, 1.0):
+        raise PlateReaderError(f"line {line}: fidelity must be 0 or 1")
+    return int(value)
+
+
 def _sample_sort_key(
-    item: tuple[tuple[str, int, str, float | None], list[float]],
-) -> tuple[str, int, str, int, float]:
-    construct, n_repeats, batch, calcium = item[0]
+    item: tuple[tuple[str, int, str, float | None, str, int], list[float]],
+) -> tuple[str, int, str, str, int, int, float]:
+    construct, n_repeats, batch, calcium, output, fidelity = item[0]
     # None sorts before any measured calcium. The pair (0, 0.0) is a
     # sort key, not a concentration.
     if calcium is None:
-        return (construct, n_repeats, batch, 0, 0.0)
-    return (construct, n_repeats, batch, 1, calcium)
+        return (construct, n_repeats, batch, output, fidelity, 0, 0.0)
+    return (construct, n_repeats, batch, output, fidelity, 1, calcium)
 
 
 def load_plate_csv(path: str | Path) -> dict[str, Any]:

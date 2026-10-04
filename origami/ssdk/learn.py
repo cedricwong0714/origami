@@ -157,6 +157,16 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
     distinct = sorted({obs.n_repeats for obs in observations})
     gp_fitted = len(distinct) >= 3
     highlighted = _highlighted(distinct, next_n)
+    multifidelity = _multifidelity_block(
+        result,
+        mf_obs_rows,
+        n_max,
+        flags,
+        sequence_vector,
+        sequence_method,
+        X_all,
+    )
+    recommendation = _recommendation(family, next_n, engine_next, batch, multifidelity)
     return {
         "calibrated": False,
         "confidence_tier": "hypothesis_only",
@@ -194,14 +204,34 @@ def learn_ssdk(body: dict[str, Any]) -> dict[str, Any]:
         "canonical": canonical,
         "multioutput": outputs,
         "batch": batch,
-        "multifidelity_luminescence": _multifidelity_block(
-            result,
-            mf_obs_rows,
-            n_max,
-            flags,
-            sequence_vector,
-            sequence_method,
-            X_all,
+        "multifidelity_luminescence": multifidelity,
+        "recommendation": recommendation,
+    }
+
+
+def _recommendation(
+    family: str,
+    next_n: int,
+    design_engine_next_n: int,
+    batch: dict[str, Any],
+    multifidelity: dict[str, Any],
+) -> dict[str, Any]:
+    """Name which next length is primary. Do not average the models."""
+    recommended = multifidelity.get("recommended_evaluation") or {}
+    mf_n = recommended.get("n_repeats")
+    return {
+        "primary_family": family,
+        "next_n": next_n,
+        "design_engine_next_n": design_engine_next_n,
+        "multifidelity_luminescence_n": None if mf_n is None else int(mf_n),
+        "batch_n": [int(row["n_repeats"]) for row in batch.get("selected") or []],
+        "calibrated": False,
+        "note": (
+            "primary next_n is the sklearn residual when that fit exists. "
+            "design_engine_next_n is the older residual GP. "
+            "multifidelity_luminescence_n is the luminescence multi-fidelity acquisition. "
+            "batch_n is the greedy panel on the sklearn posterior. "
+            "These models are not required to name the same length."
         ),
     }
 
