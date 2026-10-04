@@ -48,8 +48,21 @@ None added here. See `origami/priors.py`.
 ## Tests
 
 ```bash
-python -m pytest tests/unit_tests/test_sandbox_service.py
+python -m pytest tests/unit_tests/test_sandbox_service.py tests/unit_tests/test_modelling_sandbox.py
 ```
+
+## Live modelling sandbox
+
+`sandbox/modelling.py` scores one length, a length series, binding, and a
+next-length suggestion. It calls `evaluate_chassis`, `simulate_kinetics`,
+and `learn_ssdk`. Clash needs two radii. Binding needs concentrations.
+
+```bash
+pip install -e ".[ui]"
+streamlit run sandbox/modelling.py --server.port 48621 --server.address 0.0.0.0
+```
+
+Root entry: `host_modelling.py`.
 
 ## Owner
 
