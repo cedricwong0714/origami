@@ -22,7 +22,7 @@ import { StudioNav } from "@/components/studio-nav";
 const ScrewView = dynamic(() => import("@/components/screw-view").then((mod) => mod.ScrewView), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[560px] items-center justify-center rounded-xl bg-[#1c1a18] text-sm text-[#E7E0D6]">
+    <div className="flex h-[560px] items-center justify-center rounded-xl bg-studio-viewport text-sm text-studio-viewport-text">
       Placing the screw…
     </div>
   ),
@@ -45,13 +45,13 @@ function ConstructStrip({ labels }: { labels: string[] }) {
             className={
               label === "CTPR"
                 ? "rounded-full bg-[#FF8000] px-3 py-1 text-xs font-semibold text-white"
-                : "rounded-full bg-[#EBE4D9] px-3 py-1 text-xs font-medium text-[#242220]"
+                : "rounded-full bg-studio-secondary px-3 py-1 text-xs font-medium text-studio-foreground"
             }
           >
             {label === "CTPR" ? "CTPR(n)" : label}
           </span>
           {index < labels.length - 1 ? (
-            <span className="text-[#C4B8A8]" aria-hidden>
+            <span className="text-studio-label" aria-hidden>
               —
             </span>
           ) : null}
@@ -71,12 +71,12 @@ function Metric({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#E3D9CC] bg-white/70 px-4 py-3">
-      <p className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">
+    <div className="rounded-xl border border-studio-border bg-studio-card/70 px-4 py-3">
+      <p className="text-[11px] tracking-[0.14em] text-studio-label uppercase">
         {label}
       </p>
-      <p className="mt-1 font-heading text-xl text-[#242220]">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-[#6F675C]">{hint}</p> : null}
+      <p className="mt-1 font-heading text-xl text-studio-foreground">{value}</p>
+      {hint ? <p className="mt-1 text-xs text-studio-muted">{hint}</p> : null}
     </div>
   );
 }
@@ -178,20 +178,20 @@ export function StructuralStudio() {
       <StudioNav />
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">
             Hong Kong team · ISEF 2026 · ORIGAMI
           </p>
-          <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-[#242220] md:text-5xl">
+          <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-studio-foreground md:text-5xl">
             CTPR screw
           </h1>
-          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[#5C564E]">
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-studio-muted">
             This is the geometric model of the scaffold. A repeat count is placed on the deposited CTPR screw (PDB 2AVP, 2HYZ, 2FO7) so you can see graft position, end-to-end distance, and which way the ends face. SpyCatcher, the linkers, and LgBiT are not in the trace. Use the shape before you score stability or docking.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="secondary"
-            className="rounded-full bg-[#242220] text-white"
+            className="rounded-full bg-studio-button text-studio-button-text"
             title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
             Not a lab measurement
@@ -200,7 +200,7 @@ export function StructuralStudio() {
             <Badge variant="outline">Saved file. API is down. n = 8 graft may be the old repeat.</Badge>
           ) : null}
           {data?.source === "live" ? (
-            <Badge variant="outline" className="border-[#266FB1] text-[#266FB1]">
+            <Badge variant="outline" className="border-studio-blue text-studio-blue">
               live model
             </Badge>
           ) : null}
@@ -209,17 +209,17 @@ export function StructuralStudio() {
 
       <section className="mt-6" id="screw-model">
         {!data && !loading ? (
-          <div className="flex h-[520px] items-center justify-center rounded-2xl border border-dashed border-[#D9CFC2] bg-[#1c1a18] text-center text-sm text-[#E7E0D6]">
+          <div className="flex h-[520px] items-center justify-center rounded-2xl border border-dashed border-studio-border bg-studio-viewport text-center text-sm text-studio-viewport-text">
             Run the backbone model to place the CTPR screw.
           </div>
         ) : null}
         {loading && !data ? (
-          <div className="flex h-[520px] items-center justify-center rounded-2xl bg-[#1c1a18] text-sm text-[#E7E0D6]">
+          <div className="flex h-[520px] items-center justify-center rounded-2xl bg-studio-viewport text-sm text-studio-viewport-text">
             Placing the deposited screw…
           </div>
         ) : null}
         {data && construct ? (
-          <Card className="border-[#E3D9CC] bg-white shadow-none">
+          <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between gap-3">
               <CardTitle className="font-heading text-2xl">
                 CTPR{construct.n_repeats} screw
@@ -233,17 +233,17 @@ export function StructuralStudio() {
                       setFocus(row.n_repeats);
                       setSite(row.m13_graft?.repeat_index ?? 0);
                     }}
-                    className="rounded-full data-[state=on]:bg-[#242220] data-[state=on]:text-white"
+                    className="rounded-full data-[state=on]:bg-studio-button data-[state=on]:text-studio-button-text"
                   >
                     n={row.n_repeats}
                   </Toggle>
                 ))}
-                <span className="text-xs text-[#8A8175]">{construct.ca_count} Cα · drag to orbit</span>
+                <span className="text-xs text-studio-label">{construct.ca_count} Cα · drag to orbit</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <ScrewView scene={scene} selected={site} />
-              <p className="text-xs text-[#6F675C]">
+              <p className="text-xs text-studio-muted">
                 Pale tube: Cα trace. Blue sphere: SpyCatcher-side end. Orange sphere: m13 graft. Brown sphere: C-end. The model rotates on its own. Drag to orbit, scroll to zoom.
               </p>
             </CardContent>
@@ -251,13 +251,13 @@ export function StructuralStudio() {
         ) : null}
       </section>
 
-      <Card className="mt-8 border-[#E3D9CC] bg-[#FBF8F3]/80 shadow-none">
+      <Card className="mt-8 border-studio-border bg-studio-surface/80 shadow-none">
         <CardContent className="space-y-4 pt-6">
-          <p className="text-[11px] tracking-[0.16em] text-[#8A8175] uppercase">
+          <p className="text-[11px] tracking-[0.16em] text-studio-label uppercase">
             Architecture, N to C
           </p>
           <ConstructStrip labels={data?.n_to_c ?? ["FL", "rigid_spacer", "rigid_spacer", "FL", "SpyCatcher", "CTPR", "flx", "flx", "flx", "LgBiT"]} />
-          <p className="text-sm text-[#6F675C]">
+          <p className="text-sm text-studio-muted">
             Only the orange CTPR block is in this model. SpyCatcher, the three
             flexible linkers, and LgBiT are labels. The M13 peptide sits on
             repeat 2 of n = 3, repeat 4 of n = 8, and repeat 7 of n = 14.
@@ -266,12 +266,12 @@ export function StructuralStudio() {
       </Card>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-[#E3D9CC] bg-white/80 shadow-none">
+        <Card className="border-studio-border bg-studio-card/80 shadow-none">
           <CardHeader>
             <CardTitle className="font-heading text-2xl">Run a backbone prediction</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-[#6F675C]">
+            <p className="text-sm text-studio-muted">
               Choose the repeat counts to measure. Team lengths 3, 8, and 14 are
               selected. Add any other n in 3–24 if you need it for a figure.
             </p>
@@ -281,7 +281,7 @@ export function StructuralStudio() {
                   key={n}
                   pressed={selectedN.includes(n)}
                   onPressedChange={() => toggleN(n)}
-                  className="h-11 min-w-14 rounded-full border border-[#E3D9CC] data-[state=on]:border-[#FF8000] data-[state=on]:bg-[#FF8000] data-[state=on]:text-white"
+                  className="h-11 min-w-14 rounded-full border border-studio-border data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-white"
                 >
                   n={n}
                 </Toggle>
@@ -298,12 +298,12 @@ export function StructuralStudio() {
                   }
                 }}
                 aria-label="Custom repeat count"
-                className="w-24 bg-white"
+                className="w-24 bg-studio-card"
               />
               <Button variant="outline" type="button" onClick={addCustom}>
                 Add repeat count
               </Button>
-              <span className="text-sm text-[#8A8175]">
+              <span className="text-sm text-studio-label">
                 measuring {nOptions.length ? nOptions.join(", ") : "nothing"}
               </span>
             </div>
@@ -320,18 +320,18 @@ export function StructuralStudio() {
               </Button>
             </div>
             {error ? (
-              <p className="flex items-start gap-2 text-sm text-[#9B2C2C]">
+              <p className="flex items-start gap-2 text-sm text-destructive">
                 <AlertCircle className="mt-0.5 size-4 shrink-0" />
                 {error}
               </p>
             ) : null}
           </CardContent>
         </Card>
-        <Card className="border-[#E3D9CC] bg-white/80 shadow-none">
+        <Card className="border-studio-border bg-studio-card/80 shadow-none">
           <CardHeader>
             <CardTitle className="font-heading text-2xl">What this predicts</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-relaxed text-[#5C564E]">
+          <CardContent className="space-y-3 text-sm leading-relaxed text-studio-muted">
             <p>Length along the repeats, straight-line distance between two repeats, how far the helix bows off the axis, and whether the ends face the same way.</p>
             <p>Clash, local concentration, and luminescence are on other pages. They need radii or concentrations this page does not use.</p>
             <p>The 95% band is the spread among the published crystal structures. It is not a lab error bar.</p>
@@ -363,38 +363,38 @@ export function StructuralStudio() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="border-[#E3D9CC] bg-white shadow-none">
+            <Card className="border-studio-border bg-studio-card shadow-none">
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">Inputs for n = {construct.n_repeats}</CardTitle>
               </CardHeader>
               <CardContent>
-                <dl className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
+                <dl className="space-y-3 text-sm leading-relaxed text-studio-foreground">
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">CTPR repeat number</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">CTPR repeat number</dt>
                     <dd>{construct.n_repeats}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Docking-site positions</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Docking-site positions</dt>
                     <dd>Repeats 0 through {construct.n_repeats - 1}. Index 0 is the SpyCatcher side.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Scaffold orientation</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Scaffold orientation</dt>
                     <dd>
                       {fmt(Number(data.screw.twist_deg), 1)}° per repeat. End screw phase {fmt(construct.end_junction.phase_deg, 1)}°. Facing cosine {fmt(construct.end_junction.facing_cosine, 3)}.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Fusion termini</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Fusion termini</dt>
                     <dd>{data.n_to_c.join(" — ")}. SpyCatcher is on the N-side of the CTPR. LgBiT follows flx ×3 on the C-side.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Linker length and type</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Linker length and type</dt>
                     <dd>
                       (GGGGS)₃. RMS {reading ? fmt(reading.reach.linker_rms_A, 2) : "—"} Å. Comparison window {reading ? fmt(reading.reach.comparison_window_A, 2) : "—"} Å, twice that RMS.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Functional-site location</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Functional-site location</dt>
                     <dd>
                       {construct.m13_graft
                         ? `m13 graft on repeat ${construct.m13_graft.repeat_1based} of ${construct.n_repeats} (index ${construct.m13_graft.repeat_index}).`
@@ -402,34 +402,34 @@ export function StructuralStudio() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Sensor and reporter arrangement</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Sensor and reporter arrangement</dt>
                     <dd>SpyCatcher abuts the N-end junction. LgBiT is after three flexible linkers off the C-end. Those parts have no lengths in this screw.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Payload dimensions</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Payload dimensions</dt>
                     <dd>Omitted. A radius is a docking input, not a structural measurement.</dd>
                   </div>
                 </dl>
               </CardContent>
             </Card>
-            <Card className="border-[#E3D9CC] bg-white shadow-none">
+            <Card className="border-studio-border bg-studio-card shadow-none">
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">Outputs for n = {construct.n_repeats}</CardTitle>
               </CardHeader>
               <CardContent>
-                <dl className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
+                <dl className="space-y-3 text-sm leading-relaxed text-studio-foreground">
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D scaffold coordinates</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">3D scaffold coordinates</dt>
                     <dd>{construct.ca_count} Cα atoms and {construct.n_repeats} docking sites, in ångströms. The orbit view above is those coordinates.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Distance between docking sites</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance between docking sites</dt>
                     <dd>
                       End chord {fmt(construct.end_junction.chord_A)} Å. Axial span {fmt(construct.axial_span_A)} Å. Bow {fmt(construct.end_junction.chord_A - construct.axial_span_A)} Å.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Distance between functional site and the ends</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance between functional site and the ends</dt>
                     <dd>
                       {construct.m13_graft
                         ? `Graft to N-end ${fmt(construct.m13_graft.to_n_end.chord_A)} Å. Graft to C-end ${fmt(construct.m13_graft.to_c_end.chord_A)} Å. Junction to junction, not SpyCatcher to LgBiT.`
@@ -437,7 +437,7 @@ export function StructuralStudio() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">Structural uncertainty</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Structural uncertainty</dt>
                     <dd>
                       End chord 95% {fmt(construct.end_junction.chord_95_low_A, 1)}–{fmt(construct.end_junction.chord_95_high_A, 1)} Å.
                       {construct.m13_graft
@@ -447,7 +447,7 @@ export function StructuralStudio() {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-[#8A8175] uppercase">3D visualization</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">3D visualization</dt>
                     <dd>Shaded orbit view of the Cα trace and docking spheres. Distances in the tables are the measurements, in ångströms. PDB files are in data/exports/ctpr_3d.</dd>
                   </div>
                 </dl>
@@ -456,18 +456,18 @@ export function StructuralStudio() {
           </div>
 
           {reading ? (
-            <Card className="border-[#E3D9CC] bg-[#FFF7EF] shadow-none">
+            <Card className="border-studio-border bg-studio-accent-soft shadow-none">
               <CardHeader>
                 <CardTitle className="font-heading text-2xl">How to read n = {construct.n_repeats}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {reading.reading.map((line) => (
-                  <p key={line} className="text-sm leading-relaxed text-[#3F3A34]">
+                  <p key={line} className="text-sm leading-relaxed text-studio-foreground">
                     {line}
                   </p>
                 ))}
                 <Separator />
-                <p className="text-sm text-[#5C564E]">
+                <p className="text-sm text-studio-muted">
                   Repeats near the N-end comparison window: {reading.reach.repeats_near_n_end.join(", ") || "none"}.
                   Near the C-end: {reading.reach.repeats_near_c_end.join(", ") || "none"}.
                   Near both: {reading.reach.repeats_near_both_ends.join(", ") || "none"}.
@@ -477,14 +477,14 @@ export function StructuralStudio() {
           ) : null}
 
           <Tabs defaultValue="junctions">
-            <TabsList className="bg-[#EBE4D9]">
+            <TabsList className="bg-studio-secondary">
               <TabsTrigger value="junctions">Junctions</TabsTrigger>
               <TabsTrigger value="pairs">Pairs from 0</TabsTrigger>
               <TabsTrigger value="deposited">Deposited steps</TabsTrigger>
               <TabsTrigger value="notes">Caption</TabsTrigger>
             </TabsList>
             <TabsContent value="junctions">
-              <div className="overflow-x-auto rounded-xl border border-[#E3D9CC] bg-white">
+              <div className="overflow-x-auto rounded-xl border border-studio-border bg-studio-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -529,7 +529,7 @@ export function StructuralStudio() {
               </div>
             </TabsContent>
             <TabsContent value="pairs">
-              <div className="overflow-x-auto rounded-xl border border-[#E3D9CC] bg-white">
+              <div className="overflow-x-auto rounded-xl border border-studio-border bg-studio-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -559,7 +559,7 @@ export function StructuralStudio() {
               </div>
             </TabsContent>
             <TabsContent value="deposited">
-              <div className="overflow-x-auto rounded-xl border border-[#E3D9CC] bg-white">
+              <div className="overflow-x-auto rounded-xl border border-studio-border bg-studio-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -585,8 +585,8 @@ export function StructuralStudio() {
               </div>
             </TabsContent>
             <TabsContent value="notes">
-              <Card className="border-[#E3D9CC] bg-white shadow-none">
-                <CardContent className="space-y-3 pt-6 text-sm leading-relaxed text-[#5C564E]">
+              <Card className="border-studio-border bg-studio-card shadow-none">
+                <CardContent className="space-y-3 pt-6 text-sm leading-relaxed text-studio-muted">
                   <p>
                     <strong>Wiki caption.</strong> CTPR screw for n = {construct.n_repeats},
                     fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7
@@ -604,10 +604,10 @@ export function StructuralStudio() {
         </div>
       ) : null}
 
-      <footer className="mt-12 border-t border-[#E3D9CC] pt-6 text-xs leading-relaxed text-[#8A8175]">
+      <footer className="mt-12 border-t border-studio-border pt-6 text-xs leading-relaxed text-studio-label">
         Hong Kong team · ORIGAMI ·{" "}
         <a
-          className="underline decoration-[#E3D9CC] underline-offset-2 hover:decoration-[#C45C12]"
+          className="underline decoration-studio-border underline-offset-2 hover:decoration-studio-accent"
           href="https://gitlab.ISEF.org/2026/software/hong-kong-team/origami"
           rel="noopener noreferrer"
           target="_blank"

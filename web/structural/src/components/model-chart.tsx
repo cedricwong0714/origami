@@ -74,13 +74,13 @@ export function SeriesChart({
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={label}>
-      <text x={pad.l} y={12} fill="#8A8175" fontSize="11">
+      <text x={pad.l} y={12} fill="var(--studio-chart-label)" fontSize="11">
         {yLabel}
       </text>
       {yTicks.map((tick) => (
         <g key={tick}>
-          <line x1={pad.l} x2={width - pad.r} y1={yOfRaw(tick)} y2={yOfRaw(tick)} stroke="#E3D9CC" />
-          <text x={4} y={yOfRaw(tick) + 4} fill="#8A8175" fontSize="11">
+          <line x1={pad.l} x2={width - pad.r} y1={yOfRaw(tick)} y2={yOfRaw(tick)} stroke="var(--studio-chart-grid)" />
+          <text x={4} y={yOfRaw(tick) + 4} fill="var(--studio-chart-label)" fontSize="11">
             {tickText(tick)}
           </text>
         </g>
@@ -92,10 +92,10 @@ export function SeriesChart({
             x2={width - pad.r}
             y1={yOf(guideY.y)}
             y2={yOf(guideY.y)}
-            stroke="#266FB1"
+            stroke="var(--studio-blue)"
             strokeDasharray="4 4"
           />
-          <text x={width - pad.r - 4} y={yOf(guideY.y) - 6} fill="#266FB1" fontSize="11" textAnchor="end">
+          <text x={width - pad.r - 4} y={yOf(guideY.y) - 6} fill="var(--studio-blue)" fontSize="11" textAnchor="end">
             {guideY.label}
           </text>
         </g>
@@ -110,9 +110,9 @@ export function SeriesChart({
         />
       ))}
       {markerX !== undefined && Number.isFinite(markerX) ? (
-        <line x1={xOf(markerX)} x2={xOf(markerX)} y1={pad.t} y2={height - pad.b} stroke="#242220" strokeDasharray="2 3" />
+        <line x1={xOf(markerX)} x2={xOf(markerX)} y1={pad.t} y2={height - pad.b} stroke="var(--studio-chart-marker)" strokeDasharray="2 3" />
       ) : null}
-      <text x={width / 2} y={height - 8} fill="#8A8175" fontSize="11" textAnchor="middle">
+      <text x={width / 2} y={height - 8} fill="var(--studio-chart-label)" fontSize="11" textAnchor="middle">
         {xLabel}
       </text>
     </svg>

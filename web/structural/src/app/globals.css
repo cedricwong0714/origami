@@ -39,6 +39,23 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-studio-foreground: var(--studio-foreground);
+  --color-studio-muted: var(--studio-muted);
+  --color-studio-label: var(--studio-label);
+  --color-studio-border: var(--studio-border);
+  --color-studio-card: var(--studio-card);
+  --color-studio-surface: var(--studio-surface);
+  --color-studio-secondary: var(--studio-secondary);
+  --color-studio-accent: var(--studio-accent);
+  --color-studio-accent-soft: var(--studio-accent-soft);
+  --color-studio-blue: var(--studio-blue);
+  --color-studio-button: var(--studio-button);
+  --color-studio-button-text: var(--studio-button-text);
+  --color-studio-nav-active: var(--studio-nav-active);
+  --color-studio-nav-active-text: var(--studio-nav-active-text);
+  --color-studio-helix-bg: var(--studio-helix-bg);
+  --color-studio-viewport: var(--studio-viewport);
+  --color-studio-viewport-text: var(--studio-viewport-text);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -67,6 +84,29 @@
   --border: #e3d9cc;
   --input: #e3d9cc;
   --ring: #ff8000;
+  --studio-foreground: #242220;
+  --studio-muted: #5c564e;
+  --studio-label: #8a8175;
+  --studio-border: #e3d9cc;
+  --studio-card: #ffffff;
+  --studio-surface: #fbf8f3;
+  --studio-secondary: #ebe4d9;
+  --studio-accent: #c45c12;
+  --studio-accent-soft: #fff7ef;
+  --studio-blue: #266fb1;
+  --studio-button: #242220;
+  --studio-button-text: #ffffff;
+  --studio-nav-active: #242220;
+  --studio-nav-active-text: #ffffff;
+  --studio-helix-bg: #f7f1e8;
+  --studio-helix-axis: #d9cfc2;
+  --studio-helix-label: #8a8175;
+  --studio-helix-marker: #242220;
+  --studio-chart-grid: #e3d9cc;
+  --studio-chart-label: #8a8175;
+  --studio-chart-marker: #242220;
+  --studio-viewport: #1c1a18;
+  --studio-viewport-text: #e7e0d6;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -84,24 +124,47 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: #242220;
+  --foreground: #f3efe9;
+  --card: #2e2b28;
+  --card-foreground: #f3efe9;
+  --popover: #2e2b28;
+  --popover-foreground: #f3efe9;
+  --primary: #ff8000;
+  --primary-foreground: #fff7ef;
+  --secondary: #3a3632;
+  --secondary-foreground: #f3efe9;
+  --muted: #3a3632;
+  --muted-foreground: #b8aea3;
+  --accent: #3a2f26;
+  --accent-foreground: #f3efe9;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: #3d3935;
+  --input: #3d3935;
+  --ring: #e07a2f;
+  --studio-foreground: #f3efe9;
+  --studio-muted: #b8aea3;
+  --studio-label: #9a9086;
+  --studio-border: #3d3935;
+  --studio-card: #2e2b28;
+  --studio-surface: #32302c;
+  --studio-secondary: #3a3632;
+  --studio-accent: #e07a2f;
+  --studio-accent-soft: #3a2f26;
+  --studio-blue: #6ba3d9;
+  --studio-button: #f3efe9;
+  --studio-button-text: #242220;
+  --studio-nav-active: #f3efe9;
+  --studio-nav-active-text: #242220;
+  --studio-helix-bg: #1c1a18;
+  --studio-helix-axis: #4a4540;
+  --studio-helix-label: #9a9086;
+  --studio-helix-marker: #f3efe9;
+  --studio-chart-grid: #3d3935;
+  --studio-chart-label: #9a9086;
+  --studio-chart-marker: #f3efe9;
+  --studio-viewport: #1c1a18;
+  --studio-viewport-text: #e7e0d6;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -129,6 +192,11 @@
     background-image:
       radial-gradient(1200px 500px at 10% -10%, rgba(255, 128, 0, 0.08), transparent 55%),
       radial-gradient(900px 400px at 100% 0%, rgba(38, 111, 177, 0.08), transparent 50%);
+  }
+  .dark body {
+    background-image:
+      radial-gradient(1200px 500px at 10% -10%, rgba(255, 128, 0, 0.12), transparent 55%),
+      radial-gradient(900px 400px at 100% 0%, rgba(107, 163, 217, 0.1), transparent 50%);
   }
   html,
   body,

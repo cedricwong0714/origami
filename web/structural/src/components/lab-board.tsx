@@ -220,12 +220,12 @@ export function LabBoard() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
+        <p className="text-sm uppercase tracking-wide text-studio-label">Dry lab</p>
         <h1 className="mt-1 text-3xl font-semibold">Lab numbers</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
           Paste numbers you have already measured. Empty boxes stay empty.
           The page can fit a calcium curve, a Spy lock time course, and the
           four-tube bridge. A gel or a concentration is recorded as itself.
@@ -240,9 +240,9 @@ export function LabBoard() {
         </div>
       ) : null}
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Prep</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           BCA or Bradford concentration, and the gel calls. A checked box only
           records what the gel showed. It does not change the screw.
         </p>
@@ -262,9 +262,9 @@ export function LabBoard() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Assay window</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           One line per point. The standard curve is RLU = a + b × amount. The
           furimazine series is minutes and RLU. CV is a list of replicate
           readings of the same sample.
@@ -289,9 +289,9 @@ export function LabBoard() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Calcium response</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           Free calcium in molar, then luminescence. The fit reports an EC50 for
           this curve. That EC50 does not replace the peptide Kd. Four or more
           concentrations are required. Temperatures are 25 °C, 30 °C, and 37 °C
@@ -312,9 +312,9 @@ export function LabBoard() {
         </div>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">SpyCatcher lock</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           Fraction locked at each minute, plus both starting concentrations in
           molar. The default law is the lumped irreversible step. Choose
           pseudo-first-order only when you know which partner is in excess. A
@@ -333,7 +333,7 @@ export function LabBoard() {
         <label className="mt-3 block text-sm">
           Rate law
           <select
-            className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
             value={rateLaw}
             onChange={(event) => setRateLaw(event.target.value)}
           >
@@ -345,7 +345,7 @@ export function LabBoard() {
           <label className="mt-3 block text-sm">
             Partner in excess
             <select
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
               value={excess}
               onChange={(event) => setExcess(event.target.value)}
             >
@@ -357,7 +357,7 @@ export function LabBoard() {
         <label className="mt-3 block text-sm">
           Band still present after EGTA and SDS
           <select
-            className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
             value={sds}
             onChange={(event) => setSds(event.target.value)}
           >
@@ -368,9 +368,9 @@ export function LabBoard() {
         </label>
       </section>
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Four-tube bridge</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           Tube 1 is background, tube 2 is the bridge, tube 3 is biotin-blocked
           streptavidin, and tube 4 is the hook-effect tube. The streptavidin
           boxes start at the protocol setpoints, 50 nM and 1 µM. Edit them if
@@ -406,9 +406,9 @@ function Report({ report }: { report: LabRun }) {
   const range = report.assay_window.linear_range;
   const context = report.prep.structure_context;
   return (
-    <section className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 text-sm leading-relaxed">
+    <section className="mt-8 rounded-xl border border-studio-border bg-studio-surface p-5 text-sm leading-relaxed">
       <h2 className="text-lg font-semibold">Results</h2>
-      <p className="mt-2 text-[#5C564E]">
+      <p className="mt-2 text-studio-muted">
         No luminescence model was fit to these rows. The fit stays unfitted
         {report.residual_gp.n_rows > 0
           ? ` (${report.residual_gp.n_rows} stored rows). `
@@ -503,9 +503,9 @@ function Block({
   return (
     <div className="mt-4">
       <h3 className="font-medium">{title}</h3>
-      {missing ? <p className="text-[#5C564E]">{missing}</p> : children}
+      {missing ? <p className="text-studio-muted">{missing}</p> : children}
       {result.warnings && result.warnings.length > 0 ? (
-        <p className="text-[#5C564E]">{result.warnings[0]}</p>
+        <p className="text-studio-muted">{result.warnings[0]}</p>
       ) : null}
     </div>
   );
@@ -524,7 +524,7 @@ function Field({
     <label className="block text-sm">
       {label}
       <input
-        className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+        className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -547,7 +547,7 @@ function TextBlock({
     <label className="mt-3 block text-sm">
       {label}
       <textarea
-        className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2 font-mono text-xs"
+        className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2 font-mono text-xs"
         rows={4}
         value={value}
         placeholder={placeholder}

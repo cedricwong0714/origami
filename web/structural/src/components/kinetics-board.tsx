@@ -164,14 +164,14 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
   const spyOn = schema?.rate_slots.find((s) => s.name === "spy_k_on_per_M_s");
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Kinetic modelling</p>
+        <p className="text-sm uppercase tracking-wide text-studio-label">Kinetic modelling</p>
         <h1 className="mt-1 text-3xl font-semibold">
           {pane === "spy" ? "SpyCatcher–SpyTag" : pane === "nanobit" ? "LgBiT–SmBiT" : "Bound fraction"}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
           {pane === "spy"
             ? "Mass-action time course for the covalent lock in a well-mixed solution. The curve is adduct versus time at the concentrations you type. Use it to see whether the lock finishes inside an assay window."
             : pane === "nanobit"
@@ -188,16 +188,16 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       ) : null}
 
       {loading && !schema ? (
-        <div className="flex items-center gap-2 text-sm text-[#5C564E]">
+        <div className="flex items-center gap-2 text-sm text-studio-muted">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading schema…
         </div>
       ) : null}
 
       {schema && pane === "bound" ? (
-        <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+        <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
           <h2 className="text-lg font-medium">Rates</h2>
-          <p className="mt-1 text-sm text-[#5C564E]">
+          <p className="mt-1 text-sm text-studio-muted">
             Published values are filled in. Empty rows stay empty until you measure them.
           </p>
           <ul className="mt-4 space-y-3">
@@ -220,15 +220,15 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       ) : null}
 
       {pane === "bound" ? (
-      <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+      <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">Bound fraction</h2>
-        <p className="mt-1 text-sm text-[#5C564E]">
+        <p className="mt-1 text-sm text-studio-muted">
           θ = C_free / (C_free + Kd). Kd is the peptide value 0.19 nM. The 80 nM fusion figure is not this isotherm. The band on the single point comes from the uncertainty on that Kd.
         </p>
         <label className="mt-4 block text-sm">
           C<sub>free</sub> (M)
           <input
-            className="mt-1 w-full max-w-xs rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+            className="mt-1 w-full max-w-xs rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
             value={cFree}
             onChange={(e) => setCFree(e.target.value)}
           />
@@ -236,29 +236,29 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
         <button
           type="button"
           onClick={() => void runRecruitment()}
-          className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
+          className="mt-4 rounded-full bg-studio-button px-5 py-2 text-sm text-studio-button-text"
         >
           Run bound fraction
         </button>
         {sim ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Fraction bound</dt>
+              <dt className="text-studio-label">Fraction bound</dt>
               <dd className="font-mono text-lg">{sim.recruitment.theta_ss.toExponential(4)}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">95% range from the Kd</dt>
+              <dt className="text-studio-label">95% range from the Kd</dt>
               <dd className="font-mono">
                 {sim.recruitment.theta_95_lower.toExponential(3)} –{" "}
                 {sim.recruitment.theta_95_upper.toExponential(3)}
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">K<sub>d</sub></dt>
+              <dt className="text-studio-label">K<sub>d</sub></dt>
               <dd className="font-mono">{sim.recruitment.kd_M.toExponential(3)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">What this is</dt>
+              <dt className="text-studio-label">What this is</dt>
               <dd>One point on the isotherm. Not a measurement on this fusion.</dd>
             </div>
           </dl>
@@ -285,9 +285,9 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       ) : null}
 
       {pane === "nanobit" ? (
-      <section className="mb-10 rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+      <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">LgBiT–SmBiT complex</h2>
-        <p className="mt-1 text-sm text-[#5C564E]">
+        <p className="mt-1 text-sm text-studio-muted">
           Type both starting concentrations. There is no default mix. The
           amount of complex at equilibrium uses Dixon et al. 2016
           (DOI 10.1021/acschembio.5b00753). Printed Kd is 190 μM.
@@ -296,7 +296,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             LgBiT<sub>0</sub> (M)
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={lg0}
               onChange={(e) => setLg0(e.target.value)}
               placeholder="required"
@@ -305,7 +305,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             SmBiT<sub>0</sub> (M)
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={sm0}
               onChange={(e) => setSm0(e.target.value)}
               placeholder="required"
@@ -315,26 +315,26 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
         <button
           type="button"
           onClick={() => void runNanoBit()}
-          className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
+          className="mt-4 rounded-full bg-studio-button px-5 py-2 text-sm text-studio-button-text"
         >
           Run complex
         </button>
         {nano ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Equilibrium complex</dt>
+              <dt className="text-studio-label">Equilibrium complex</dt>
               <dd className="font-mono">{nano.equilibrium_complex_M.toExponential(3)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Uses</dt>
+              <dt className="text-studio-label">Uses</dt>
               <dd className="font-mono">{nano.equilibrium_uses}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">k_off / k_on</dt>
+              <dt className="text-studio-label">k_off / k_on</dt>
               <dd className="font-mono">{nano.rates_used.kinetic_kd_M.toExponential(3)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Printed K<sub>d</sub></dt>
+              <dt className="text-studio-label">Printed K<sub>d</sub></dt>
               <dd className="font-mono">{nano.rates_used.printed_kd_M.toExponential(3)} M</dd>
             </div>
           </dl>
@@ -348,7 +348,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           />
         ) : null}
         {nano?.warnings?.length ? (
-          <ul className="mt-4 list-disc pl-5 text-sm text-[#5C564E]">
+          <ul className="mt-4 list-disc pl-5 text-sm text-studio-muted">
             {nano.warnings.map((warning) => (
               <li key={warning}>{warning}</li>
             ))}
@@ -358,9 +358,9 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       ) : null}
 
       {pane === "spy" ? (
-      <section className="rounded-2xl border border-[#E3D9CC] bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">Spy lock over time</h2>
-        <p className="mt-1 text-sm text-[#5C564E]">
+        <p className="mt-1 text-sm text-studio-muted">
           Default path: one irreversible step, adduct grows as k_on times Tag times Catcher. The starting k_on is{" "}
           {spyOn ? formatVal(spyOn) : "the Zakeri 2012 rate"}. Leave the reverse and bond boxes empty. Filling both switches the model to reversible binding plus an irreversible lock.
         </p>
@@ -368,7 +368,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             Tag<sub>0</sub> (M)
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={tag0}
               onChange={(e) => setTag0(e.target.value)}
             />
@@ -376,7 +376,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             Catcher<sub>0</sub> (M)
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={catcher0}
               onChange={(e) => setCatcher0(e.target.value)}
             />
@@ -384,7 +384,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             Your Spy rate (M⁻¹ s⁻¹). Leave empty to use the published rate.
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={labOn}
               onChange={(e) => setLabOn(e.target.value)}
               placeholder="leave empty"
@@ -393,7 +393,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm">
             Reverse rate (per second). Leave empty.
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={labRev}
               onChange={(e) => setLabRev(e.target.value)}
               placeholder="leave empty"
@@ -402,7 +402,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           <label className="block text-sm sm:col-span-2">
             Bond rate (per second). Leave empty.
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-sm"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={labBond}
               onChange={(e) => setLabBond(e.target.value)}
               placeholder="leave empty"
@@ -412,30 +412,30 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
         <button
           type="button"
           onClick={() => void runCovalent()}
-          className="mt-4 rounded-full bg-[#242220] px-5 py-2 text-sm text-white"
+          className="mt-4 rounded-full bg-studio-button px-5 py-2 text-sm text-studio-button-text"
         >
           Run Spy lock
         </button>
         {cov ? (
           <dl className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Path</dt>
+              <dt className="text-studio-label">Path</dt>
               <dd className="font-mono">{cov.rates_used.path}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">k_on used</dt>
+              <dt className="text-studio-label">k_on used</dt>
               <dd className="font-mono">
                 {cov.rates_used.spy_k_on_per_M_s.toExponential(2)} M⁻¹ s⁻¹
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Final adduct</dt>
+              <dt className="text-studio-label">Final adduct</dt>
               <dd className="font-mono">
                 {cov.series.adduct_M[cov.series.adduct_M.length - 1].toExponential(3)} M
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">What this is</dt>
+              <dt className="text-studio-label">What this is</dt>
               <dd>The ODE at the concentrations you typed. Not a measurement on this fusion.</dd>
             </div>
           </dl>

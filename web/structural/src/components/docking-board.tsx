@@ -60,7 +60,7 @@ function ConcentrationRuler({
 }) {
   const marks = [
     { label: "Local concentration", value: cEff, color: "#C45C12" },
-    { label: "Your Kd", value: kd, color: "#242220" },
+    { label: "Your Kd", value: kd, color: "var(--studio-foreground)" },
     ...(nanoKd !== null && nanoKd > 0
       ? [{ label: "LgBiT–SmBiT Kd", value: nanoKd, color: "#266FB1" }]
       : []),
@@ -75,14 +75,14 @@ function ConcentrationRuler({
   const xOf = (value: number) => 16 + ((Math.log10(value) - min) / span) * (width - 32);
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Log concentration comparison of local concentration, your Kd, and the LgBiT–SmBiT Kd">
-      <line x1={16} x2={width - 16} y1={36} y2={36} stroke="#E3D9CC" />
+      <line x1={16} x2={width - 16} y1={36} y2={36} stroke="var(--studio-chart-grid)" />
       {marks.map((mark) => (
         <g key={mark.label}>
           <circle cx={xOf(mark.value)} cy={36} r={6} fill={mark.color} />
           <text x={xOf(mark.value)} y={18} fill={mark.color} fontSize="11" textAnchor="middle">
             {mark.label}
           </text>
-          <text x={xOf(mark.value)} y={78} fill="#5C564E" fontSize="11" textAnchor="middle">
+          <text x={xOf(mark.value)} y={78} fill="var(--studio-muted)" fontSize="11" textAnchor="middle">
             {mark.value.toExponential(1)} M
           </text>
         </g>
@@ -170,25 +170,25 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 text-studio-foreground">
       <StudioNav />
-      <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">
+      <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">
         Docking verification
       </p>
       <h1 className="mt-2 text-3xl font-semibold">
         {pane === "affinity" ? "Does this affinity hold the constructs together?" : "Distance and clash"}
       </h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
         {pane === "affinity"
           ? "The screw turns a repeat count into a local concentration between the two docking sites. Your Kd or Ka is compared with that concentration. Bound fraction = local concentration / (local concentration + Kd). At or above one half, the constructs stay together, and the same concentration is applied to LgBiT–SmBiT and SpyCatcher–SpyTag. Use it to see whether a candidate affinity is tight enough for this length."
           : "Straight-line distance between the two docking repeats on the screw, the chance those payloads clash, and the local concentration that distance produces. Radii are the deposited SpyCatcher and LgBiT sizes. Use it to see how length changes proximity."}
       </p>
 
-      <section className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+      <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-6">
         <label className="block text-sm font-medium">
           Repeat count (3–24)
           <input
-            className="mt-1 w-32 rounded-lg border border-[#E3D9CC] px-3 py-2"
+            className="mt-1 w-32 rounded-lg border border-studio-border px-3 py-2"
             type="number"
             min={3}
             max={24}
@@ -201,7 +201,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             <label className="block text-sm font-medium">
               Constant
               <select
-                className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
                 value={kind}
                 onChange={(event) => setKind(event.target.value === "ka" ? "ka" : "kd")}
               >
@@ -212,7 +212,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             <label className="block text-sm font-medium">
               Value
               <input
-                className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono"
+                className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono"
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
               />
@@ -220,7 +220,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             <label className="block text-sm font-medium">
               Unit
               <select
-                className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
                 value={unit}
                 onChange={(event) => setUnit(event.target.value)}
               >
@@ -235,68 +235,68 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
         ) : null}
         <button
           type="button"
-          className="mt-5 rounded-full bg-[#242220] px-5 py-2 text-sm text-white disabled:opacity-50"
+          className="mt-5 rounded-full bg-studio-button px-5 py-2 text-sm text-studio-button-text disabled:opacity-50"
           onClick={() => void (pane === "affinity" ? runAffinity() : runGeometry())}
           disabled={running}
         >
           {running ? "Running…" : "Run"}
         </button>
-        {error ? <p className="mt-4 text-sm text-[#9B2C2C]">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
       </section>
 
       {affinity && pane === "affinity" ? (
-        <section className="mt-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+        <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
           <h2 className="text-lg font-medium">
             {affinity.association_holds ? "Holds together" : "Does not hold together"}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{affinity.verdict}</p>
+          <p className="mt-2 text-sm leading-relaxed text-studio-muted">{affinity.verdict}</p>
           <ConcentrationRuler
             cEff={affinity.c_eff_M}
             kd={affinity.kd_M}
             nanoKd={affinity.nanobit_printed_kd_M}
           />
-          <p className="mt-2 text-sm text-[#5C564E]">
+          <p className="mt-2 text-sm text-studio-muted">
             On this log scale, your Kd has to sit at or left of the local concentration to hold the constructs together. The LgBiT–SmBiT Kd shows how much higher that local concentration would need to be to occupy the reporter.
           </p>
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Bound fraction</dt>
+              <dt className="text-studio-label">Bound fraction</dt>
               <dd className="font-mono text-lg">{affinity.association_theta.toFixed(3)}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Kd used</dt>
+              <dt className="text-studio-label">Kd used</dt>
               <dd className="font-mono">{sci(affinity.kd_M)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Local concentration</dt>
+              <dt className="text-studio-label">Local concentration</dt>
               <dd className="font-mono">{sci(affinity.c_eff_M)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">End chord</dt>
+              <dt className="text-studio-label">End chord</dt>
               <dd className="font-mono">{affinity.chord_A.toFixed(2)} Å</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">LgBiT–SmBiT occupancy</dt>
+              <dt className="text-studio-label">LgBiT–SmBiT occupancy</dt>
               <dd className="font-mono">
                 {sci(affinity.nanobit_theta)}{" "}
                 {affinity.drives_lgbit_smbit ? "at or above one half" : "below one half"}
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">SpyCatcher–SpyTag</dt>
+              <dt className="text-studio-label">SpyCatcher–SpyTag</dt>
               <dd className="font-mono">
                 k_obs {sci(affinity.spy_k_obs_per_s)} /s, half-life {sci(affinity.spy_half_life_s)} s
               </dd>
             </div>
           </dl>
           {affinity.spy_half_life_note ? (
-            <p className="mt-4 text-sm text-[#5C564E]">{affinity.spy_half_life_note}</p>
+            <p className="mt-4 text-sm text-studio-muted">{affinity.spy_half_life_note}</p>
           ) : null}
-          <p className="mt-4 text-sm text-[#5C564E]">{affinity.criterion}</p>
-          <p className="mt-2 text-sm text-[#5C564E]">{affinity.conversion}</p>
+          <p className="mt-4 text-sm text-studio-muted">{affinity.criterion}</p>
+          <p className="mt-2 text-sm text-studio-muted">{affinity.conversion}</p>
           <button
             type="button"
-            className="mt-4 rounded-full border border-[#E3D9CC] px-4 py-2 text-sm"
+            className="mt-4 rounded-full border border-studio-border px-4 py-2 text-sm"
             onClick={() => downloadJson(`origami-docking-n${affinity.n_repeats}.json`, affinity)}
           >
             Download summary file
@@ -305,10 +305,10 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
       ) : null}
 
       {geometry && pane === "geometry" ? (
-        <section className="mt-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+        <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
           <h2 className="text-lg font-medium">n = {geometry.docking.n_repeats}</h2>
           <svg viewBox="0 0 640 72" className="mt-3 h-auto w-full" role="img" aria-label="Chord and its 95% band">
-            <line x1={40} x2={600} y1={28} y2={28} stroke="#E3D9CC" />
+            <line x1={40} x2={600} y1={28} y2={28} stroke="var(--studio-chart-grid)" />
             <line
               x1={40 + (geometry.docking.chord_95_low_A / Math.max(geometry.docking.chord_95_high_A, 1)) * 520}
               x2={40 + (geometry.docking.chord_A / Math.max(geometry.docking.chord_95_high_A, 1)) * 520}
@@ -323,39 +323,39 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
               r={6}
               fill="#C45C12"
             />
-            <text x={40} y={56} fill="#5C564E" fontSize="12">
+            <text x={40} y={56} fill="var(--studio-muted)" fontSize="12">
               0
             </text>
-            <text x={560} y={56} fill="#5C564E" fontSize="12">
+            <text x={560} y={56} fill="var(--studio-muted)" fontSize="12">
               {geometry.docking.chord_95_high_A.toFixed(0)} Å
             </text>
           </svg>
-          <p className="mt-1 text-sm text-[#5C564E]">Orange dot: straight-line distance. Blue: from the low end of the 95% band to that distance.</p>
+          <p className="mt-1 text-sm text-studio-muted">Orange dot: straight-line distance. Blue: from the low end of the 95% band to that distance.</p>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Repeats</dt>
+              <dt className="text-studio-label">Repeats</dt>
               <dd className="font-mono">{geometry.docking.indices.join(" and ")}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Straight-line distance</dt>
+              <dt className="text-studio-label">Straight-line distance</dt>
               <dd className="font-mono">{geometry.docking.chord_A.toFixed(2)} Å</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">95% chord</dt>
+              <dt className="text-studio-label">95% chord</dt>
               <dd className="font-mono">
                 {geometry.docking.chord_95_low_A.toFixed(2)}–{geometry.docking.chord_95_high_A.toFixed(2)} Å
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Local concentration</dt>
+              <dt className="text-studio-label">Local concentration</dt>
               <dd className="font-mono">{sci(geometry.docking.c_eff_M)} M</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Clash probability</dt>
+              <dt className="text-studio-label">Clash probability</dt>
               <dd className="font-mono">{sci(geometry.docking.p_clash)}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Radii</dt>
+              <dt className="text-studio-label">Radii</dt>
               <dd className="font-mono">
                 {(geometry.docking.radii_A ?? []).map((radius) => radius.toFixed(2)).join(" Å, ")} Å
               </dd>
@@ -363,7 +363,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
           </dl>
           <button
             type="button"
-            className="mt-4 rounded-full border border-[#E3D9CC] px-4 py-2 text-sm"
+            className="mt-4 rounded-full border border-studio-border px-4 py-2 text-sm"
             onClick={() => downloadJson(`origami-geometry-n${geometry.docking.n_repeats}.json`, geometry)}
           >
             Download summary file

@@ -36,12 +36,12 @@ export function GuideBoard() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Dry lab</p>
+        <p className="text-sm uppercase tracking-wide text-studio-label">Dry lab</p>
         <h1 className="mt-1 text-3xl font-semibold">What you can run</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
           Screw, melting temperature, ΔG vs temperature, binding, and one-length
           scoring run now with no plate. Next-length suggestions also run; a pass
           or fail on that page uses a cutoff that has not been measured. Plate
@@ -59,9 +59,9 @@ export function GuideBoard() {
         </div>
       ) : null}
       {cfg ? (
-        <section className="mt-8 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm">
+        <section className="mt-8 rounded-xl border border-studio-border bg-studio-card p-5 text-sm">
           <h2 className="text-lg font-semibold">Cutoffs that are not measured yet</h2>
-          <p className="mt-2 text-[#5C564E]">
+          <p className="mt-2 text-studio-muted">
             Config {cfg.config.version}. Do not treat a pass as a result until these
             are replaced with measured values:{" "}
             {cfg.placeholders_unmeasured.length
@@ -90,9 +90,9 @@ export function GuideBoard() {
 
 function ListBlock({ title, items }: { title: string; items: string[] }) {
   return (
-    <section className="rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5">
+    <section className="rounded-xl border border-studio-border bg-studio-surface p-5">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+      <ul className="mt-2 list-disc pl-5 text-studio-muted">
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}

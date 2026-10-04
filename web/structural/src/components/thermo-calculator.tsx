@@ -14,6 +14,7 @@ import {
   formatQuantity,
   loadSnapshotIndex,
   loadThermoPrefill,
+  PHILLIPS_PRINTED_DELTA_G_T_C,
   postEffectiveEnthalpy,
   postThermoCurve,
   type EffectiveEnthalpy,
@@ -234,28 +235,28 @@ function CurveChart<T extends { t_c: number }>({
   }`;
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={summary} style={{ fontFamily: CHART_FONT }}>
-      <text x={pad.l} y={16} fill="#242220" fontSize="13" fontFamily={CHART_FONT}>
+      <text x={pad.l} y={16} fill="var(--studio-foreground)" fontSize="13" fontFamily={CHART_FONT}>
         {title} ({units})
       </text>
       {yTicks.map((tick) => (
         <g key={tick}>
-          <line x1={pad.l} x2={width - pad.r} y1={yOf(tick)} y2={yOf(tick)} stroke="#E3D9CC" />
-          <text x={8} y={yOf(tick) + 4} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+          <line x1={pad.l} x2={width - pad.r} y1={yOf(tick)} y2={yOf(tick)} stroke="var(--studio-chart-grid)" />
+          <text x={8} y={yOf(tick) + 4} fill="var(--studio-chart-label)" fontSize="11" fontFamily={CHART_FONT}>
             {formatQuantity(tick)}
           </text>
         </g>
       ))}
-      {showZero ? <line x1={pad.l} x2={width - pad.r} y1={yOf(0)} y2={yOf(0)} stroke="#C45C12" strokeDasharray="4 4" /> : null}
-      <line x1={xOf(tmC)} x2={xOf(tmC)} y1={pad.t} y2={height - pad.b} stroke="#8A8175" strokeDasharray="3 3" />
-      <text x={xOf(tmC) + 4} y={pad.t + 12} fill="#5C564E" fontSize="11" fontFamily={CHART_FONT}>
+      {showZero ? <line x1={pad.l} x2={width - pad.r} y1={yOf(0)} y2={yOf(0)} stroke="var(--studio-accent)" strokeDasharray="4 4" /> : null}
+      <line x1={xOf(tmC)} x2={xOf(tmC)} y1={pad.t} y2={height - pad.b} stroke="var(--studio-chart-label)" strokeDasharray="3 3" />
+      <text x={xOf(tmC) + 4} y={pad.t + 12} fill="var(--studio-muted)" fontSize="11" fontFamily={CHART_FONT}>
         Tm
       </text>
       {bandPath ? <path d={bandPath} fill={color} fillOpacity={0.18} stroke="none" /> : null}
       <path d={path} fill="none" stroke={color} strokeWidth="2" />
-      <text x={pad.l} y={height - 10} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+      <text x={pad.l} y={height - 10} fill="var(--studio-chart-label)" fontSize="11" fontFamily={CHART_FONT}>
         temperature (°C)
       </text>
-      <text x={width - pad.r} y={height - 10} textAnchor="end" fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+      <text x={width - pad.r} y={height - 10} textAnchor="end" fill="var(--studio-chart-label)" fontSize="11" fontFamily={CHART_FONT}>
         {formatQuantity(xMax)} °C
       </text>
     </svg>
@@ -278,8 +279,8 @@ function ChoiceButton({
       onClick={onClick}
       className={
         pressed
-          ? "rounded-full bg-[#242220] px-4 py-2.5 text-left text-sm text-white"
-          : "rounded-full border border-[#E3D9CC] bg-white px-4 py-2.5 text-left text-sm text-[#3F3A34] hover:border-[#C45C12]"
+          ? "rounded-full bg-studio-button px-4 py-2.5 text-left text-sm text-studio-button-text"
+          : "rounded-full border border-studio-border bg-studio-card px-4 py-2.5 text-left text-sm text-studio-foreground hover:border-studio-accent"
       }
     >
       {children}
@@ -315,8 +316,8 @@ function UnitSwitch({
 
 function ResultBlock({ title, warm, children }: { title: string; warm?: boolean; children: ReactNode }) {
   return (
-    <section className={warm ? "rounded-2xl border border-[#E3D9CC] bg-[#FFF7EF] p-5 md:p-6" : "rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-6"}>
-      <h3 className="font-heading text-xl font-semibold tracking-tight text-[#242220]">{title}</h3>
+    <section className={warm ? "rounded-2xl border border-studio-border bg-studio-accent-soft p-5 md:p-6" : "rounded-2xl border border-studio-border bg-studio-card p-5 md:p-6"}>
+      <h3 className="font-heading text-xl font-semibold tracking-tight text-studio-foreground">{title}</h3>
       <div className="mt-4 space-y-3">{children}</div>
     </section>
   );
@@ -529,11 +530,11 @@ export function ThermoCalculator() {
       <StudioNav />
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">Stability</p>
-          <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-[#242220] md:text-5xl">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">Stability</p>
+          <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-studio-foreground md:text-5xl">
             Unfolding energy vs temperature
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
+          <p className="mt-3 text-[15px] leading-relaxed text-studio-muted">
             Turn a melting temperature into unfolding energy at the temperature you care about.
             At the melt, ΔG is 0 for a two-state transition. Away from the melt, the curve needs
             ΔHcal and ΔCp, or an anchor ΔG under the explicit assumption ΔCp = 0.
@@ -544,7 +545,7 @@ export function ThermoCalculator() {
           </p>
         </div>
         <Badge
-          className="rounded-full bg-[#242220] text-white"
+          className="rounded-full bg-studio-button text-studio-button-text"
           title="Calculated from published table values. Not measured on this fusion."
         >
           Not a lab measurement
@@ -552,19 +553,19 @@ export function ThermoCalculator() {
       </header>
 
       <div className="mt-10 grid items-start gap-8 lg:grid-cols-2 lg:gap-10">
-        <section className="rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+        <section className="rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
+          <p className="mt-2 text-sm leading-relaxed text-studio-muted">
             The melt and the anchor start from a paper row when one exists, and from the length model when it does not. ΔHcal and ΔCp stay empty until you type them, because the curve away from the melt is not invented.
           </p>
 
-          <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
-            <h3 className="text-sm font-semibold text-[#242220]">{CANONICAL_COPY.title}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{CANONICAL_COPY.detail}</p>
+          <div className="mt-8 rounded-xl border border-studio-border bg-studio-surface p-4">
+            <h3 className="text-sm font-semibold text-studio-foreground">{CANONICAL_COPY.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-studio-muted">{CANONICAL_COPY.detail}</p>
           </div>
 
-          <div className="mt-8 border-t border-[#E3D9CC] pt-8">
-            <h3 className="text-sm font-semibold text-[#242220]">Repeat count</h3>
+          <div className="mt-8 border-t border-studio-border pt-8">
+            <h3 className="text-sm font-semibold text-studio-foreground">Repeat count</h3>
             <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Repeat count">
               {TEAM_LENGTHS.map((n) => (
                 <ChoiceButton key={n} pressed={nText === String(n)} onClick={() => setNText(String(n))}>
@@ -572,10 +573,10 @@ export function ThermoCalculator() {
                 </ChoiceButton>
               ))}
             </div>
-            <label className="mt-4 block text-sm font-medium text-[#242220]">
+            <label className="mt-4 block text-sm font-medium text-studio-foreground">
               Any repeat count from 3 to 24
               <input
-                className="mt-2 h-11 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 text-base text-[#242220]"
+                className="mt-2 h-11 w-full rounded-lg border border-studio-border bg-studio-card px-3 text-base text-studio-foreground"
                 type="number"
                 min={3}
                 max={24}
@@ -583,98 +584,98 @@ export function ThermoCalculator() {
                 onChange={(event) => setNText(event.target.value)}
               />
             </label>
-            <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
+            <p className="mt-3 text-sm leading-relaxed text-studio-muted">
               A paper cell is filled in when one exists. Otherwise the length model supplies the melting temperature and the anchor ΔG, including n = 14.
             </p>
-            {modelNote ? <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{modelNote}</p> : null}
+            {modelNote ? <p className="mt-2 text-sm leading-relaxed text-studio-muted">{modelNote}</p> : null}
           </div>
 
-          <div className="mt-8 border-t border-[#E3D9CC] pt-8">
-            <label className="block text-sm font-semibold text-[#242220]" htmlFor="tm-c">
+          <div className="mt-8 border-t border-studio-border pt-8">
+            <label className="block text-sm font-semibold text-studio-foreground" htmlFor="tm-c">
               Melting temperature (°C)
             </label>
             <Input
               id="tm-c"
-              className="mt-2 h-11 border-[#E3D9CC] bg-white text-base"
+              className="mt-2 h-11 border-studio-border bg-studio-card text-base"
               inputMode="decimal"
               value={tmC}
               onChange={(event) => setTmC(event.target.value)}
             />
             {modelNote ? (
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{modelNote}</p>
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">{modelNote}</p>
             ) : caption ? (
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{caption}</p>
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">{caption}</p>
             ) : null}
           </div>
 
-          <div className="mt-8 border-t border-[#E3D9CC] pt-8">
-            <h3 className="text-sm font-semibold text-[#242220]">Anchor ΔG, optional</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+          <div className="mt-8 border-t border-studio-border pt-8">
+            <h3 className="text-sm font-semibold text-studio-foreground">Anchor ΔG, optional</h3>
+            <p className="mt-1 text-sm leading-relaxed text-studio-muted">
               Starts as the table value when that cell exists. Clearing it hides the ΔCp = 0 estimate. Editing it does not change the paper’s number.
             </p>
             <div className="mt-3">
               <UnitSwitch value={anchorUnits} onChange={setAnchorUnits} label="Anchor energy unit" />
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">Switching units does not convert the number already typed.</p>
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">Switching units does not convert the number already typed.</p>
             </div>
-            <label className="mt-4 block text-sm font-medium text-[#242220]" htmlFor="anchor-g">
+            <label className="mt-4 block text-sm font-medium text-studio-foreground" htmlFor="anchor-g">
               Anchor ΔG ({anchorEnergy})
               <Input
                 id="anchor-g"
-                className="mt-2 h-11 border-[#E3D9CC] bg-white text-base"
+                className="mt-2 h-11 border-studio-border bg-studio-card text-base"
                 inputMode="decimal"
                 value={anchorG}
                 onChange={(event) => setAnchorG(event.target.value)}
               />
             </label>
-            <label className="mt-4 block text-sm font-medium text-[#242220]" htmlFor="anchor-t">
+            <label className="mt-4 block text-sm font-medium text-studio-foreground" htmlFor="anchor-t">
               Temperature of the anchor ΔG (°C)
               <Input
                 id="anchor-t"
-                className="mt-2 h-11 border-[#E3D9CC] bg-white text-base"
+                className="mt-2 h-11 border-studio-border bg-studio-card text-base"
                 inputMode="decimal"
                 value={anchorTRef}
                 onChange={(event) => setAnchorTRef(event.target.value)}
               />
             </label>
-            <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+            <p className="mt-2 text-sm leading-relaxed text-studio-muted">
               {prefill?.deltaGTemperatureC != null
                 ? `The paper states this value at ${formatQuantity(prefill.deltaGTemperatureC)} °C. It is not the melting temperature.`
                 : "This is the temperature of the anchor ΔG. It is not the melting temperature, and none is assumed if you leave it blank."}
             </p>
             {prefill?.deltaG != null && anchorValue === prefill.deltaG ? (
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">This anchor matches the paper’s number.</p>
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">This anchor matches the paper’s number.</p>
             ) : null}
             {prefill?.deltaG != null && anchorValue !== null && anchorValue !== prefill.deltaG ? (
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">This is a typed anchor. The paper’s number does not change.</p>
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">This is a typed anchor. The paper’s number does not change.</p>
             ) : null}
           </div>
 
-          <div className="mt-8 border-t border-[#E3D9CC] pt-8">
-            <h3 className="text-sm font-semibold text-[#242220]">ΔHcal and ΔCp, optional</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+          <div className="mt-8 border-t border-studio-border pt-8">
+            <h3 className="text-sm font-semibold text-studio-foreground">ΔHcal and ΔCp, optional</h3>
+            <p className="mt-1 text-sm leading-relaxed text-studio-muted">
               Full temperature curves are drawn only after both of these are typed.
             </p>
             <div className="mt-3">
               <UnitSwitch value={units} onChange={setUnits} label="Calorimetry energy unit" />
-              <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+              <p className="mt-2 text-sm leading-relaxed text-studio-muted">
                 Switching units does not convert the numbers already typed. ΔHcal is in {energy}. ΔCp is in {entropy}.
               </p>
             </div>
-            <label className="mt-4 block text-sm font-medium text-[#242220]" htmlFor="delta-h">
+            <label className="mt-4 block text-sm font-medium text-studio-foreground" htmlFor="delta-h">
               ΔHcal ({energy})
               <Input
                 id="delta-h"
-                className="mt-2 h-11 border-[#E3D9CC] bg-white text-base"
+                className="mt-2 h-11 border-studio-border bg-studio-card text-base"
                 inputMode="decimal"
                 value={deltaH}
                 onChange={(event) => setDeltaH(event.target.value)}
               />
             </label>
-            <label className="mt-4 block text-sm font-medium text-[#242220]" htmlFor="delta-cp">
+            <label className="mt-4 block text-sm font-medium text-studio-foreground" htmlFor="delta-cp">
               ΔCp ({entropy})
               <Input
                 id="delta-cp"
-                className="mt-2 h-11 border-[#E3D9CC] bg-white text-base"
+                className="mt-2 h-11 border-studio-border bg-studio-card text-base"
                 inputMode="decimal"
                 value={deltaCp}
                 onChange={(event) => setDeltaCp(event.target.value)}
@@ -684,20 +685,20 @@ export function ThermoCalculator() {
         </section>
 
         <section className="space-y-6" aria-label="Results">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Results</h2>
+          <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Results</h2>
 
           <ResultBlock title="At the melting temperature" warm>
             {identity ? (
               <>
-                <p className="font-heading text-5xl font-semibold tabular-nums tracking-tight text-[#242220]">0</p>
-                <p className="text-sm text-[#5C564E]">{zeroUnits}</p>
-                <p className="text-sm leading-relaxed text-[#242220]">ΔG at the melting temperature is 0 for a two-state melt.</p>
-                <p className="text-sm leading-relaxed text-[#5C564E]">
+                <p className="font-heading text-5xl font-semibold tabular-nums tracking-tight text-studio-foreground">0</p>
+                <p className="text-sm text-studio-muted">{zeroUnits}</p>
+                <p className="text-sm leading-relaxed text-studio-foreground">ΔG at the melting temperature is 0 for a two-state melt.</p>
+                <p className="text-sm leading-relaxed text-studio-muted">
                   Melting temperature {formatQuantity(identity.tmC)} °C ({formatQuantity(identity.tmK)} K).
                 </p>
               </>
             ) : (
-              <p className="text-sm leading-relaxed text-[#5C564E]">
+              <p className="text-sm leading-relaxed text-studio-muted">
                 ΔG at the melting temperature is 0 for a two-state melt. No melting temperature is filled in, so that zero is not reported for this length.
               </p>
             )}
@@ -706,18 +707,18 @@ export function ThermoCalculator() {
           <ResultBlock title="The paper’s number">
             {prefill?.deltaG != null ? (
               <>
-                <p className="font-heading text-4xl font-semibold tabular-nums tracking-tight text-[#242220]">{printedTableValue(prefill)}</p>
-                <p className="text-sm leading-relaxed text-[#242220]">{tableSentence(prefill)}</p>
+                <p className="font-heading text-4xl font-semibold tabular-nums tracking-tight text-studio-foreground">{printedTableValue(prefill)}</p>
+                <p className="text-sm leading-relaxed text-studio-foreground">{tableSentence(prefill)}</p>
               </>
             ) : prefill ? (
               <>
-                <p className="font-heading text-3xl font-semibold tracking-tight text-[#C45C12]">Not printed</p>
-                <p className="text-sm leading-relaxed text-[#5C564E]">
+                <p className="font-heading text-3xl font-semibold tracking-tight text-studio-accent">Not printed</p>
+                <p className="text-sm leading-relaxed text-studio-muted">
                   {missingTableSpeech(printsColumn, prefill.tmStatus === "extrapolated" || prefill.tmC === null)}
                 </p>
               </>
             ) : (
-              <p className="text-sm leading-relaxed text-[#5C564E]">
+              <p className="text-sm leading-relaxed text-studio-muted">
                 The Phillips 2012 CTPRa DSC table prints unfolding ΔG at 10 °C when a cell exists. It is not calculated from the melting temperature.
               </p>
             )}
@@ -726,14 +727,14 @@ export function ThermoCalculator() {
           <ResultBlock title="ΔCp = 0 estimate">
             {showEstimate && effective?.delta_h_eff != null ? (
               <>
-                <p className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Effective ΔH</p>
-                <p className="font-heading text-4xl font-semibold tabular-nums tracking-tight text-[#242220]">
+                <p className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Effective ΔH</p>
+                <p className="font-heading text-4xl font-semibold tabular-nums tracking-tight text-studio-foreground">
                   {formatQuantity(effective.delta_h_eff)}{" "}
-                  <span className="text-lg font-medium text-[#5C564E]">{prettyUnits(effective.delta_h_units ?? "")}</span>
+                  <span className="text-lg font-medium text-studio-muted">{prettyUnits(effective.delta_h_units ?? "")}</span>
                 </p>
-                <p className="text-sm leading-relaxed text-[#242220]">This is an assumption, not the calorimetric ΔH from Phillips.</p>
+                <p className="text-sm leading-relaxed text-studio-foreground">This is an assumption, not the calorimetric ΔH from Phillips.</p>
                 {effective.uncertainty_defined ? (
-                  <div className="space-y-2 text-sm leading-relaxed text-[#5C564E]">
+                  <div className="space-y-2 text-sm leading-relaxed text-studio-muted">
                     {effective.delta_h_eff_95_lower != null && effective.delta_h_eff_95_upper != null ? (
                       <p>
                         95% band for effective ΔH: {formatQuantity(effective.delta_h_eff_95_lower)} to{" "}
@@ -749,13 +750,13 @@ export function ThermoCalculator() {
                     <p>The band is a linear approximation.</p>
                   </div>
                 ) : (
-                  <p className="text-sm leading-relaxed text-[#5C564E]">
+                  <p className="text-sm leading-relaxed text-studio-muted">
                     {bothPrinted
                       ? "No 95% band is drawn."
                       : "No 95% band is drawn. It appears only when both printed uncertainties are still the ones from the paper. A missing uncertainty is not zero."}
                   </p>
                 )}
-                <div className="rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-3">
+                <div className="rounded-xl border border-studio-border bg-studio-surface p-3">
                   <CurveChart
                     title="ΔG(T)"
                     units={prettyUnits(effective.delta_g_units ?? "kcal mol⁻¹")}
@@ -767,15 +768,15 @@ export function ThermoCalculator() {
                     readHigh={effective.uncertainty_defined ? (point) => point.delta_g_95_upper : undefined}
                   />
                 </div>
-                <p className="text-sm leading-relaxed text-[#5C564E]">ΔG(T) under the assumption that ΔCp is 0.</p>
-                <p className="text-sm leading-relaxed text-[#5C564E]">
+                <p className="text-sm leading-relaxed text-studio-muted">ΔG(T) under the assumption that ΔCp is 0.</p>
+                <p className="text-sm leading-relaxed text-studio-muted">
                   This curve assumes heat capacity does not change with temperature. It is a calculation, not a measurement on our protein.
                 </p>
                 {effective.human_review_required ? (
-                  <p className="text-sm leading-relaxed text-[#5C564E]">A person should review this estimate before it is used.</p>
+                  <p className="text-sm leading-relaxed text-studio-muted">A person should review this estimate before it is used.</p>
                 ) : null}
                 {effective.warnings.length > 0 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">
+                  <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-studio-muted">
                     {effective.warnings.map((warning) => (
                       <li key={warning}>{warning}</li>
                     ))}
@@ -783,7 +784,7 @@ export function ThermoCalculator() {
                 ) : null}
               </>
             ) : (
-              <p className="text-sm leading-relaxed text-[#5C564E]">
+              <p className="text-sm leading-relaxed text-studio-muted">
                 {!estimateReady
                   ? anchorValue !== null && (anchorTemperature === null || anchorTemperature + CELSIUS_TO_KELVIN <= 0)
                     ? "An anchor ΔG needs the temperature of that value. None was assumed, so the ΔCp = 0 estimate was not calculated."
@@ -797,20 +798,20 @@ export function ThermoCalculator() {
           <ResultBlock title="Temperature curves">
             {curve && curve.points.length > 0 ? (
               <div className="space-y-4">
-                <p className="text-sm leading-relaxed text-[#5C564E]">
+                <p className="text-sm leading-relaxed text-studio-muted">
                   These curves use the ΔHcal and ΔCp you typed. They are not the ΔCp = 0 estimate.
                 </p>
-                <p className="text-sm leading-relaxed text-[#242220]">
+                <p className="text-sm leading-relaxed text-studio-foreground">
                   ΔG at the melting temperature on this curve is {formatAtTm(curve.delta_g_at_tm)} {prettyUnits(curve.delta_g_units)}. ΔH at the melting temperature is {formatQuantity(curve.delta_h_at_tm)} {prettyUnits(curve.delta_h_units)}.
                 </p>
                 <CurveChart title="ΔG(T)" units={prettyUnits(curve.delta_g_units)} color="#FF8000" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_g} />
-                <CurveChart title="ΔH(T)" units={prettyUnits(curve.delta_h_units)} color="#242220" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_h} />
+                <CurveChart title="ΔH(T)" units={prettyUnits(curve.delta_h_units)} color="var(--studio-foreground)" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_h} />
                 <CurveChart title="ΔS(T)" units={prettyUnits(curve.delta_s_units)} color="#266FB1" points={curve.points} tmC={curve.tm_c} read={(point) => point.delta_s} />
-                <p className="text-sm leading-relaxed text-[#5C564E]">{curve.result_label || CURVE_LABEL}</p>
-                <p className="text-sm text-[#242220]">These curves use the enthalpy and heat capacity you typed. They are calculations, not a measurement on our protein.</p>
-                {pending ? <p className="text-sm text-[#8A8175]">Updating the curves…</p> : null}
+                <p className="text-sm leading-relaxed text-studio-muted">{curve.result_label || CURVE_LABEL}</p>
+                <p className="text-sm text-studio-foreground">These curves use the enthalpy and heat capacity you typed. They are calculations, not a measurement on our protein.</p>
+                {pending ? <p className="text-sm text-studio-label">Updating the curves…</p> : null}
                 {curve.warnings.length > 0 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-[#5C564E]">
+                  <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed text-studio-muted">
                     {curve.warnings.map((warning) => (
                       <li key={warning}>{warning}</li>
                     ))}
@@ -818,7 +819,7 @@ export function ThermoCalculator() {
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-[#5C564E]">{curveNote}</p>
+              <p className="text-sm leading-relaxed text-studio-muted">{curveNote}</p>
             )}
           </ResultBlock>
         </section>

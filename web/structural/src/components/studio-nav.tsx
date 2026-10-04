@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const SECTIONS = [
   {
@@ -48,6 +49,10 @@ export function StudioNav() {
   const active = sectionFor(path);
   return (
     <div className="mb-6 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs font-medium tracking-[0.18em] text-studio-label uppercase">ORIGAMI studio</p>
+        <ThemeToggle />
+      </div>
       <nav className="flex flex-wrap gap-2" aria-label="SSDK">
         {SECTIONS.map((section) => {
           const on = section === active;
@@ -57,8 +62,8 @@ export function StudioNav() {
               href={section.tabs[0].href}
               className={
                 on
-                  ? "rounded-full bg-[#242220] px-4 py-1.5 text-sm text-white"
-                  : "rounded-full border border-[#E3D9CC] bg-white px-4 py-1.5 text-sm text-[#5C564E]"
+                  ? "rounded-full bg-studio-nav-active px-4 py-1.5 text-sm text-studio-nav-active-text"
+                  : "rounded-full border border-studio-border bg-studio-card px-4 py-1.5 text-sm text-studio-muted"
               }
             >
               {section.label}
@@ -75,8 +80,8 @@ export function StudioNav() {
               href={tab.href}
               className={
                 on
-                  ? "rounded-full border border-[#C45C12] bg-[#FFF7EF] px-3 py-1 text-sm text-[#C45C12]"
-                  : "rounded-full px-3 py-1 text-sm text-[#5C564E] underline decoration-[#E3D9CC] underline-offset-4"
+                  ? "rounded-full border border-studio-accent bg-studio-accent-soft px-3 py-1 text-sm text-studio-accent"
+                  : "rounded-full px-3 py-1 text-sm text-studio-muted underline decoration-studio-border underline-offset-4"
               }
             >
               {tab.label}

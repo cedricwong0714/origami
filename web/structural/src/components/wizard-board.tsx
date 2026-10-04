@@ -69,10 +69,10 @@ export function WizardBoard() {
   const docking = chassis?.docking as { chord_A?: number; clash_computable?: boolean } | undefined;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <h1 className="text-2xl font-semibold">Step through one length</h1>
-      <p className="mt-2 text-sm text-[#5C564E]">
+      <p className="mt-2 text-sm text-studio-muted">
         Pick a repeat count from 3 to 24. You get the screw, the melting
         temperature, and the straight-line docking distance, then a summary
         file. No radii means no clash. Nothing here is a lab measurement.
@@ -83,8 +83,8 @@ export function WizardBoard() {
             key={label}
             className={
               i === step
-                ? "rounded-full bg-[#242220] px-3 py-1 text-sm text-white"
-                : "rounded-full border border-[#E3D9CC] px-3 py-1 text-sm"
+                ? "rounded-full bg-studio-button px-3 py-1 text-sm text-studio-button-text"
+                : "rounded-full border border-studio-border px-3 py-1 text-sm"
             }
           >
             {i + 1}. {label}
@@ -99,7 +99,7 @@ export function WizardBoard() {
             Next: pick a planned length (3, 8, or 14).
           </p>
           <button
-            className="rounded-full bg-[#242220] px-4 py-2 text-sm text-white"
+            className="rounded-full bg-studio-button px-4 py-2 text-sm text-studio-button-text"
             onClick={() => setStep(1)}
             type="button"
           >
@@ -121,7 +121,7 @@ export function WizardBoard() {
             />
           </label>
           <button
-            className="rounded-full bg-[#242220] px-4 py-2 text-sm text-white"
+            className="rounded-full bg-studio-button px-4 py-2 text-sm text-studio-button-text"
             onClick={runChassis}
             type="button"
           >
@@ -134,19 +134,19 @@ export function WizardBoard() {
           <h2 className="font-medium">Scores for this length</h2>
           <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">Length along repeats</dt>
+              <dt className="text-studio-label">Length along repeats</dt>
               <dd className="font-mono">{structure?.contour_nm?.toFixed(3) ?? "—"} nm</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Melting temperature</dt>
+              <dt className="text-studio-label">Melting temperature</dt>
               <dd className="font-mono">{stability?.tm_C?.toFixed(2) ?? "—"} °C</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">ΔG</dt>
+              <dt className="text-studio-label">ΔG</dt>
               <dd className="font-mono">{stability?.delta_g?.toFixed(2) ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Docking distance</dt>
+              <dt className="text-studio-label">Docking distance</dt>
               <dd className="font-mono">
                 {docking?.chord_A?.toFixed(2) ?? "—"} Å
                 {docking?.clash_computable ? "" : " (clash needs two radii)"}
@@ -154,7 +154,7 @@ export function WizardBoard() {
             </div>
           </dl>
           <button
-            className="mt-3 rounded-full bg-[#242220] px-4 py-2 text-sm text-white"
+            className="mt-3 rounded-full bg-studio-button px-4 py-2 text-sm text-studio-button-text"
             onClick={runPassport}
             type="button"
           >
@@ -165,7 +165,7 @@ export function WizardBoard() {
       {step >= 3 ? (
         <section className="mt-6">
           <h2 className="font-medium">Summary file</h2>
-          <p className="mt-2 text-sm text-[#5C564E]">
+          <p className="mt-2 text-sm text-studio-muted">
             Saved as origami-summary-n{n}.json. Repeat count {String(passport?.n_repeats ?? n)}.
           </p>
           <p className="mt-2 text-sm">

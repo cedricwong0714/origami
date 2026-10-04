@@ -192,12 +192,12 @@ export function SsdkBoard() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">One repeat count</p>
+        <p className="text-sm uppercase tracking-wide text-studio-label">One repeat count</p>
         <h1 className="mt-1 text-3xl font-semibold">Score one length</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
           Always returned: screw length, Phillips melting temperature, and the
           straight-line distance between two repeats. Clash and local
           concentration appear only if you type two radii in Å. Binding runs
@@ -211,7 +211,7 @@ export function SsdkBoard() {
           <span>{error}</span>
         </div>
       ) : null}
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Repeat count" value={n} onChange={setN} />
           <Field label="Docking index A, optional" value={indexA} onChange={setIndexA} />
@@ -223,7 +223,7 @@ export function SsdkBoard() {
         <label className="mt-3 block text-sm">
           Kinetics
           <select
-            className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
             value={mode}
             onChange={(event) => setMode(event.target.value)}
           >
@@ -379,9 +379,9 @@ function LearnLuminescencePanel() {
   const mf = learn?.multifidelity_luminescence;
 
   return (
-    <section className="mt-10 rounded-xl border border-[#E3D9CC] bg-white p-5">
+    <section className="mt-10 rounded-xl border border-studio-border bg-studio-card p-5">
       <h2 className="text-lg font-semibold">Which length to measure next</h2>
-      <p className="mt-2 max-w-2xl text-sm text-[#5C564E]">
+      <p className="mt-2 max-w-2xl text-sm text-studio-muted">
         Optional. Paste luminescence readings as JSON. y is the reading.
         fidelity 1 means a lab reading. fidelity 0 means a computed score.
         With no lab reading, the suggestion comes from the docking score alone.
@@ -395,7 +395,7 @@ function LearnLuminescencePanel() {
       <label className="mt-3 block text-sm">
         Readings (JSON)
         <textarea
-          className="mt-1 min-h-[88px] w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono text-xs"
+          className="mt-1 min-h-[88px] w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-xs"
           value={obsJson}
           onChange={(event) => setObsJson(event.target.value)}
         />
@@ -438,11 +438,11 @@ function LearnLuminescencePanel() {
             </p>
           ) : null}
           {mf.config_placeholders_unmeasured.length ? (
-            <p className="text-[#8A8278]">
+            <p className="text-studio-label">
               Still unmeasured, so do not treat a pass as a result: {mf.config_placeholders_unmeasured.join(", ")}
             </p>
           ) : null}
-          <p className="text-[#5C564E]">{mf.note}</p>
+          <p className="text-studio-muted">{mf.note}</p>
           {mf.recommended_evaluation ? (
             <p>
               Luminescence model picks n = {mf.recommended_evaluation.n_repeats} (
@@ -461,7 +461,7 @@ function LearnLuminescencePanel() {
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left text-xs">
                 <thead>
-                  <tr className="border-b border-[#E3D9CC]">
+                  <tr className="border-b border-studio-border">
                     <th className="py-2 pr-2">assay</th>
                     <th className="py-2 pr-2">n</th>
                     <th className="py-2 pr-2">μ</th>
@@ -502,7 +502,7 @@ function LearnLuminescencePanel() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-[#E3D9CC]">
+                <tr className="border-b border-studio-border">
                   <th className="py-2 pr-2">n</th>
                   <th className="py-2 pr-2">μ</th>
                   <th className="py-2 pr-2">σ</th>
@@ -629,9 +629,9 @@ function Results({ report }: { report: ChassisReport }) {
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <article className="rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5">
+    <article className="rounded-xl border border-studio-border bg-studio-surface p-5">
       <h2 className="text-lg font-semibold">{title}</h2>
-      <div className="mt-2 text-[#242220]">{children}</div>
+      <div className="mt-2 text-studio-foreground">{children}</div>
     </article>
   );
 }
@@ -649,7 +649,7 @@ function Field({
     <label className="mt-3 block text-sm">
       {label}
       <input
-        className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+        className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />

@@ -130,15 +130,15 @@ function ChordChart({ data }: { data: PredictResponse }) {
       aria-label={`End separation in angstroms. ${summary}`}
       style={{ fontFamily: CHART_FONT }}
     >
-      <text x={pad.l} y={16} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+      <text x={pad.l} y={16} fill="var(--studio-chart-label)" fontSize="11" fontFamily={CHART_FONT}>
         Å, same scale for axial span and end chord
       </text>
       {ticks.map((value) => {
         const y = yOf(value);
         return (
           <g key={value}>
-            <line x1={pad.l} x2={width - pad.r} y1={y} y2={y} stroke="#E3D9CC" />
-            <text x={8} y={y + 4} fill="#8A8175" fontSize="11" fontFamily={CHART_FONT}>
+            <line x1={pad.l} x2={width - pad.r} y1={y} y2={y} stroke="var(--studio-chart-grid)" />
+            <text x={8} y={y + 4} fill="var(--studio-chart-label)" fontSize="11" fontFamily={CHART_FONT}>
               {tickLabel(value)}
             </text>
           </g>
@@ -158,19 +158,19 @@ function ChordChart({ data }: { data: PredictResponse }) {
         const whiskerX = chordX + barW / 2;
         return (
           <g key={row.n_repeats}>
-            <rect x={axialX} y={yAxial} width={barW} height={baseline - yAxial} fill="#242220" />
+            <rect x={axialX} y={yAxial} width={barW} height={baseline - yAxial} fill="var(--studio-foreground)" />
             <rect x={chordX} y={yChord} width={barW} height={baseline - yChord} fill="#FF8000" />
             <line x1={whiskerX} x2={whiskerX} y1={yHigh} y2={yLow} stroke="#266FB1" strokeWidth="2" />
             <line x1={whiskerX - 7} x2={whiskerX + 7} y1={yHigh} y2={yHigh} stroke="#266FB1" strokeWidth="2" />
             <line x1={whiskerX - 7} x2={whiskerX + 7} y1={yLow} y2={yLow} stroke="#266FB1" strokeWidth="2" />
-            <text x={center} y={height - 28} textAnchor="middle" fill="#242220" fontSize="13" fontFamily={CHART_FONT}>
+            <text x={center} y={height - 28} textAnchor="middle" fill="var(--studio-foreground)" fontSize="13" fontFamily={CHART_FONT}>
               n={row.n_repeats}
             </text>
           </g>
         );
       })}
-      <g fontFamily={CHART_FONT} fontSize="11" fill="#5C564E">
-        <rect x={pad.l} y={height - 16} width={10} height={10} fill="#242220" />
+      <g fontFamily={CHART_FONT} fontSize="11" fill="var(--studio-muted)">
+        <rect x={pad.l} y={height - 16} width={10} height={10} fill="var(--studio-foreground)" />
         <text x={pad.l + 14} y={height - 7}>
           axial span
         </text>
@@ -260,13 +260,13 @@ export function DataBoard() {
       <StudioNav />
       <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">
             Structural analysis · compare lengths
           </p>
-          <h1 className="mt-2 font-heading text-4xl text-[#242220] md:text-5xl">
+          <h1 className="mt-2 font-heading text-4xl text-studio-foreground md:text-5xl">
             End separation
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#5C564E]">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-studio-muted">
             Compare lengths on the same screw. Dark bar: distance along the axis.
             Orange bar: straight-line end distance, which is what docking uses as the chord.
             Blue whisker: spread among the three crystal structures. Add a count from 3 to 24 to see whether a longer scaffold actually separates the ends.
@@ -274,7 +274,7 @@ export function DataBoard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge
-            className="rounded-full bg-[#242220] text-white"
+            className="rounded-full bg-studio-button text-studio-button-text"
             title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
             Not a lab measurement
@@ -289,7 +289,7 @@ export function DataBoard() {
           <button
             key={n}
             type="button"
-            className="rounded-full border border-[#E3D9CC] bg-white px-3 py-1 text-sm"
+            className="rounded-full border border-studio-border bg-studio-card px-3 py-1 text-sm"
             onClick={() => removeLength(n)}
           >
             n = {n} ×
@@ -298,7 +298,7 @@ export function DataBoard() {
         <label className="text-sm">
           Add repeat count
           <input
-            className="ml-2 h-9 w-20 rounded-lg border border-[#E3D9CC] px-2"
+            className="ml-2 h-9 w-20 rounded-lg border border-studio-border px-2"
             type="number"
             min={3}
             max={24}
@@ -312,19 +312,19 @@ export function DataBoard() {
       </div>
 
       {loading ? (
-        <p className="mt-10 flex items-center gap-2 text-sm text-[#8A8175]">
+        <p className="mt-10 flex items-center gap-2 text-sm text-studio-label">
           <Loader2 className="animate-spin" /> Loading measurements…
         </p>
       ) : null}
       {error ? (
-        <p className="mt-10 flex items-start gap-2 text-sm text-[#9B2C2C]">
+        <p className="mt-10 flex items-start gap-2 text-sm text-destructive">
           <AlertCircle className="mt-0.5 size-4" /> {error}
         </p>
       ) : null}
 
       {data ? (
         <div className="mt-8 space-y-6">
-          <Card className="border-[#E3D9CC] bg-white shadow-none">
+          <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="font-heading text-2xl">End separation</CardTitle>
               <div className="flex gap-2">
@@ -335,13 +335,13 @@ export function DataBoard() {
             </CardHeader>
             <CardContent>
               <ChordChart data={data} />
-              <p className="mt-2 text-xs text-[#8A8175]">
+              <p className="mt-2 text-xs text-studio-label">
                 Heights are in Å. Orange minus dark is the bow: how far the helix leaves a straight axis. The whisker is only on the straight-line distance.
               </p>
             </CardContent>
           </Card>
 
-          <div className="overflow-x-auto rounded-xl border border-[#E3D9CC] bg-white">
+          <div className="overflow-x-auto rounded-xl border border-studio-border bg-studio-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -395,11 +395,11 @@ export function DataBoard() {
             {data.constructs.map((row) => {
               const reading = data.readings.find((item) => item.n_repeats === row.n_repeats);
               return (
-                <Card key={row.n_repeats} className="border-[#E3D9CC] bg-[#FFF7EF] shadow-none">
+                <Card key={row.n_repeats} className="border-studio-border bg-studio-accent-soft shadow-none">
                   <CardHeader>
                     <CardTitle className="font-heading text-2xl">n = {row.n_repeats}</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm leading-relaxed text-[#3F3A34]">
+                  <CardContent className="space-y-3 text-sm leading-relaxed text-studio-foreground">
                     {(reading?.reading ?? []).slice(0, 4).map((line) => (
                       <p key={line}>{line}</p>
                     ))}
@@ -409,7 +409,7 @@ export function DataBoard() {
             })}
           </div>
 
-          <Card className="border-[#E3D9CC] bg-white shadow-none">
+          <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="font-heading text-2xl">Wiki caption</CardTitle>
               <Button variant="outline" type="button" onClick={copyCaption}>
@@ -417,7 +417,7 @@ export function DataBoard() {
               </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-relaxed text-[#5C564E]">{caption}</p>
+              <p className="text-sm leading-relaxed text-studio-muted">{caption}</p>
             </CardContent>
           </Card>
         </div>

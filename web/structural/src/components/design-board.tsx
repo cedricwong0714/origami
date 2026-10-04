@@ -154,13 +154,13 @@ export function DesignBoard() {
   const assay = report?.t_assay_C ?? 37;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 text-studio-foreground">
       <StudioNav />
-      <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">
+      <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">
         Structural analysis
       </p>
       <h1 className="mt-2 text-3xl font-semibold">Which length should the scaffold be?</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
         Every repeat count from 3 to 24 is scored with the same melt model and the same
         affinity check. A length stays in the running when its calculated melting temperature
         is above the assay temperature and the typed Kd or Ka holds the two docking sites
@@ -169,8 +169,8 @@ export function DesignBoard() {
         blindly. The mark is that ranking rule. It is not a validated optimum.
       </p>
 
-      <section className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white p-6">
-        <p className="text-sm text-[#5C564E]">
+      <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-6">
+        <p className="text-sm text-studio-muted">
           The box starts at the peptide Kd used by the bound-fraction model, 0.19 nM. Type
           another Kd or Ka to ask a different affinity. Leave the graft blank to use each
           length’s named M13 position, or the C-terminal repeat when that length has none.
@@ -179,7 +179,7 @@ export function DesignBoard() {
           <label className="block text-sm font-medium">
             Constant
             <select
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
               value={kind}
               onChange={(event) => setKind(event.target.value === "ka" ? "ka" : "kd")}
             >
@@ -190,7 +190,7 @@ export function DesignBoard() {
           <label className="block text-sm font-medium">
             Value
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono"
               value={value}
               onChange={(event) => setValue(event.target.value)}
             />
@@ -198,7 +198,7 @@ export function DesignBoard() {
           <label className="block text-sm font-medium">
             Unit
             <select
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
               value={unit}
               onChange={(event) => setUnit(event.target.value)}
             >
@@ -212,7 +212,7 @@ export function DesignBoard() {
           <label className="block text-sm font-medium">
             Graft index
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2 font-mono"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono"
               value={graft}
               placeholder="blank = named"
               onChange={(event) => setGraft(event.target.value)}
@@ -221,44 +221,43 @@ export function DesignBoard() {
         </div>
         <button
           type="button"
-          className="mt-5 rounded-full bg-[#242220] px-5 py-2 text-sm text-white disabled:opacity-50"
+          className="mt-5 rounded-full bg-studio-button px-5 py-2 text-sm text-studio-button-text disabled:opacity-50"
           onClick={() => void run()}
           disabled={running}
         >
           {running ? "Scoring lengths…" : "Score every length"}
         </button>
-        {error ? <p className="mt-4 text-sm text-[#9B2C2C]">{error}</p> : null}
+        {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
       </section>
 
       {report ? (
         <>
-          <section className="mt-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+          <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
             <h2 className="text-lg font-medium">
               {report.marked_n === null
                 ? "No length both stays folded and holds together"
                 : `Marked length: n = ${report.marked_n}`}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{report.ranking_rule}</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+            <p className="mt-2 text-sm leading-relaxed text-studio-muted">{report.ranking_rule}</p>
+            <p className="mt-2 text-sm leading-relaxed text-studio-muted">
               {report.any_length_drives_reporter
                 ? `LgBiT–SmBiT occupancy reaches one half at n = ${report.reporter_lengths.join(", ")}.`
                 : "No length in this sweep puts LgBiT–SmBiT occupancy at or above one half. The mark, when present, is only the highest occupancy among lengths that fold and hold."}
             </p>
-            <p className="mt-2 text-sm text-[#5C564E]">{report.graft_rule}</p>
-            <div className="mt-5 flex flex-wrap gap-1" role="list" aria-label="Length calls">
+            <p className="mt-2 text-sm text-studio-muted">{report.graft_rule}</p>
+            <div className="mt-5 flex flex-wrap gap-1" aria-label="Length calls">
               {report.points.map((point) => {
                 const on = point.n_repeats === selected;
                 return (
                   <button
                     key={point.n_repeats}
                     type="button"
-                    role="listitem"
                     aria-pressed={on}
                     aria-label={`n = ${point.n_repeats}. ${CALL_LABEL[point.call] ?? point.call}`}
                     className="h-10 w-10 rounded-md text-xs text-white"
                     style={{
                       background: CALL_COLOR[point.call] ?? "#8A8175",
-                      outline: on ? "2px solid #242220" : "none",
+                      outline: on ? "2px solid var(--studio-foreground)" : "none",
                       outlineOffset: 2,
                     }}
                     onClick={() => setSelected(point.n_repeats)}
@@ -268,7 +267,7 @@ export function DesignBoard() {
                 );
               })}
             </div>
-            <ul className="mt-4 grid gap-1 text-xs text-[#5C564E] sm:grid-cols-2">
+            <ul className="mt-4 grid gap-1 text-xs text-studio-muted sm:grid-cols-2">
               {Object.entries(CALL_LABEL).map(([key, label]) => (
                 <li key={key} className="flex items-center gap-2">
                   <span
@@ -279,39 +278,39 @@ export function DesignBoard() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-xs text-[#8A8175]">
+            <p className="mt-3 text-xs text-studio-label">
               Planned construct lengths are 3, 8, and 14. Click a cell to read that length.
             </p>
           </section>
 
           {focus ? (
-            <section className="mt-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+            <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
               <h2 className="text-lg font-medium">
                 n = {focus.n_repeats}
                 {PLANNED.has(focus.n_repeats) ? " · planned construct" : ""}
                 {report.marked_n === focus.n_repeats ? " · marked by the ranking rule" : ""}
               </h2>
-              <p className="mt-2 text-sm text-[#5C564E]">{CALL_LABEL[focus.call] ?? focus.call}</p>
+              <p className="mt-2 text-sm text-studio-muted">{CALL_LABEL[focus.call] ?? focus.call}</p>
               {focus.past_longest_cited_length ? (
-                <p className="mt-2 text-sm text-[#5C564E]">
+                <p className="mt-2 text-sm text-studio-muted">
                   This length is past the longest cited melt. The melting temperature is an
                   extrapolation of the length fit.
                 </p>
               ) : null}
               {focus.docking_skip_reason ? (
-                <p className="mt-2 text-sm text-[#5C564E]">{focus.docking_skip_reason}</p>
+                <p className="mt-2 text-sm text-studio-muted">{focus.docking_skip_reason}</p>
               ) : null}
               <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="text-[#8A8278]">Melting temperature</dt>
+                  <dt className="text-studio-label">Melting temperature</dt>
                   <dd className="font-mono">{plain(focus.tm_C)} °C</dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">Unfolding ΔG at the anchor temperature</dt>
+                  <dt className="text-studio-label">Unfolding ΔG at the anchor temperature</dt>
                   <dd className="font-mono">{plain(focus.delta_g)} kcal/mol</dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">Bound fraction</dt>
+                  <dt className="text-studio-label">Bound fraction</dt>
                   <dd className="font-mono">
                     {plain(focus.association_theta, 3)}{" "}
                     {focus.association_holds === null
@@ -322,36 +321,36 @@ export function DesignBoard() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">Local concentration</dt>
+                  <dt className="text-studio-label">Local concentration</dt>
                   <dd className="font-mono">{sci(focus.c_eff_M)} M</dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">LgBiT–SmBiT occupancy</dt>
+                  <dt className="text-studio-label">LgBiT–SmBiT occupancy</dt>
                   <dd className="font-mono">
                     {sci(focus.nanobit_theta)}{" "}
                     {focus.drives_lgbit_smbit ? "at or above one half" : "below one half"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">SpyCatcher–SpyTag half-life</dt>
+                  <dt className="text-studio-label">SpyCatcher–SpyTag half-life</dt>
                   <dd className="font-mono">{sci(focus.spy_half_life_s)} s</dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">Clash probability</dt>
+                  <dt className="text-studio-label">Clash probability</dt>
                   <dd className="font-mono">{plain(focus.p_clash, 3)}</dd>
                 </div>
                 <div>
-                  <dt className="text-[#8A8278]">Chord</dt>
+                  <dt className="text-studio-label">Chord</dt>
                   <dd className="font-mono">{focus.chord_A === null ? "—" : `${focus.chord_A.toFixed(2)} Å`}</dd>
                 </div>
               </dl>
             </section>
           ) : null}
 
-          <section className="mt-6 space-y-6 rounded-2xl border border-[#E3D9CC] bg-white p-6">
+          <section className="mt-6 space-y-6 rounded-2xl border border-studio-border bg-studio-card p-6">
             <div>
               <h2 className="text-lg font-medium">Melting temperature</h2>
-              <p className="mt-1 text-sm text-[#5C564E]">
+              <p className="mt-1 text-sm text-studio-muted">
                 The dashed line is the assay temperature, {assay} °C. A point above it passes
                 the fold comparison used everywhere else in the studio.
               </p>
@@ -380,7 +379,7 @@ export function DesignBoard() {
             </div>
             <div>
               <h2 className="text-lg font-medium">Does the association hold?</h2>
-              <p className="mt-1 text-sm text-[#5C564E]">
+              <p className="mt-1 text-sm text-studio-muted">
                 Bound fraction at the local concentration. The dashed line is one half, the
                 Langmuir midpoint. At or above that line, the typed affinity holds the two
                 sites together.
@@ -393,7 +392,7 @@ export function DesignBoard() {
                 markerX={selected}
                 series={[
                   {
-                    color: "#242220",
+                    color: "var(--studio-foreground)",
                     points: finitePoints(report.points, (point) => point.association_theta),
                   },
                 ]}
@@ -401,7 +400,7 @@ export function DesignBoard() {
             </div>
             <div>
               <h2 className="text-lg font-medium">Does that proximity drive LgBiT–SmBiT?</h2>
-              <p className="mt-1 text-sm text-[#5C564E]">
+              <p className="mt-1 text-sm text-studio-muted">
                 Occupancy uses the printed LgBiT–SmBiT Kd at the same local concentration,
                 and only when the association holds. The dashed line is one half. A curve
                 along the bottom is far below the reporter.
@@ -422,7 +421,7 @@ export function DesignBoard() {
             </div>
             <div>
               <h2 className="text-lg font-medium">SpyCatcher–SpyTag half-life</h2>
-              <p className="mt-1 text-sm text-[#5C564E]">
+              <p className="mt-1 text-sm text-studio-muted">
                 Point half-life is ln(2) divided by the on-rate times the local concentration.
                 The axis is logarithmic. A higher local concentration shortens this half-life.
               </p>
@@ -442,7 +441,7 @@ export function DesignBoard() {
             </div>
             <div>
               <h2 className="text-lg font-medium">Clash</h2>
-              <p className="mt-1 text-sm text-[#5C564E]">
+              <p className="mt-1 text-sm text-studio-muted">
                 Probability that the SpyCatcher and LgBiT spheres overlap at this chord.
                 A length that holds the sites together can still clash.
               </p>
@@ -461,14 +460,14 @@ export function DesignBoard() {
             </div>
           </section>
 
-          <p className="mt-4 text-sm text-[#5C564E]">{report.note}</p>
-          <p className="mt-2 text-sm text-[#5C564E]">
+          <p className="mt-4 text-sm text-studio-muted">{report.note}</p>
+          <p className="mt-2 text-sm text-studio-muted">
             Kd used: {sci(report.kd_M)} M. This sweep is not calibrated to a measurement of
             the fusion.
           </p>
           <button
             type="button"
-            className="mt-4 rounded-full border border-[#E3D9CC] bg-white px-4 py-2 text-sm"
+            className="mt-4 rounded-full border border-studio-border bg-studio-card px-4 py-2 text-sm"
             onClick={() => downloadJson("origami-length-sweep.json", report)}
           >
             Download sweep file

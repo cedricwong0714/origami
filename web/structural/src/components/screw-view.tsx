@@ -28,7 +28,7 @@ class ViewBoundary extends Component<{ children: ReactNode }, { failed: boolean 
   render() {
     if (this.state.failed) {
       return (
-        <div className="flex h-[560px] items-center justify-center rounded-xl bg-[#1c1a18] px-6 text-center text-sm text-[#E7E0D6]">
+        <div className="flex h-[560px] items-center justify-center rounded-xl bg-studio-viewport px-6 text-center text-sm text-studio-viewport-text">
           This browser could not start the 3D view. The coordinates are still in the tables and in the PDB export.
         </div>
       );
@@ -107,7 +107,7 @@ export function ScrewView({ scene, selected = null }: ScrewViewProps) {
 
   if (!model) {
     return (
-      <div className="flex h-[560px] items-center justify-center rounded-xl bg-[#1c1a18] text-sm text-[#E7E0D6]">
+      <div className="flex h-[560px] items-center justify-center rounded-xl bg-studio-viewport text-sm text-studio-viewport-text">
         Run a prediction to place the screw.
       </div>
     );
@@ -117,7 +117,7 @@ export function ScrewView({ scene, selected = null }: ScrewViewProps) {
   const eye = new THREE.Vector3(0.62, 0.2, 0.78).normalize().multiplyScalar(distance);
   return (
     <ViewBoundary>
-      <div className="h-[560px] w-full overflow-hidden rounded-xl bg-[#1c1a18]">
+      <div className="h-[560px] w-full overflow-hidden rounded-xl bg-studio-viewport">
         <Canvas
           camera={{
             fov: 34,

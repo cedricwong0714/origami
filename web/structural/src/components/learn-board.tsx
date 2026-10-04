@@ -111,15 +111,15 @@ const STARTER: Row[] = [
 function LiteraturePanel({ training }: { training: LiteratureTraining | null }) {
   if (!training) {
     return (
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm leading-relaxed text-[#5C564E]">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5 text-sm leading-relaxed text-studio-muted">
         Loading the Phillips 2012 CTPRa DSC residual models.
       </section>
     );
   }
   return (
-    <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5 text-sm leading-relaxed">
+    <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5 text-sm leading-relaxed">
       <h2 className="text-lg font-semibold">Published melting data, already loaded</h2>
-      <p className="mt-2 text-[#5C564E]">
+      <p className="mt-2 text-studio-muted">
         Phillips 2012 melting temperature and unfolding energy. This lab does
         not measure either one. These rows do not use the luminescence numbers
         below, and they are not a request to run a melt.
@@ -134,11 +134,11 @@ function Track({ title, track }: { title: string; track: LitTrack }) {
   return (
     <div className="mt-5">
       <h3 className="font-medium">{title}</h3>
-      <p className="mt-1 text-[#5C564E]">
+      <p className="mt-1 text-studio-muted">
         Published lengths {track.training_lengths.join(", ")}. Units: {track.units}.
         Longest published length: {track.longest_cited_n ?? "not in the table"}.
       </p>
-      <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+      <ul className="mt-2 list-disc pl-5 text-studio-muted">
         {track.training_rows.map((row) => (
           <li key={row.n_repeats}>
             n = {row.n_repeats}: published {formatNumber(row.y)}
@@ -153,7 +153,7 @@ function Track({ title, track }: { title: string; track: LitTrack }) {
         {track.next_past_longest_cited_length ? " (longer than any published row)" : ""}.
         This lab is not measuring melts.
       </p>
-      <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+      <ul className="mt-2 list-disc pl-5 text-studio-muted">
         {track.preview.map((row) => (
           <li key={row.n_repeats}>
             n = {row.n_repeats}: posterior {formatNumber(row.posterior_mean)} {track.units}, 95% band{" "}
@@ -287,12 +287,12 @@ export function LearnBoard() {
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-[#242220]">
+    <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-[#8A8278]">Which length next</p>
+        <p className="text-sm uppercase tracking-wide text-studio-label">Which length next</p>
         <h1 className="mt-1 text-3xl font-semibold">Next length to measure</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
           Leave the reading blank and you still get a suggestion from the docking
           score. Type a luminescence reading (y) and an optional uncertainty to
           adjust that score. The number to use is the first next length. Other
@@ -312,9 +312,9 @@ export function LearnBoard() {
         </div>
       ) : null}
 
-      <section className="mb-6 rounded-xl border border-[#E3D9CC] bg-white p-5">
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Luminescence readings</h2>
-        <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-1 text-sm leading-relaxed text-studio-muted">
           Repeat count, reading, optional uncertainty. Leave the reading blank
           if that length has not been measured.
         </p>
@@ -323,20 +323,20 @@ export function LearnBoard() {
             <div key={index} className="grid grid-cols-[5rem_1fr_1fr_auto] gap-2">
               <input
                 aria-label={`Length ${index + 1}`}
-                className="rounded-lg border border-[#E3D9CC] px-3 py-2"
+                className="rounded-lg border border-studio-border px-3 py-2"
                 value={row.n}
                 onChange={(event) => update(index, "n", event.target.value)}
               />
               <input
                 aria-label={`Surrogate reading ${index + 1}`}
-                className="rounded-lg border border-[#E3D9CC] px-3 py-2"
+                className="rounded-lg border border-studio-border px-3 py-2"
                 placeholder="Reading"
                 value={row.y}
                 onChange={(event) => update(index, "y", event.target.value)}
               />
               <input
                 aria-label={`Sigma ${index + 1}`}
-                className="rounded-lg border border-[#E3D9CC] px-3 py-2"
+                className="rounded-lg border border-studio-border px-3 py-2"
                 placeholder="Uncertainty, optional"
                 value={row.sigma}
                 onChange={(event) => update(index, "sigma", event.target.value)}
@@ -364,7 +364,7 @@ export function LearnBoard() {
           <label className="block text-sm">
             Payload radius A (Å), optional
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
               value={radiusA}
               onChange={(event) => setRadiusA(event.target.value)}
             />
@@ -372,7 +372,7 @@ export function LearnBoard() {
           <label className="block text-sm">
             Payload radius B (Å), optional
             <input
-              className="mt-1 w-full rounded-lg border border-[#E3D9CC] px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2"
               value={radiusB}
               onChange={(event) => setRadiusB(event.target.value)}
             />
@@ -381,7 +381,7 @@ export function LearnBoard() {
         <label className="mt-3 block text-sm">
             How to pick the next length
           <select
-            className="mt-1 w-full rounded-lg border border-[#E3D9CC] bg-white px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-studio-border bg-studio-card px-3 py-2"
             value={acquisition}
             onChange={(event) => setAcquisition(event.target.value)}
           >
@@ -396,13 +396,13 @@ export function LearnBoard() {
       </section>
 
       {report ? (
-        <section className="rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 text-sm leading-relaxed">
+        <section className="rounded-xl border border-studio-border bg-studio-surface p-5 text-sm leading-relaxed">
           <h2 className="text-lg font-semibold">Next measurement</h2>
           <p className="mt-2">
             Measure repeat count <strong>{report.next_n}</strong>. This is the length to run next. It is not a claim that the design works.
           </p>
           {report.recommendation ? (
-            <p className="mt-2 text-[#5C564E]">
+            <p className="mt-2 text-studio-muted">
               Luminescence fit: n = {report.recommendation.next_n}. Docking-score
               fit: n = {report.recommendation.design_engine_next_n}. Luminescence
               with dry and lab readings: n = {report.recommendation.multifidelity_luminescence_n ?? "none"}.
@@ -411,7 +411,7 @@ export function LearnBoard() {
             </p>
           ) : null}
           {report.chassis_at_next_n ? (
-            <p className="mt-2 text-[#5C564E]">
+            <p className="mt-2 text-studio-muted">
               At n = {report.chassis_at_next_n.n_repeats}: length along the repeats{" "}
               {report.chassis_at_next_n.structure
                 ? `${formatNumber(report.chassis_at_next_n.structure.contour_nm)} nm`
@@ -430,7 +430,7 @@ export function LearnBoard() {
               {report.chassis_at_next_n.kinetics?.computable ? "computed" : "not computed"}.
             </p>
           ) : null}
-          <p className="mt-2 text-[#5C564E]">
+          <p className="mt-2 text-studio-muted">
             {report.radius_origin === "caller"
               ? "Clash used the radii you typed."
               : "No radii were typed, so clash used the CaM–M13 size from PDB 2BBM only inside the docking score. It is not a measured radius."}{" "}
@@ -439,7 +439,7 @@ export function LearnBoard() {
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[#5C564E]">
+                <tr className="text-studio-muted">
                   <th className="py-1 pr-3">n</th>
                   <th className="py-1 pr-3">Physics</th>
                   <th className="py-1 pr-3">Posterior</th>
@@ -470,7 +470,7 @@ export function LearnBoard() {
             </table>
           </div>
           <h3 className="mt-4 font-medium">Structure and stability at the highlighted lengths</h3>
-          <ul className="mt-2 list-disc pl-5 text-[#5C564E]">
+          <ul className="mt-2 list-disc pl-5 text-studio-muted">
             {report.slices.structure.rows.map((row) => {
               const tm = report.slices.stability.rows.find((item) => item.n_repeats === row.n_repeats);
               return (
@@ -484,9 +484,9 @@ export function LearnBoard() {
             })}
           </ul>
           {report.multifidelity_luminescence ? (
-            <div className="mt-6 border-t border-[#E3D9CC] pt-4">
+            <div className="mt-6 border-t border-studio-border pt-4">
               <h3 className="font-medium">Multi-fidelity luminescence gates</h3>
-              <p className="mt-1 text-[#5C564E]">{report.multifidelity_luminescence.note}</p>
+              <p className="mt-1 text-studio-muted">{report.multifidelity_luminescence.note}</p>
               {report.multifidelity_luminescence.recommended_evaluation ? (
                 <p className="mt-2">
                   EI/cost → n ={" "}
@@ -494,7 +494,7 @@ export function LearnBoard() {
                   {report.multifidelity_luminescence.recommended_evaluation.evaluation_type})
                 </p>
               ) : null}
-              <p className="mt-1 text-xs text-[#8A8278]">
+              <p className="mt-1 text-xs text-studio-label">
                 Threshold {report.multifidelity_luminescence.threshold_luminescence.value} (
                 {report.multifidelity_luminescence.threshold_luminescence.status})
               </p>

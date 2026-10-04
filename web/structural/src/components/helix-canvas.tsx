@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, type PointerEvent } from "react";
+import { useStudioTheme } from "@/components/theme-provider";
 import type { HelixScene } from "@/lib/sa";
+
+function studioVar(name: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
 
 type HelixCanvasProps = {
   scene: HelixScene | null;
@@ -32,6 +38,7 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const view = useRef({ yaw: Math.PI / 5, pitch: 0.55 });
   const drag = useRef<{ x: number; y: number; yaw: number; pitch: number } | null>(null);
+  const { theme } = useStudioTheme();
 
   const paint = useCallback(() => {
     const canvas = ref.current;
@@ -45,11 +52,11 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
     canvas.height = Math.floor(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#F7F1E8";
+    ctx.fillStyle = studioVar("--studio-helix-bg", "#F7F1E8");
     ctx.fillRect(0, 0, width, height);
 
     if (!scene || scene.sites.length === 0) {
-      ctx.fillStyle = "#8A8175";
+      ctx.fillStyle = studioVar("--studio-helix-label", "#8A8175");
       ctx.font = interCanvasFont(13);
       ctx.fillText("Run a prediction to place the screw.", 24, height / 2);
       return;
@@ -78,7 +85,7 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
     };
 
     const axis = scene.sites.map((s) => place(0, 0, s.z_A));
-    ctx.strokeStyle = "#D9CFC2";
+    ctx.strokeStyle = studioVar("--studio-helix-axis", "#D9CFC2");
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     axis.forEach((p, i) => {
@@ -126,23 +133,28 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
       const active = selected === site.index;
       ctx.beginPath();
       ctx.arc(p.x, p.y, active || site.m13_graft ? 7 : 5, 0, Math.PI * 2);
-      ctx.fillStyle = site.index === 0 ? "#266FB1" : site.index === sites.length - 1 ? "#C45C12" : "#242220";
+      ctx.fillStyle =
+        site.index === 0
+          ? studioVar("--studio-blue", "#266FB1")
+          : site.index === sites.length - 1
+            ? studioVar("--studio-accent", "#C45C12")
+            : studioVar("--studio-helix-marker", "#242220");
       if (site.m13_graft || active) ctx.fillStyle = "#FF8000";
       ctx.fill();
       if (site.m13_graft) {
-        ctx.strokeStyle = "#242220";
+        ctx.strokeStyle = studioVar("--studio-helix-marker", "#242220");
         ctx.lineWidth = 1.5;
         ctx.stroke();
       }
-      ctx.fillStyle = "#5C564E";
+      ctx.fillStyle = studioVar("--studio-muted", "#5C564E");
       ctx.font = interCanvasFont(11);
       ctx.fillText(site.m13_graft ? `${site.index} m13` : String(site.index), p.x + 8, p.y - 6);
     });
 
-    ctx.fillStyle = "#8A8175";
+    ctx.fillStyle = studioVar("--studio-helix-label", "#8A8175");
     ctx.font = interCanvasFont(11);
     ctx.fillText("drag to rotate · pixel distance is not Å · dashed lines are graft chords · 0 is the SpyCatcher side", 16, height - 12);
-  }, [scene, selected]);
+  }, [scene, selected, theme]);
 
   useEffect(() => {
     paint();
@@ -183,7 +195,7 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onDoubleClick={onDoubleClick}
-      className="h-[320px] w-full touch-none rounded-xl border border-[#E3D9CC] bg-[#F7F1E8] md:h-[420px]"
+      className="h-[320px] w-full touch-none rounded-xl border border-studio-border bg-studio-helix-bg md:h-[420px]"
     />
   );
 }

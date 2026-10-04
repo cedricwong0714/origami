@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — 2026-10-04 (studio dark mode)
+
+### Added
+- Dark mode for the Next.js studio. The page background uses grey `#242220`. Cards, borders, charts, and the 2D helix canvas follow the same theme tokens. A Light/Dark toggle in the navigation bar saves the choice in `localStorage`.
+
 ## Unreleased — 2026-10-04 (length sweep)
 
 ### Added

@@ -259,56 +259,56 @@ function lengthView(
 function LengthCard({ view }: { view: LengthView }) {
   const stateClass =
     view.kind === "not_fit"
-      ? "text-[#C45C12]"
+      ? "text-studio-accent"
       : view.kind === "fail" || view.kind === "conflict"
-        ? "text-[#9B2C2C]"
-        : "text-[#242220]";
+        ? "text-destructive"
+        : "text-studio-foreground";
   const shell =
     view.kind === "not_fit"
-      ? "flex h-full flex-col rounded-2xl border border-dashed border-[#C45C12]/40 bg-white p-5 md:p-6"
-      : "flex h-full flex-col rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-6";
+      ? "flex h-full flex-col rounded-2xl border border-dashed border-[#C45C12]/40 bg-studio-card p-5 md:p-6"
+      : "flex h-full flex-col rounded-2xl border border-studio-border bg-studio-card p-5 md:p-6";
   return (
     <article className={shell}>
-      <p className="text-xs font-semibold tracking-[0.16em] text-[#8A8175] uppercase">n = {view.nRepeats}</p>
-      <p className="mt-5 text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">State</p>
+      <p className="text-xs font-semibold tracking-[0.16em] text-studio-label uppercase">n = {view.nRepeats}</p>
+      <p className="mt-5 text-xs font-medium tracking-[0.14em] text-studio-label uppercase">State</p>
       <h3 className={`mt-1 font-heading text-3xl font-semibold tracking-tight ${stateClass}`}>{view.stateWord}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{view.stateSpeech}</p>
+      <p className="mt-2 text-sm leading-relaxed text-studio-muted">{view.stateSpeech}</p>
       {view.lengthNote ? (
-        <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">{view.lengthNote}</p>
+        <p className="mt-2 text-sm leading-relaxed text-studio-muted">{view.lengthNote}</p>
       ) : null}
-      <dl className="mt-6 space-y-5 border-t border-[#E3D9CC] pt-5">
+      <dl className="mt-6 space-y-5 border-t border-studio-border pt-5">
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Calculated melt</dt>
-          <dd className="mt-1 font-heading text-2xl font-semibold tabular-nums text-[#242220]">{view.tmText}</dd>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Calculated melt</dt>
+          <dd className="mt-1 font-heading text-2xl font-semibold tabular-nums text-studio-foreground">{view.tmText}</dd>
           {view.paperTmText ? (
-            <p className="mt-1 text-sm text-[#8A8175]">{view.paperTmText}</p>
+            <p className="mt-1 text-sm text-studio-label">{view.paperTmText}</p>
           ) : null}
         </div>
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">95% band</dt>
-          <dd className="mt-1 text-base font-medium tabular-nums text-[#242220]">{view.bandText}</dd>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">95% band</dt>
+          <dd className="mt-1 text-base font-medium tabular-nums text-studio-foreground">{view.bandText}</dd>
           {view.bandSpeech ? (
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{view.bandSpeech}</p>
+            <p className="mt-1 text-sm leading-relaxed text-studio-muted">{view.bandSpeech}</p>
           ) : null}
         </div>
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-[#8A8175] uppercase">Calculated ΔG</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Calculated ΔG</dt>
           <dd
             className={
               view.deltaGText === "Not determined" || view.deltaGText === "Not printed"
-                ? "mt-1 text-base font-medium text-[#5C564E]"
-                : "mt-1 text-base font-medium tabular-nums text-[#242220]"
+                ? "mt-1 text-base font-medium text-studio-muted"
+                : "mt-1 text-base font-medium tabular-nums text-studio-foreground"
             }
           >
             {view.deltaGText}
           </dd>
           {view.deltaGBandText ? (
-            <p className="mt-1 text-sm tabular-nums text-[#242220]">95% band: {view.deltaGBandText}</p>
+            <p className="mt-1 text-sm tabular-nums text-studio-foreground">95% band: {view.deltaGBandText}</p>
           ) : null}
           {view.paperDeltaGText ? (
-            <p className="mt-1 text-sm text-[#8A8175]">{view.paperDeltaGText}</p>
+            <p className="mt-1 text-sm text-studio-label">{view.paperDeltaGText}</p>
           ) : null}
-          <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{view.deltaGSpeech}</p>
+          <p className="mt-1 text-sm leading-relaxed text-studio-muted">{view.deltaGSpeech}</p>
         </div>
       </dl>
     </article>
@@ -337,24 +337,24 @@ function FitSummary({
   const points = fit.n_repeats.length > 0 ? `Fit on n = ${fit.n_repeats.join(", ")}.` : "No points were fit.";
   return (
     <div className="mt-4">
-      <h3 className="text-sm font-semibold text-[#242220]">{title}</h3>
+      <h3 className="text-sm font-semibold text-studio-foreground">{title}</h3>
       {omitCoefficients ? null : fit.equation ? (
-        <p className="mt-1 font-heading text-sm text-[#242220]">{fit.equation}</p>
+        <p className="mt-1 font-heading text-sm text-studio-foreground">{fit.equation}</p>
       ) : null}
-      <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{points}</p>
+      <p className="mt-1 text-sm leading-relaxed text-studio-muted">{points}</p>
       {omitCoefficients ? (
-        <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+        <p className="mt-2 text-sm leading-relaxed text-studio-muted">
           The saturating coefficients are non-identifiable and are not shown as fitted values.
         </p>
       ) : parameterLine(fit).length > 0 ? (
-        <ul className="mt-2 space-y-1 text-sm tabular-nums text-[#3F3A34]">
+        <ul className="mt-2 space-y-1 text-sm tabular-nums text-studio-foreground">
           {parameterLine(fit).map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
       ) : null}
       {fit.warnings.map((warning) => (
-        <p key={warning} className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+        <p key={warning} className="mt-2 text-sm leading-relaxed text-studio-muted">
           {warning}
         </p>
       ))}
@@ -463,11 +463,11 @@ export function StabilityBoard() {
       <StudioNav />
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-semibold tracking-[0.22em] text-[#C45C12] uppercase">Stability</p>
-          <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-[#242220] md:text-5xl">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">Stability</p>
+          <h1 className="mt-2 font-heading text-4xl leading-[1.1] font-semibold tracking-tight text-studio-foreground md:text-5xl">
             Melting temperature
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-[#5C564E]">
+          <p className="mt-3 text-[15px] leading-relaxed text-studio-muted">
             The curve is melting temperature versus scaffold length. Run a repeat
             count to read that length on the curve. Pass means the calculated melt
             is above 37 °C, so the scaffold model is still folded at an E. coli
@@ -477,20 +477,20 @@ export function StabilityBoard() {
           </p>
           <Link
             href="/stability/calculator"
-            className="mt-4 inline-block text-sm font-medium text-[#C45C12] underline decoration-[#E3D9CC] underline-offset-4 hover:decoration-[#C45C12]"
+            className="mt-4 inline-block text-sm font-medium text-studio-accent underline decoration-studio-border underline-offset-4 hover:decoration-studio-accent"
           >
             Estimate ΔG at other temperatures
           </Link>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge
-            className="rounded-full bg-[#242220] text-white"
+            className="rounded-full bg-studio-button text-studio-button-text"
             title="Calculated from a published length fit. Not measured on this fusion."
           >
             Not a lab measurement
           </Badge>
           {data?.source === "live" ? (
-            <Badge variant="outline" className="border-[#266FB1] text-[#266FB1]">
+            <Badge variant="outline" className="border-studio-blue text-studio-blue">
               live model
             </Badge>
           ) : null}
@@ -498,16 +498,16 @@ export function StabilityBoard() {
         </div>
       </header>
 
-      <section className="mt-10 rounded-2xl border border-[#E3D9CC] bg-white p-5 md:p-8" aria-label="Inputs">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Inputs</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+      <section className="mt-10 rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
+        <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-studio-muted">
           37 °C is the assay line on the curve. It is an E. coli operating temperature, not a DSC setpoint. The dashed line on the plot is that cutoff.
         </p>
         <div className="mt-6 flex flex-wrap items-end gap-3">
-          <label className="text-sm font-medium text-[#242220]">
+          <label className="text-sm font-medium text-studio-foreground">
             Repeat count
             <input
-              className="mt-1 block h-11 w-28 rounded-lg border border-[#E3D9CC] px-3"
+              className="mt-1 block h-11 w-28 rounded-lg border border-studio-border px-3"
               type="number"
               min={3}
               max={24}
@@ -517,32 +517,32 @@ export function StabilityBoard() {
           </label>
           <button
             type="button"
-            className="h-11 rounded-full bg-[#242220] px-5 text-sm text-white disabled:opacity-50"
+            className="h-11 rounded-full bg-studio-button px-5 text-sm text-studio-button-text disabled:opacity-50"
             onClick={() => void runLength()}
             disabled={running}
           >
             {running ? "Running…" : "Run melting temperature"}
           </button>
         </div>
-        {runError ? <p className="mt-3 text-sm text-[#9B2C2C]">{runError}</p> : null}
+        {runError ? <p className="mt-3 text-sm text-destructive">{runError}</p> : null}
         {predicted ? (
-          <dl className="mt-6 grid gap-4 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4 text-sm sm:grid-cols-2">
+          <dl className="mt-6 grid gap-4 rounded-xl border border-studio-border bg-studio-surface p-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-[#8A8278]">n</dt>
+              <dt className="text-studio-label">n</dt>
               <dd className="font-mono text-lg">{predicted.n_repeats}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">State at 37 °C</dt>
+              <dt className="text-studio-label">State at 37 °C</dt>
               <dd>{predicted.thermal_state}</dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Calculated melt</dt>
+              <dt className="text-studio-label">Calculated melt</dt>
               <dd className="font-mono">
                 {predicted.tm_C === null ? "Not determined" : `${predicted.tm_C.toFixed(2)} °C`}
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">95% band</dt>
+              <dt className="text-studio-label">95% band</dt>
               <dd className="font-mono">
                 {predicted.tm_interval_low === null || predicted.tm_interval_high === null
                   ? "Not reported"
@@ -550,7 +550,7 @@ export function StabilityBoard() {
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">Calculated ΔG</dt>
+              <dt className="text-studio-label">Calculated ΔG</dt>
               <dd className="font-mono">
                 {predicted.delta_g === null
                   ? "Not determined"
@@ -558,7 +558,7 @@ export function StabilityBoard() {
               </dd>
             </div>
             <div>
-              <dt className="text-[#8A8278]">ΔG 95% band</dt>
+              <dt className="text-studio-label">ΔG 95% band</dt>
               <dd className="font-mono">
                 {predicted.delta_g_band_95_low === null || predicted.delta_g_band_95_high === null
                   ? "Not reported"
@@ -566,10 +566,10 @@ export function StabilityBoard() {
               </dd>
             </div>
             {predicted.length_note ? (
-              <p className="sm:col-span-2 text-[#5C564E]">{predicted.length_note}</p>
+              <p className="sm:col-span-2 text-studio-muted">{predicted.length_note}</p>
             ) : null}
             {predicted.past_longest_cited_length ? (
-              <p className="sm:col-span-2 text-[#5C564E]">
+              <p className="sm:col-span-2 text-studio-muted">
                 This count is past the longest length in the paper. The number is the length model outside that range.
               </p>
             ) : null}
@@ -577,13 +577,13 @@ export function StabilityBoard() {
         ) : null}
 
         {canonicalCopy ? (
-          <div className="mt-8 rounded-xl border border-[#E3D9CC] bg-[#FBF8F3] p-4">
-            <h3 className="text-sm font-semibold text-[#242220]">{canonicalCopy.title}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-[#5C564E]">{canonicalCopy.detail}</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#6F675C]">
+          <div className="mt-8 rounded-xl border border-studio-border bg-studio-surface p-4">
+            <h3 className="text-sm font-semibold text-studio-foreground">{canonicalCopy.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-studio-muted">{canonicalCopy.detail}</p>
+            <p className="mt-2 text-sm leading-relaxed text-studio-muted">
               {canonicalCopy.citation}{" "}
               <a
-                className="underline decoration-[#E3D9CC] underline-offset-4 hover:decoration-[#C45C12]"
+                className="underline decoration-studio-border underline-offset-4 hover:decoration-studio-accent"
                 href={`https://doi.org/${canonicalCopy.doi}`}
               >
                 DOI {canonicalCopy.doi}
@@ -593,31 +593,31 @@ export function StabilityBoard() {
           </div>
         ) : null}
 
-        <div className="mt-8 grid gap-8 border-t border-[#E3D9CC] pt-8 md:grid-cols-2">
+        <div className="mt-8 grid gap-8 border-t border-studio-border pt-8 md:grid-cols-2">
           <div>
-            <h3 className="text-sm font-semibold text-[#242220]">Repeat counts</h3>
+            <h3 className="text-sm font-semibold text-studio-foreground">Repeat counts</h3>
             <ul className="mt-3 flex flex-wrap gap-2" aria-label="Lengths being confirmed (fixed, not selectable)">
               {TEAM_LENGTHS.map((n) => (
                 <li
                   key={n}
-                  className="rounded-full border border-[#E3D9CC] bg-[#FBF8F3] px-4 py-2.5 text-sm font-medium text-[#242220]"
+                  className="rounded-full border border-studio-border bg-studio-surface px-4 py-2.5 text-sm font-medium text-studio-foreground"
                 >
                   n = {n}
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
+            <p className="mt-3 text-sm leading-relaxed text-studio-muted">
               n = 3, 8, and 14 are the lengths planned for the build. The curve above is every count from 3 to 24.
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-[#242220]">Comparison temperature</h3>
-            <p className="mt-3 font-heading text-4xl font-semibold tabular-nums tracking-tight text-[#242220]">37 °C</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#5C564E]">
+            <h3 className="text-sm font-semibold text-studio-foreground">Comparison temperature</h3>
+            <p className="mt-3 font-heading text-4xl font-semibold tabular-nums tracking-tight text-studio-foreground">37 °C</p>
+            <p className="mt-2 text-sm leading-relaxed text-studio-muted">
               This is an E. coli operating assumption, not a temperature from the papers.
             </p>
             {data && data.t_assay_C !== COMPARISON_C ? (
-              <p className="mt-3 text-sm leading-relaxed text-[#9B2C2C]">
+              <p className="mt-3 text-sm leading-relaxed text-destructive">
                 The loaded lookup reports {formatMeasure(data.t_assay_C)} °C, which is not the 37 °C comparison on this page.
               </p>
             ) : null}
@@ -626,9 +626,9 @@ export function StabilityBoard() {
       </section>
 
       {curve && curve.some((point) => point.tm_C !== null) ? (
-        <section className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white p-5" aria-label="Melting temperature versus length">
+        <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-5" aria-label="Melting temperature versus length">
           <h2 className="font-heading text-2xl font-semibold">Melt versus repeat count</h2>
-          <p className="mt-2 max-w-2xl text-sm text-[#5C564E]">
+          <p className="mt-2 max-w-2xl text-sm text-studio-muted">
             Orange is the calculated melt. Grey lines are the 95% band of the fit. Blue is 37 °C. A vertical mark is the length you just ran.
           </p>
           <SeriesChart
@@ -662,32 +662,32 @@ export function StabilityBoard() {
       ) : null}
 
       <section className="mt-12" aria-label="Results">
-        <h2 className="font-heading text-2xl font-semibold tracking-tight text-[#242220]">Planned lengths</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#5C564E]">
+        <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Planned lengths</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-studio-muted">
           The same curve, read at n = 3, n = 8, and n = 14.
         </p>
-        {data?.note ? <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#6F675C]">{data.note}</p> : null}
+        {data?.note ? <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">{data.note}</p> : null}
 
         {loading ? (
-          <p className="mt-8 flex items-center gap-2 text-sm text-[#8A8175]">
+          <p className="mt-8 flex items-center gap-2 text-sm text-studio-label">
             <Loader2 className="animate-spin" /> Loading the calculated melting temperatures…
           </p>
         ) : null}
 
         {error ? (
-          <div className="mt-8 rounded-2xl border border-[#E3D9CC] bg-white px-5 py-6">
-            <p className="flex items-start gap-2 text-sm text-[#9B2C2C]">
+          <div className="mt-8 rounded-2xl border border-studio-border bg-studio-card px-5 py-6">
+            <p className="flex items-start gap-2 text-sm text-destructive">
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
               <span>{error}</span>
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-[#5C564E]">
+            <p className="mt-3 text-sm leading-relaxed text-studio-muted">
               No melting temperatures are shown. This screen does not fill in example values when the papers cannot be loaded.
             </p>
           </div>
         ) : null}
 
         {data && !hasRows ? (
-          <p className="mt-8 rounded-2xl border border-dashed border-[#E3D9CC] bg-white px-5 py-6 text-sm leading-relaxed text-[#5C564E]">
+          <p className="mt-8 rounded-2xl border border-dashed border-studio-border bg-studio-card px-5 py-6 text-sm leading-relaxed text-studio-muted">
             The lookup loaded, and it has no rows for n = 3, n = 8, or n = 14. The lengths below stay empty.
           </p>
         ) : null}
@@ -695,7 +695,7 @@ export function StabilityBoard() {
         {data && hasRows ? (
           <div className="mt-6 space-y-6">
             {fit ? (
-              <div className="rounded-2xl border border-[#E3D9CC] bg-[#FBF8F3] p-5 md:p-8">
+              <div className="rounded-2xl border border-studio-border bg-studio-surface p-5 md:p-8">
                 <div className="grid gap-4 md:grid-cols-2">
                   <FitSummary fit={fit.tm} title="Calculated melt" />
                   <FitSummary
