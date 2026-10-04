@@ -16,8 +16,11 @@ def test_docking_chord_does_not_invent_a_radius():
     docking = evaluate_docking(8)
     assert docking["calibrated"] is False
     assert docking["clash_computable"] is False
-    assert docking["indices"] == [0, 2]
-    assert docking["chord_A"] == pytest.approx(24.27, rel=1e-2)
+    # n=8 M13 graft is repeat 4 (index 3). Chord is the deposited screw
+    # between the N-terminal site and that graft, not a payload radius.
+    assert docking["indices"] == [0, 3]
+    assert docking["indices_source"] == "n_terminus_and_named_graft_or_c_terminus"
+    assert docking["chord_A"] == pytest.approx(34.05, rel=1e-2)
     assert "p_clash" not in docking
     assert "c_eff_M" not in docking
 
