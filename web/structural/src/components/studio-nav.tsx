@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -50,7 +51,16 @@ export function StudioNav() {
   return (
     <div className="mb-6 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs font-medium tracking-[0.18em] text-studio-label uppercase">ORIGAMI studio</p>
+        <Link href="/" className="inline-flex items-center" aria-label="ORIGAMI home">
+          <Image
+            src="/origami-wordmark.png"
+            alt="ORIGAMI"
+            width={440}
+            height={128}
+            className="h-10 w-auto sm:h-12"
+            priority
+          />
+        </Link>
         <ThemeToggle />
       </div>
       <nav className="flex flex-wrap gap-2" aria-label="SSDK">
