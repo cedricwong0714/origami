@@ -4,7 +4,7 @@ import { DesignBoard } from "@/components/design-board";
 export const metadata: Metadata = {
   title: "Choose a length · ORIGAMI",
   description:
-    "Score every scaffold length from 3 to 24 for melt, association, LgBiT–SmBiT occupancy, SpyCatcher–SpyTag half-life, and clash.",
+    "Score every scaffold length from 3 to 24 for folding, end-to-end binding, the light reporter, the Spy lock, and overlap.",
 };
 
 export default function DesignPage() {

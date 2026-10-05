@@ -232,9 +232,9 @@ function lengthView(
     stateWord: passed ? "Pass" : failed ? "Fail" : row.thermal_state,
     stateSpeech: usesFit
       ? passed
-        ? `The comparison uses the fit. The calculated melt is above ${formatMeasure(assayC)} °C.`
+        ? `The comparison uses the fit. The calculated melting temperature is above ${formatMeasure(assayC)} °C.`
         : failed
-          ? `The comparison uses the fit. The calculated melt is not above ${formatMeasure(assayC)} °C.`
+          ? `The comparison uses the fit. The calculated melting temperature is not above ${formatMeasure(assayC)} °C.`
           : (row.thermal_reason ?? "The comparison uses the fit.")
       : passed
         ? `The cited melt is above ${formatMeasure(assayC)} °C.`
@@ -279,21 +279,21 @@ function LengthCard({ view }: { view: LengthView }) {
       ) : null}
       <dl className="mt-6 space-y-5 border-t border-studio-border pt-5">
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Calculated melt</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Calculated melting temperature</dt>
           <dd className="mt-1 font-heading text-2xl font-semibold tabular-nums text-studio-foreground">{view.tmText}</dd>
           {view.paperTmText ? (
             <p className="mt-1 text-sm text-studio-label">{view.paperTmText}</p>
           ) : null}
         </div>
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">95% band</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">95% range</dt>
           <dd className="mt-1 text-base font-medium tabular-nums text-studio-foreground">{view.bandText}</dd>
           {view.bandSpeech ? (
             <p className="mt-1 text-sm leading-relaxed text-studio-muted">{view.bandSpeech}</p>
           ) : null}
         </div>
         <div>
-          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Calculated ΔG</dt>
+          <dt className="text-xs font-medium tracking-[0.14em] text-studio-label uppercase">Unfolding energy (ΔG)</dt>
           <dd
             className={
               view.deltaGText === "Not determined" || view.deltaGText === "Not printed"
@@ -469,34 +469,34 @@ export function StabilityBoard() {
             Will this length stay folded?
           </h1>
           <PageGuide
-            intro="This page estimates melting temperature from scaffold length. Use it to check whether a repeat count is still folded at 37 °C."
+            intro="Proteins unfold when it gets hot enough. This page estimates that unfolding temperature from how many repeats are in the scaffold, then checks it against 37 °C (a typical E. coli working temperature)."
             steps={[
-              "Type a repeat count from 3 to 24.",
+              "Type a repeat count from 3 to 24. n is how many protein units are in the chain.",
               "Click Run.",
-              "Read the melt, the 95% band, and pass or fail.",
+              "Read the melting temperature, the range, and pass or fail.",
               "The orange curve is every length. The vertical line is the one you just ran.",
             ]}
             read={[
-              "Melting temperature is the model’s estimate of the unfold point, in °C. Higher sits further above the assay.",
+              "Melting temperature is where half the protein unfolds, in °C. Higher sits further above 37 °C.",
               "The grey lines are the 95% range of that fit. A wide band means the fit is less sure.",
-              "Unfolding ΔG is the length-model energy at the paper’s 10 °C anchor. It is not a temperature correction.",
-              "Pass means the calculated melt is above 37 °C.",
+              "Unfolding energy (ΔG) is how much the fold is favored at 10 °C, the paper’s listed temperature. It is not a correction to 37 °C.",
+              "Pass means the calculated melting temperature is above 37 °C.",
             ]}
             rules={[
               "37 °C is an E. coli working temperature. It is not a temperature from the DSC paper.",
               "Lengths the paper did not measure, including n = 14, are the same curve extended.",
-              "The fit is Phillips et al. 2012 CTPRa DSC.",
+              "The fit is Phillips et al. 2012 CTPRa, measured by DSC.",
             ]}
             next={[
               "If a length fails, do not build it for a 37 °C assay.",
-              "If it passes, open ΔG vs temperature when you need energy at another temperature.",
+              "If it passes, open Energy vs temperature when you need unfolding energy at another temperature.",
             ]}
           />
           <Link
             href="/stability/calculator"
             className="mt-4 inline-block text-sm font-medium text-studio-accent underline decoration-studio-border underline-offset-4 hover:decoration-studio-accent"
           >
-            Estimate ΔG at other temperatures
+            Estimate unfolding energy at other temperatures
           </Link>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -504,21 +504,21 @@ export function StabilityBoard() {
             className="rounded-full bg-studio-button text-studio-button-text"
             title="Calculated from a published length fit. Not measured on this fusion."
           >
-            Not a lab measurement
+            Calculated, not measured
           </Badge>
           {data?.source === "live" ? (
             <Badge variant="outline" className="border-studio-blue text-studio-blue">
-              live model
+              live calculator
             </Badge>
           ) : null}
-          {data?.source === "snapshot" ? <Badge variant="outline">Saved file. API is down.</Badge> : null}
+          {data?.source === "snapshot" ? <Badge variant="outline">Using a saved file. The live calculator is down.</Badge> : null}
         </div>
       </header>
 
       <section className="mt-10 rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
         <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          The dashed line on the plot is 37 °C. That is the pass line.
+          The dashed line on the plot is 37 °C. That is the pass line: above it, the model still calls the protein folded.
         </p>
         <div className="mt-6 flex flex-wrap items-end gap-3">
           <label className="text-sm font-medium text-studio-foreground">
@@ -545,21 +545,21 @@ export function StabilityBoard() {
         {predicted ? (
           <dl className="mt-6 grid gap-4 rounded-xl border border-studio-border bg-studio-surface p-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-studio-label">n</dt>
+              <dt className="text-studio-label">Length (n)</dt>
               <dd className="font-mono text-lg">{predicted.n_repeats}</dd>
             </div>
             <div>
-              <dt className="text-studio-label">State at 37 °C</dt>
-              <dd>{predicted.thermal_state}</dd>
+              <dt className="text-studio-label">At 37 °C</dt>
+              <dd>{predicted.thermal_state === "pass" ? "Pass (still folded)" : predicted.thermal_state === "fail" ? "Fail (unfolds)" : predicted.thermal_state}</dd>
             </div>
             <div>
-              <dt className="text-studio-label">Calculated melt</dt>
+              <dt className="text-studio-label">Calculated melting temperature</dt>
               <dd className="font-mono">
                 {predicted.tm_C === null ? "Not determined" : `${predicted.tm_C.toFixed(2)} °C`}
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">95% band</dt>
+              <dt className="text-studio-label">95% range</dt>
               <dd className="font-mono">
                 {predicted.tm_interval_low === null || predicted.tm_interval_high === null
                   ? "Not reported"
@@ -567,7 +567,7 @@ export function StabilityBoard() {
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">Calculated ΔG</dt>
+              <dt className="text-studio-label">Unfolding energy (ΔG)</dt>
               <dd className="font-mono">
                 {predicted.delta_g === null
                   ? "Not determined"
@@ -575,7 +575,7 @@ export function StabilityBoard() {
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">ΔG 95% band</dt>
+              <dt className="text-studio-label">ΔG 95% range</dt>
               <dd className="font-mono">
                 {predicted.delta_g_band_95_low === null || predicted.delta_g_band_95_high === null
                   ? "Not reported"
@@ -587,7 +587,7 @@ export function StabilityBoard() {
             ) : null}
             {predicted.past_longest_cited_length ? (
               <p className="sm:col-span-2 text-studio-muted">
-                This count is past the longest length in the paper. The number is the length model outside that range.
+                This count is longer than the longest length in the paper. The number is the same fit, read outside that range.
               </p>
             ) : null}
           </dl>
@@ -644,9 +644,9 @@ export function StabilityBoard() {
 
       {curve && curve.some((point) => point.tm_C !== null) ? (
         <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-5" aria-label="Melting temperature versus length">
-          <h2 className="font-heading text-2xl font-semibold">Melt versus repeat count</h2>
+          <h2 className="font-heading text-2xl font-semibold">Melting temperature versus length</h2>
           <p className="mt-2 max-w-2xl text-sm text-studio-muted">
-            Orange: calculated melt. Grey: 95% range of the fit. Blue dashed line: 37 °C. Vertical mark: the length you just ran.
+            Orange: calculated melting temperature. Grey: 95% range of the fit. Blue dashed line: 37 °C. Vertical mark: the length you just ran.
           </p>
           <SeriesChart
             label="Calculated melting temperature versus repeat count, with a 37 °C assay line"
@@ -714,10 +714,10 @@ export function StabilityBoard() {
             {fit ? (
               <div className="rounded-2xl border border-studio-border bg-studio-surface p-5 md:p-8">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <FitSummary fit={fit.tm} title="Calculated melt" />
+                  <FitSummary fit={fit.tm} title="Calculated melting temperature" />
                   <FitSummary
                     fit={fit.delta_g}
-                    title="Calculated ΔG"
+                    title="Calculated unfolding energy"
                     omitCoefficients={hideSaturatingDeltaG}
                   />
                 </div>

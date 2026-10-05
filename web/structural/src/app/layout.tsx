@@ -12,9 +12,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ORIGAMI structural analysis",
+  title: "ORIGAMI studio",
   description:
-    "SSDK studio: structural analysis, stability confirmation, docking verification, and kinetic modelling. Calculations, not lab measurements of this fusion.",
+    "Draw the scaffold, check folding, and see whether the two ends stay together. These are calculations, not lab measurements of this fusion.",
 };
 
 export default function RootLayout({

@@ -536,17 +536,17 @@ export function ThermoCalculator() {
             How stable is it at another temperature?
           </h1>
           <PageGuide
-            intro="This page turns a melting temperature into unfolding energy at the temperature you care about. Use it when 37 °C is not the only temperature you will run."
+            intro="Unfolding energy (ΔG) says how strongly the protein prefers to stay folded. At the melting temperature it is zero. This page estimates that energy at temperatures other than the melt, using numbers from the paper when they exist."
             steps={[
               "Pick a repeat count from 3 to 24.",
-              "Check the melt and the anchor energy. They fill in from the paper when a row exists, and from the length model when it does not.",
-              "Type ΔH and ΔCp only if you have them. Leave them blank if you do not.",
-              "Read ΔG at the melt first. It should be zero for a two-state unfold.",
+              "Check the melting temperature and the paper’s unfolding energy. They fill in from the table when a row exists, and from the length fit when it does not.",
+              "Type enthalpy (ΔH) and heat-capacity change (ΔCp) only if you have them. Leave them blank if you do not.",
+              "Read unfolding energy at the melt first. It should be zero for a two-state unfold.",
             ]}
             read={[
-              "ΔG is unfolding energy. At the melting temperature it is zero.",
-              "Away from the melt, the curve needs ΔH at the melt and a heat capacity change, ΔCp.",
-              "If you only have an anchor ΔG, the page can estimate an effective ΔH by assuming ΔCp is zero. That estimate is labeled as an assumption.",
+              "ΔG is unfolding energy. Positive means the fold is favored. At the melting temperature it is zero.",
+              "Away from the melt, the curve needs enthalpy at the melt (ΔH) and a heat-capacity change (ΔCp).",
+              "If you only have a listed unfolding energy, the page can estimate an effective enthalpy by assuming ΔCp is zero. That estimate is labeled as an assumption.",
               "With the stored heat-capacity values, calculated ΔG at 10 °C sits 0.5–5.0 kcal/mol above the printed number. That gap is still unexplained.",
             ]}
             rules={[
@@ -555,8 +555,8 @@ export function ThermoCalculator() {
               "These curves are calculations. They are not a melt of our fusion.",
             ]}
             next={[
-              "If ΔH and ΔCp are empty, do not treat the temperature curve as measured.",
-              "Use the melting-temperature page when you only need pass or fail at 37 °C.",
+              "If enthalpy and heat capacity are empty, do not treat the temperature curve as measured.",
+              "Use Stay folded? when you only need pass or fail at 37 °C.",
             ]}
           />
         </div>
@@ -564,7 +564,7 @@ export function ThermoCalculator() {
           className="rounded-full bg-studio-button text-studio-button-text"
           title="Calculated from published table values. Not measured on this fusion."
         >
-          Not a lab measurement
+          Calculated, not measured
         </Badge>
       </header>
 
@@ -572,7 +572,7 @@ export function ThermoCalculator() {
         <section className="rounded-2xl border border-studio-border bg-studio-card p-5 md:p-8" aria-label="Inputs">
           <h2 className="font-heading text-2xl font-semibold tracking-tight text-studio-foreground">Inputs</h2>
           <p className="mt-2 text-sm leading-relaxed text-studio-muted">
-            The melt and the anchor fill in for you. ΔH and ΔCp stay empty until you type them.
+            The melting temperature and the paper’s unfolding energy fill in for you. Enthalpy and heat capacity stay empty until you type them.
           </p>
 
           <div className="mt-8 rounded-xl border border-studio-border bg-studio-surface p-4">

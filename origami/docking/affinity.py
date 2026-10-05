@@ -123,8 +123,8 @@ def evaluate_affinity(
         "association_theta_at_c_eff_high": high,
         "association_holds": holds,
         "criterion": (
-            "The ends stay together when at least half of them are bound. "
-            "That happens when your Kd is at or below the local concentration. "
+            "The two ends stay together when at least half of them are bound. "
+            "That happens when your Kd is at or below how crowded the two ends are. "
             "Half-bound is the usual meaning of a Kd. It is not a cutoff from a paper."
         ),
         "nanobit_theta": nano_theta,
@@ -138,11 +138,11 @@ def evaluate_affinity(
         "equation": "theta = C_eff / (C_eff + Kd); Spy k_obs = k_on * C_eff",
         "verdict": _verdict(holds, theta, kd_M, c_eff, nano_theta, spy_half, drives_nano, drives_spy),
         "note": (
-            "One effective concentration, from the screw chord and the two radii, "
-            "is the local concentration of the tether. "
-            "LgBiT–SmBiT uses the printed Dixon Kd at that concentration. "
-            "SpyCatcher–SpyTag uses the Zakeri on-rate at that concentration. "
-            "Payload binding is not claimed when the association does not hold."
+            "One effective concentration, from the end-to-end distance and the two protein sizes, "
+            "is how crowded the two ends are. "
+            "The light reporter uses the published Dixon tightness at that crowding. "
+            "The Spy lock uses the Zakeri on-rate at that crowding. "
+            "Reporter and Spy scores are not claimed when the two ends do not stay together."
         ),
     }
 
@@ -262,18 +262,18 @@ def _verdict(
     spy_text = "not computed" if spy_half is None else f"{spy_half:.3e} s"
     if not holds:
         return (
-            f"Your Kd ({kd_M:.3e} M) is weaker than the local concentration ({c_eff:.3e} M). "
+            f"Your Kd ({kd_M:.3e} M) is weaker than how crowded the two ends are ({c_eff:.3e} M). "
             f"Only {theta:.0%} of the pairs stay together. "
-            "The reporter and the Spy lock are not driven at this length."
+            "The light reporter and the Spy lock are not driven at this length."
         )
     if drives_nano and drives_spy:
         return (
-            f"The ends stay together ({theta:.0%} bound). "
-            f"LgBiT–SmBiT occupancy is {nano_text}. "
-            f"SpyCatcher–SpyTag half-life is {spy_text}."
+            f"The two ends stay together ({theta:.0%} bound). "
+            f"Light reporter on-fraction is {nano_text}. "
+            f"Spy lock half-life is {spy_text}."
         )
     return (
-        f"The ends stay together ({theta:.0%} bound). "
-        f"LgBiT–SmBiT occupancy is {nano_text}, below half. "
-        f"SpyCatcher–SpyTag half-life is {spy_text}."
+        f"The two ends stay together ({theta:.0%} bound). "
+        f"Light reporter on-fraction is {nano_text}, below half. "
+        f"Spy lock half-life is {spy_text}."
     )

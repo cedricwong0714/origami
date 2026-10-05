@@ -29,8 +29,8 @@ from origami.priors import N_REPEATS_MAX, N_REPEATS_MIN
 from origami.stability.series import DEFAULT_OPERATING_TEMPERATURE_C
 
 _RANKING_RULE = (
-    "A length is marked when it stays folded at the assay temperature, "
-    "the two ends stay together, and the reporter occupancy is the highest in that group. "
+    "A length is marked when it stays folded at 37 °C, "
+    "the two ends stay together, and the light reporter is the most on in that group. "
     "A tie keeps the shorter scaffold. "
     "It is not a validated optimum."
 )
@@ -83,12 +83,12 @@ def sweep_lengths(
         "kd_M": next((point["kd_M"] for point in points if point["kd_M"] is not None), None),
         "graft_index": graft,
         "graft_rule": (
-            "Second docking site is the supplied graft index. "
-            "Lengths shorter than or equal to that index skip docking."
+            "Second docking site is the peptide position you typed. "
+            "Lengths shorter than or equal to that index skip end-to-end binding."
             if graft is not None
             else (
-                "Each length uses its named M13 graft. "
-                "A length without a named graft uses the C-terminal repeat."
+                "Each length uses its usual M13 peptide site. "
+                "A length without a named site uses the last repeat."
             )
         ),
         "ranking_rule": _RANKING_RULE,
@@ -97,10 +97,10 @@ def sweep_lengths(
         "any_length_drives_reporter": len(reporter) > 0,
         "points": points,
         "note": (
-            "Thermal numbers are one length fit evaluated at each n. "
-            "Docking numbers are the affinity check at that n. "
-            "A length past the longest cited melt is an extrapolation of the fit. "
-            "Payload occupancy is reported only when the association holds."
+            "Folding numbers are one length fit evaluated at each n. "
+            "Binding numbers are the tightness check at that n. "
+            "A length past the longest cited melt is the same fit, read outside that range. "
+            "Reporter on-fraction is reported only when the two ends stay together."
         ),
     }
 

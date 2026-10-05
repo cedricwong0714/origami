@@ -170,25 +170,25 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <header className="mb-8">
         <p className="text-sm uppercase tracking-wide text-studio-label">Kinetic modelling</p>
         <h1 className="mt-1 text-3xl font-semibold">
-          {pane === "spy" ? "How fast does SpyCatcher lock?" : pane === "nanobit" ? "Does LgBiT–SmBiT assemble?" : "How much of the sensor is bound?"}
+          {pane === "spy" ? "How fast does the Spy lock finish?" : pane === "nanobit" ? "Does the light reporter assemble in a tube?" : "How much of the sensor is bound?"}
         </h1>
         {pane === "spy" ? (
           <PageGuide
-            intro="This page runs the SpyCatcher–SpyTag lock in a well-mixed tube. Use it to see if the covalent link finishes during your assay."
+            intro="SpyCatcher and SpyTag form a covalent lock. This page runs that lock in a well-mixed tube, not on the scaffold, so you can see whether it finishes during your assay."
             steps={[
               "Check the on-rate. The published value is already filled in.",
               "Type the two concentrations you will actually mix.",
               "Click Run.",
-              "Read the adduct curve against time.",
+              "Read locked product versus time.",
             ]}
             read={[
               "The curve is locked product versus time.",
-              "A curve that levels off inside your assay window means the lock finishes in time.",
-              "A curve that is still climbing at the end of the plot needs a longer incubation or higher concentration.",
+              "If it levels off inside your assay window, the lock finishes in time.",
+              "If it is still climbing at the end of the plot, you need a longer wait or a higher concentration.",
             ]}
             rules={[
-              "The default path is one irreversible step. The reverse rate and the bond rate stay empty until you supply both.",
-              "This is a mixed solution. It is not the local concentration on the scaffold.",
+              "The default path is one irreversible step. Reverse and bond rates stay empty until you supply both.",
+              "This is a mixed solution. It is not the crowding between the two ends of the scaffold.",
             ]}
             next={[
               "If the lock is too slow here, it will be even slower on a long scaffold. Check Choose a length for the tethered half-life.",
@@ -196,7 +196,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           />
         ) : pane === "nanobit" ? (
           <PageGuide
-            intro="This page runs LgBiT and SmBiT binding in a well-mixed tube. Use it to see if the reporter assembles at the concentrations you will use."
+            intro="LgBiT and SmBiT are the two halves of the light reporter. This page asks whether they assemble in a well-mixed tube at the concentrations you will use."
             steps={[
               "Type the LgBiT and SmBiT concentrations.",
               "Click Run.",
@@ -204,39 +204,38 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             ]}
             read={[
               "The curve is reporter complex versus time.",
-              "The printed Kd is 190 μM. k_off divided by k_on is shown beside it and is not swapped in.",
+              "The published tightness is 190 μM. k_off ÷ k_on is shown beside it and is not swapped in.",
               "A low plateau means most of the protein stays apart at those concentrations.",
             ]}
             rules={[
               "This is reversible binding in free solution.",
-              "It does not use the scaffold’s local concentration. Docking does that.",
+              "It does not use the scaffold’s crowding. Will it bind? does that.",
             ]}
             next={[
-              "If free solution looks dark, the scaffold has to raise the local concentration a lot before the reporter turns on. Check Choose a length.",
+              "If free solution looks dark, the scaffold has to raise crowding a lot before the reporter turns on. Check Choose a length.",
             ]}
           />
         ) : (
           <PageGuide
-            intro="This page shows how much of the CaM–M13 sensor is bound at a free concentration you choose. Use it before you pick a working concentration."
+            intro="The CaM–M13 sensor sticks with a published tightness of 0.19 nM. This page shows how much of it is bound at a free concentration you choose. Use it before you pick a working concentration."
             steps={[
-              "Look at the filled-in Kd. Empty rate rows stay empty.",
+              "Look at the filled-in Kd. Empty rate rows stay empty until you measure them.",
               "Type a free concentration in molar.",
               "Click Run bound fraction.",
               "Find your concentration on the curve.",
             ]}
             read={[
-              "Bound fraction is free concentration divided by free concentration plus Kd.",
+              "Bound fraction = free concentration ÷ (free concentration + Kd). Near 1 means almost all sensor is bound. Near 0.5 means you are at the Kd. Near 0 means almost nothing is bound.",
               "The peptide Kd is 0.19 nM. The 80 nM fusion number is a different measurement and is not used here.",
               "The shaded range on the point comes from the uncertainty on that Kd.",
-              "Near 1 means the sensor is saturated. Near 0.5 means you are at the Kd. Near 0 means almost nothing is bound.",
             ]}
             rules={[
               "Higher free concentration binds more sensor.",
-              "This is well mixed. It is not the concentration between the two ends of the scaffold.",
+              "This is well mixed. It is not the crowding between the two ends of the scaffold.",
             ]}
             next={[
               "If you are on the steep part of the curve, small concentration errors will change the signal a lot.",
-              "Take a concentration you trust into the docking page if you want the scaffold version.",
+              "Take a concentration you trust into Will it bind? if you want the scaffold version.",
             ]}
           />
         )}
@@ -283,12 +282,12 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
 
       {pane === "bound" ? (
       <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
-        <h2 className="text-lg font-medium">Bound fraction</h2>
+        <h2 className="text-lg font-medium">How much is bound?</h2>
         <p className="mt-1 text-sm text-studio-muted">
-          Bound fraction = free concentration / (free concentration + Kd). The Kd here is the peptide value, 0.19 nM. Do not type the 80 nM fusion number into this box.
+          Bound fraction = free concentration ÷ (free concentration + Kd). The Kd here is the peptide value, 0.19 nM. Do not type the 80 nM fusion number into this box.
         </p>
         <label className="mt-4 block text-sm">
-          C<sub>free</sub> (M)
+          Free concentration (M)
           <input
             className="mt-1 w-full max-w-xs rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
             value={cFree}
@@ -321,7 +320,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             </div>
             <div>
               <dt className="text-studio-label">What this is</dt>
-              <dd>One point on the isotherm. Not a measurement on this fusion.</dd>
+              <dd>One point on the binding curve. Not a measurement on this fusion.</dd>
             </div>
           </dl>
         ) : null}
@@ -348,15 +347,15 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
 
       {pane === "nanobit" ? (
       <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
-        <h2 className="text-lg font-medium">LgBiT–SmBiT complex</h2>
+        <h2 className="text-lg font-medium">Light reporter complex</h2>
         <p className="mt-1 text-sm text-studio-muted">
           Type both starting concentrations. There is no default mix. The
           amount of complex at equilibrium uses Dixon et al. 2016
-          (DOI 10.1021/acschembio.5b00753). Printed Kd is 190 μM.
+          (DOI 10.1021/acschembio.5b00753). Published tightness is 190 μM.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
-            LgBiT<sub>0</sub> (M)
+            Starting LgBiT (M)
             <input
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={lg0}
@@ -365,7 +364,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             />
           </label>
           <label className="block text-sm">
-            SmBiT<sub>0</sub> (M)
+            Starting SmBiT (M)
             <input
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={sm0}
@@ -396,7 +395,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
               <dd className="font-mono">{nano.rates_used.kinetic_kd_M.toExponential(3)} M</dd>
             </div>
             <div>
-              <dt className="text-studio-label">Printed K<sub>d</sub></dt>
+              <dt className="text-studio-label">Published Kd</dt>
               <dd className="font-mono">{nano.rates_used.printed_kd_M.toExponential(3)} M</dd>
             </div>
           </dl>
@@ -423,12 +422,12 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       <section className="rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">Spy lock over time</h2>
         <p className="mt-1 text-sm text-studio-muted">
-          Default path: one irreversible step, adduct grows as k_on times Tag times Catcher. The starting k_on is{" "}
+          Default path: one irreversible step. Locked product grows as on-rate × Tag × Catcher. The starting on-rate is{" "}
           {spyOn ? formatVal(spyOn) : "the Zakeri 2012 rate"}. Leave the reverse and bond boxes empty. Filling both switches the model to reversible binding plus an irreversible lock.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
-            Tag<sub>0</sub> (M)
+            Starting SpyTag (M)
             <input
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={tag0}
@@ -436,7 +435,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
             />
           </label>
           <label className="block text-sm">
-            Catcher<sub>0</sub> (M)
+            Starting SpyCatcher (M)
             <input
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={catcher0}
@@ -485,20 +484,20 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
               <dd className="font-mono">{cov.rates_used.path}</dd>
             </div>
             <div>
-              <dt className="text-studio-label">k_on used</dt>
+              <dt className="text-studio-label">On-rate used</dt>
               <dd className="font-mono">
                 {cov.rates_used.spy_k_on_per_M_s.toExponential(2)} M⁻¹ s⁻¹
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">Final adduct</dt>
+              <dt className="text-studio-label">Final locked product</dt>
               <dd className="font-mono">
                 {cov.series.adduct_M[cov.series.adduct_M.length - 1].toExponential(3)} M
               </dd>
             </div>
             <div>
               <dt className="text-studio-label">What this is</dt>
-              <dd>The ODE at the concentrations you typed. Not a measurement on this fusion.</dd>
+              <dd>The time course at the concentrations you typed. Not a measurement on this fusion.</dd>
             </div>
           </dl>
         ) : null}

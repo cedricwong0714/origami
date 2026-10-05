@@ -68,13 +68,13 @@ function comparisonCsv(data: PredictResponse): string {
 
 function captionFor(data: PredictResponse): string {
   const bits = data.constructs.map((row) => {
-    return `n=${row.n_repeats}: straight-line end distance ${fmt(row.end_junction.chord_A, 1)} Å (95% ${fmt(row.end_junction.chord_95_low_A, 1)}–${fmt(row.end_junction.chord_95_high_A, 1)} Å), facing ${fmt(row.end_junction.facing_cosine, 2)} (1 = same way, −1 = opposite)`;
+    return `n=${row.n_repeats}: straight-line end distance ${fmt(row.end_junction.chord_A, 1)} Å (range ${fmt(row.end_junction.chord_95_low_A, 1)}–${fmt(row.end_junction.chord_95_high_A, 1)} Å), direction score ${fmt(row.end_junction.facing_cosine, 2)} (1 = same way, −1 = opposite)`;
   });
   return [
-    "Figure. End-to-end distances on the CTPR screw for the lengths you selected. SpyCatcher, linkers, and LgBiT are outside these chord numbers.",
-    "Fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).",
+    "Figure. End-to-end distances on the CTPR scaffold for the lengths you selected. SpyCatcher, the linker, and LgBiT are outside these numbers.",
+    "Fit to published backbone coordinates in PDB 2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).",
     bits.join(". ") + ".",
-    "The shaded band is the spread among those crystal structures. It is not a fold of our fusion construct and not wet-lab data.",
+    "The shaded band is how much those crystal structures disagree. This is not a fold of our fusion and not wet-lab data.",
   ].join(" ");
 }
 
@@ -265,28 +265,28 @@ export function DataBoard() {
             Structural analysis · compare lengths
           </p>
           <h1 className="mt-2 font-heading text-4xl text-studio-foreground md:text-5xl">
-            How far apart are the ends?
+            How far apart are the two ends?
           </h1>
           <PageGuide
-            intro="This page compares end-to-end distance across scaffold lengths. Use it when you want the geometry, without the binding scores."
+            intro="This page puts several scaffold lengths on one chart. It shows geometry only: how far the two ends sit. It does not score folding or binding."
             steps={[
-              "The chart starts with n = 3, 8, and 14.",
-              "Add another count from 3 to 24, or click a chip to remove it.",
+              "The chart starts with n = 3, 8, and 14 (the lengths we plan to build).",
+              "Type another count from 3 to 24 to add it, or click a chip to remove it.",
               "Read the dark bar and the orange bar for each length.",
             ]}
             read={[
-              "Dark bar: distance along the screw axis.",
-              "Orange bar: straight-line distance between the ends. Docking uses this as the chord.",
-              "Blue whisker: the spread among the three crystal structures.",
-              "A longer scaffold usually increases both bars. Check the chart instead of assuming that.",
+              "Dark bar: distance along the helix axis (walking along the screw).",
+              "Orange bar: straight-line jump between the two ends. Binding uses this distance.",
+              "Blue whisker: how much the published crystal structures disagree.",
+              "A longer scaffold usually makes both bars taller. Check the chart instead of assuming that.",
             ]}
             rules={[
               "These distances come from published CTPR crystals.",
-              "They are not a measurement of our fusion.",
+              "They are not a measurement of our fusion protein.",
             ]}
             next={[
-              "If the orange bar looks short, open Docking and check clash.",
-              "If you also care about folding and the reporter, open Choose a length.",
+              "If the orange bar looks short, open Will it bind? and check whether the two ends bump.",
+              "If you also care about folding and the light reporter, open Choose a length.",
             ]}
           />
         </div>
@@ -295,10 +295,10 @@ export function DataBoard() {
             className="rounded-full bg-studio-button text-studio-button-text"
             title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
-            Not a lab measurement
+            Calculated, not measured
           </Badge>
-          {data?.source === "live" ? <Badge variant="outline">live model</Badge> : null}
-          {data?.source === "snapshot" ? <Badge variant="outline">Saved file. API is down.</Badge> : null}
+          {data?.source === "live" ? <Badge variant="outline">live calculator</Badge> : null}
+          {data?.source === "snapshot" ? <Badge variant="outline">Using a saved file. The live calculator is down.</Badge> : null}
         </div>
       </header>
 
@@ -331,7 +331,7 @@ export function DataBoard() {
 
       {loading ? (
         <p className="mt-10 flex items-center gap-2 text-sm text-studio-label">
-          <Loader2 className="animate-spin" /> Loading measurements…
+          <Loader2 className="animate-spin" /> Loading distances…
         </p>
       ) : null}
       {error ? (
@@ -344,7 +344,7 @@ export function DataBoard() {
         <div className="mt-8 space-y-6">
           <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="font-heading text-2xl">End separation</CardTitle>
+              <CardTitle className="font-heading text-2xl">End-to-end distance</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" type="button" onClick={download}>
                   <Download /> Download CSV
@@ -354,7 +354,7 @@ export function DataBoard() {
             <CardContent>
               <ChordChart data={data} />
               <p className="mt-2 text-xs text-studio-label">
-                Heights are in Å. Orange minus dark is the bow: how far the helix leaves a straight axis. The whisker is only on the straight-line distance.
+                Heights are in ångströms. Orange minus dark is extra length from the curve. The whisker is only on the straight-line bar.
               </p>
             </CardContent>
           </Card>
@@ -364,15 +364,15 @@ export function DataBoard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>n</TableHead>
-                  <TableHead>regime</TableHead>
-                  <TableHead>contour</TableHead>
-                  <TableHead>end chord</TableHead>
-                  <TableHead>95% band</TableHead>
-                  <TableHead>bow</TableHead>
-                  <TableHead>facing</TableHead>
-                  <TableHead>m13</TableHead>
-                  <TableHead>graft to N / C</TableHead>
-                  <TableHead>near both ends</TableHead>
+                  <TableHead>shape</TableHead>
+                  <TableHead>path length</TableHead>
+                  <TableHead>straight-line</TableHead>
+                  <TableHead>range</TableHead>
+                  <TableHead>extra from curve</TableHead>
+                  <TableHead>same direction?</TableHead>
+                  <TableHead>M13 site</TableHead>
+                  <TableHead>peptide to N / C</TableHead>
+                  <TableHead>close to both ends</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -383,7 +383,7 @@ export function DataBoard() {
                   return (
                     <TableRow key={row.n_repeats}>
                       <TableCell className="font-medium">{row.n_repeats}</TableCell>
-                      <TableCell>{row.rigid_screw ? "rigid screw" : "past 15 nm cutoff"}</TableCell>
+                      <TableCell>{row.rigid_screw ? "stiff helix" : "past 15 nm cutoff"}</TableCell>
                       <TableCell>{fmt(row.contour_nm, 3)} nm</TableCell>
                       <TableCell>{fmt(row.end_junction.chord_A, 2)} Å</TableCell>
                       <TableCell>
@@ -394,12 +394,12 @@ export function DataBoard() {
                       <TableCell>
                         {row.m13_graft
                           ? `repeat ${row.m13_graft.repeat_1based} (index ${row.m13_graft.repeat_index})`
-                          : "unset"}
+                          : "not named"}
                       </TableCell>
                       <TableCell>
                         {row.m13_graft
                           ? `${fmt(row.m13_graft.to_n_end.chord_A, 2)} / ${fmt(row.m13_graft.to_c_end.chord_A, 2)} Å`
-                          : "unset"}
+                          : "not named"}
                       </TableCell>
                       <TableCell>{both.length ? both.join(", ") : "none"}</TableCell>
                     </TableRow>
@@ -429,7 +429,7 @@ export function DataBoard() {
 
           <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between">
-              <CardTitle className="font-heading text-2xl">Wiki caption</CardTitle>
+              <CardTitle className="font-heading text-2xl">Figure caption</CardTitle>
               <Button variant="outline" type="button" onClick={copyCaption}>
                 <Copy /> {copied ? "Caption copied" : "Copy caption"}
               </Button>

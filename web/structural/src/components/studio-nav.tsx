@@ -8,7 +8,7 @@ const SECTIONS = [
   {
     label: "Structural analysis",
     tabs: [
-      { href: "/", label: "Screw" },
+      { href: "/", label: "3D scaffold" },
       { href: "/present", label: "Compare lengths" },
       { href: "/design", label: "Choose a length" },
     ],
@@ -16,23 +16,23 @@ const SECTIONS = [
   {
     label: "Stability confirmation",
     tabs: [
-      { href: "/stability", label: "Melting temperature" },
-      { href: "/stability/calculator", label: "ΔG vs temperature" },
+      { href: "/stability", label: "Stay folded?" },
+      { href: "/stability/calculator", label: "Energy vs temperature" },
     ],
   },
   {
     label: "Docking verification",
     tabs: [
-      { href: "/docking", label: "Affinity check" },
+      { href: "/docking", label: "Will it bind?" },
       { href: "/docking/geometry", label: "Distance and clash" },
     ],
   },
   {
     label: "Kinetic modelling",
     tabs: [
-      { href: "/kinetics", label: "Bound fraction" },
-      { href: "/kinetics/spy", label: "SpyCatcher–SpyTag" },
-      { href: "/kinetics/nanobit", label: "LgBiT–SmBiT" },
+      { href: "/kinetics", label: "How much is bound?" },
+      { href: "/kinetics/spy", label: "Spy lock" },
+      { href: "/kinetics/nanobit", label: "Light reporter" },
     ],
   },
 ];

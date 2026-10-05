@@ -75,7 +75,7 @@ function ConcentrationRuler({
   const height = 96;
   const xOf = (value: number) => 16 + ((Math.log10(value) - min) / span) * (width - 32);
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Log concentration comparison of local concentration, your Kd, and the LgBiT–SmBiT Kd">
+    <svg viewBox={`0 0 ${width} ${height}`} className="mt-4 h-auto w-full" role="img" aria-label="Log comparison of how crowded the two ends are, your Kd, and the light-reporter Kd">
       <line x1={16} x2={width - 16} y1={36} y2={36} stroke="var(--studio-chart-grid)" />
       {marks.map((mark) => (
         <g key={mark.label}>
@@ -177,52 +177,52 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
         Docking verification
       </p>
       <h1 className="mt-2 text-3xl font-semibold">
-        {pane === "affinity" ? "Will this Kd hold the two ends together?" : "How far apart are the ends?"}
+        {pane === "affinity" ? "Will this tightness hold the two ends together?" : "How far apart are the two ends?"}
       </h1>
       {pane === "affinity" ? (
         <PageGuide
-          intro="This page checks one scaffold length and one Kd or Ka. Use it when you already have a length in mind and want to know if the sensor is tight enough."
+          intro="Pick one scaffold length and one tightness (Kd or Ka). The page tells you whether the two ends of that length stay together, and whether the light reporter and the Spy lock can follow."
           steps={[
-            "Type a repeat count from 3 to 24.",
-            "Pick Kd or Ka, then type the value and the unit.",
+            "Type a repeat count from 3 to 24. n is how many protein units are in the chain.",
+            "Pick Kd (smaller = tighter) or Ka (larger = tighter), then type the value and the unit.",
             "Click Run.",
             "Read the verdict, then the ruler under it.",
           ]}
           read={[
-            "Local concentration is how crowded the two ends are on this scaffold. It comes from the screw distance and the payload sizes.",
-            "Bound fraction is local concentration divided by local concentration plus your Kd. 0.5 means half the pairs are together.",
-            "LgBiT–SmBiT occupancy uses the published reporter Kd at that same local concentration. Near zero means the reporter stays off.",
-            "Spy half-life is how long the covalent lock takes at that concentration. Clash is the chance the two spheres overlap.",
+            "Local concentration is how crowded the two ends are because they are tied on the same protein. It comes from the end-to-end distance and the protein sizes.",
+            "Bound fraction is local concentration ÷ (local concentration + your Kd). 0.5 means half the pairs are together.",
+            "Reporter on-fraction uses the published LgBiT–SmBiT tightness at that same crowding. Near zero means the light stays off.",
+            "Spy half-life is how long the covalent lock takes at that crowding. Clash is the chance the two proteins overlap.",
           ]}
           rules={[
-            "The ends hold when your Kd is at or below the local concentration.",
-            "The reporter is driven only if the ends hold and its occupancy is at least 0.5.",
+            "The ends hold when your Kd is at or below the local concentration (at least half bound).",
+            "The reporter is counted as on only if the ends hold and its on-fraction is at least 0.5.",
             "The Spy lock is scored only when the ends hold.",
           ]}
           next={[
             "If the ends do not hold, try a tighter Kd or a shorter length.",
-            "If the ends hold but the reporter stays off, binding is fine and the reporter Kd is the limit. Try Choose a length to see whether another repeat count turns NanoBiT on.",
+            "If the ends hold but the reporter stays off, binding is fine and the reporter tightness is the limit. Try Choose a length to see whether another count turns the light on.",
           ]}
         />
       ) : (
         <PageGuide
-          intro="This page shows the straight-line distance between the two docking sites, and whether the payloads are likely to bump into each other."
+          intro="This page shows the straight-line distance between the two ends of one scaffold length, and whether the proteins on those ends are likely to overlap."
           steps={[
             "Type a repeat count from 3 to 24.",
             "Click Run.",
-            "Read the chord, the clash chance, and the local concentration.",
+            "Read the distance, the overlap chance, and how crowded the ends are.",
           ]}
           read={[
-            "The chord is the straight-line distance between the two sites, in angstroms.",
-            "The blue segment is the low end of the 95% range up to that distance.",
-            "Local concentration falls as the chord gets longer. Clash near zero means the spheres barely overlap.",
+            "Straight-line distance is the jump between the two sites, in ångströms.",
+            "The blue segment is the low end of the crystal-to-crystal range up to that distance.",
+            "Crowding falls as the distance gets longer. Clash near zero means the two protein sizes barely overlap.",
           ]}
           rules={[
-            "Radii are the deposited SpyCatcher and LgBiT sizes.",
-            "A missing radius would stop the clash calculation. These defaults are filled in.",
+            "Sizes are the published SpyCatcher and LgBiT radii.",
+            "A missing size would stop the overlap check. These defaults are already filled in.",
           ]}
           next={[
-            "Take a chord that looks usable into the affinity check on the other docking tab.",
+            "Take a distance that looks usable into Will it bind? on the other docking tab.",
           ]}
         />
       )}
@@ -248,8 +248,8 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
                 value={kind}
                 onChange={(event) => setKind(event.target.value === "ka" ? "ka" : "kd")}
               >
-                <option value="kd">Dissociation, Kd</option>
-                <option value="ka">Association, Ka</option>
+                <option value="kd">Kd (smaller = tighter)</option>
+                <option value="ka">Ka (larger = tighter)</option>
               </select>
             </label>
             <label className="block text-sm font-medium">
@@ -299,11 +299,11 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
             nanoKd={affinity.nanobit_printed_kd_M}
           />
           <p className="mt-2 text-sm text-studio-muted">
-            On this log scale, your Kd has to sit at or left of the local concentration. The reporter Kd is usually far to the right, which is why occupancy stays low.
+            On this log scale, your Kd has to sit at or left of the crowding of the two ends. The reporter Kd is usually far to the right, which is why the light stays off.
           </p>
           <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-studio-label">Bound fraction</dt>
+              <dt className="text-studio-label">How often the ends stay together</dt>
               <dd className="font-mono text-lg">{affinity.association_theta.toFixed(3)}</dd>
             </div>
             <div>
@@ -311,24 +311,24 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
               <dd className="font-mono">{sci(affinity.kd_M)} M</dd>
             </div>
             <div>
-              <dt className="text-studio-label">Local concentration</dt>
+              <dt className="text-studio-label">How crowded the two ends are</dt>
               <dd className="font-mono">{sci(affinity.c_eff_M)} M</dd>
             </div>
             <div>
-              <dt className="text-studio-label">End chord</dt>
+              <dt className="text-studio-label">Straight-line end distance</dt>
               <dd className="font-mono">{affinity.chord_A.toFixed(2)} Å</dd>
             </div>
             <div>
-              <dt className="text-studio-label">LgBiT–SmBiT occupancy</dt>
+              <dt className="text-studio-label">Light reporter on-fraction</dt>
               <dd className="font-mono">
                 {sci(affinity.nanobit_theta)}{" "}
-                {affinity.drives_lgbit_smbit ? "at or above one half" : "below one half"}
+                {affinity.drives_lgbit_smbit ? "at or above half on" : "below half on"}
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">SpyCatcher–SpyTag</dt>
+              <dt className="text-studio-label">Spy lock</dt>
               <dd className="font-mono">
-                k_obs {sci(affinity.spy_k_obs_per_s)} /s, half-life {sci(affinity.spy_half_life_s)} s
+                observed rate {sci(affinity.spy_k_obs_per_s)} /s, half-life {sci(affinity.spy_half_life_s)} s
               </dd>
             </div>
           </dl>
@@ -373,10 +373,10 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
               {geometry.docking.chord_95_high_A.toFixed(0)} Å
             </text>
           </svg>
-          <p className="mt-1 text-sm text-studio-muted">Orange dot: the distance. Blue: the low end of the 95% range up to that distance.</p>
+          <p className="mt-1 text-sm text-studio-muted">Orange dot: the distance. Blue: the low end of the crystal-to-crystal range up to that distance.</p>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-studio-label">Repeats</dt>
+              <dt className="text-studio-label">Sites used</dt>
               <dd className="font-mono">{geometry.docking.indices.join(" and ")}</dd>
             </div>
             <div>
@@ -384,21 +384,21 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
               <dd className="font-mono">{geometry.docking.chord_A.toFixed(2)} Å</dd>
             </div>
             <div>
-              <dt className="text-studio-label">95% chord</dt>
+              <dt className="text-studio-label">Crystal-to-crystal range</dt>
               <dd className="font-mono">
                 {geometry.docking.chord_95_low_A.toFixed(2)}–{geometry.docking.chord_95_high_A.toFixed(2)} Å
               </dd>
             </div>
             <div>
-              <dt className="text-studio-label">Local concentration</dt>
+              <dt className="text-studio-label">How crowded the two ends are</dt>
               <dd className="font-mono">{sci(geometry.docking.c_eff_M)} M</dd>
             </div>
             <div>
-              <dt className="text-studio-label">Clash probability</dt>
+              <dt className="text-studio-label">Overlap chance</dt>
               <dd className="font-mono">{sci(geometry.docking.p_clash)}</dd>
             </div>
             <div>
-              <dt className="text-studio-label">Radii</dt>
+              <dt className="text-studio-label">Protein sizes</dt>
               <dd className="font-mono">
                 {(geometry.docking.radii_A ?? []).map((radius) => radius.toFixed(2)).join(" Å, ")} Å
               </dd>

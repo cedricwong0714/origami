@@ -148,8 +148,8 @@ def _reach_notes(construct: dict[str, Any], linker_rms_A: float) -> dict[str, An
         "end_bow_A": float(bow),
         "end_bow_fraction_of_chord": float(bow_frac),
         "notes": [
-            "Near-end lists use twice the (GGGGS)3 RMS as a comparison, not a wet-lab reach.",
-            "SpyCatcher, flx, and LgBiT lengths are not in these chords.",
+            "Close-to-end lists use twice the (GGGGS)3 typical reach as a size check, not a wet-lab reach.",
+            "SpyCatcher, linker, and LgBiT lengths are not in these distances.",
         ],
     }
 
@@ -180,9 +180,9 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             f"Straight-line distance from repeat 0 to repeat {n_repeats - 1} is "
             f"{end['chord_A']:.2f} Å "
             f"(95% band {end['chord_95_low_A']:.1f}–{end['chord_95_high_A']:.1f} Å). "
-            f"The helical bow is {reach['end_bow_A']:.2f} Å "
+            f"The extra length from the curve is {reach['end_bow_A']:.2f} Å "
             f"({100 * reach['end_bow_fraction_of_chord']:.1f}% of that distance). "
-            "Bow is the straight-line distance minus the distance along the axis."
+            "That extra length is the straight-line distance minus the distance along the axis."
         ),
         (
             f"Turn from repeat 0 to repeat {n_repeats - 1} is {phase:.1f}° "
@@ -198,9 +198,9 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
         to_c = graft["to_c_end"]
         on_both = int(graft["repeat_index"]) in reach["repeats_near_both_ends"]
         window = (
-            "That graft repeat is inside the (GGGGS)3 comparison window of both ends."
+            "That peptide site sits inside the (GGGGS)3 size window of both ends."
             if on_both
-            else "That graft repeat is outside the (GGGGS)3 comparison window of at least one end."
+            else "That peptide site sits outside the (GGGGS)3 size window of at least one end."
         )
         lines.append(
             f"The M13 graft is repeat {graft['repeat_1based']} of {n_repeats} "
@@ -209,17 +209,17 @@ def _reading(construct: dict[str, Any], reach: dict[str, Any]) -> list[str]:
             f"(95% {to_n['chord_95_low_A']:.1f}–{to_n['chord_95_high_A']:.1f}). "
             f"Straight-line distance to the C-end is {to_c['chord_A']:.2f} Å "
             f"(95% {to_c['chord_95_low_A']:.1f}–{to_c['chord_95_high_A']:.1f}). "
-            "These distances are on the CTPR screw. They do not include SpyCatcher or LgBiT. "
+            "These distances are on the CTPR scaffold. They do not include SpyCatcher or LgBiT. "
             f"{window}"
         )
     elif reach["repeats_near_both_ends"]:
         lines.append(
             "On this length, at least one repeat sits within the "
-            "(GGGGS)3 comparison window of both ends. No m13 graft was named for this n."
+            "(GGGGS)3 size window of both ends. No m13 graft was named for this n."
         )
     else:
         lines.append(
-            "On this length, no repeat sits within the (GGGGS)3 comparison "
+            "On this length, no repeat sits within the (GGGGS)3 size "
             "window of both ends. No m13 graft was named for this n."
         )
     lines.append(

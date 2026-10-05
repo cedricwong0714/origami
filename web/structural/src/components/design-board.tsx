@@ -52,12 +52,12 @@ const CALL_COLOR: Record<string, string> = {
 };
 
 const CALL_LABEL: Record<string, string> = {
-  reporter: "Folded, held, and reporter occupancy at or above one half",
-  held_reporter_dark: "Folded and held; reporter occupancy below one half",
-  folded_not_held: "Folded; association does not hold",
-  below_assay: "Calculated melting temperature at or below the assay temperature",
-  docking_skipped: "Melt kept; docking skipped because the graft does not fit",
-  not_fit: "No melting-temperature fit",
+  reporter: "Stays folded, ends stay together, reporter at least half on",
+  held_reporter_dark: "Stays folded and ends stay together, but the reporter stays mostly off",
+  folded_not_held: "Stays folded, but the two ends do not stay together",
+  below_assay: "Predicted to unfold at 37 °C",
+  docking_skipped: "Folding was scored; end-to-end binding was skipped because the peptide site does not fit",
+  not_fit: "No folding prediction for this length",
 };
 
 const PLANNED = new Set([3, 8, 14]);
@@ -117,7 +117,7 @@ export function DesignBoard() {
     if (request.graft.trim() !== "") {
       const index = Number(request.graft);
       if (!Number.isInteger(index)) {
-        setError("Graft index must be a whole number, or left blank.");
+        setError("Peptide site must be a whole number, or left blank.");
         return;
       }
       body.graft_index = index;
@@ -162,36 +162,37 @@ export function DesignBoard() {
       </p>
       <h1 className="mt-2 text-3xl font-semibold">Which length should the scaffold be?</h1>
       <PageGuide
-        intro="This page scores every scaffold length from 3 to 24 repeats. Use it to see which lengths stay folded, hold the two ends together, and light up the reporter."
+        intro="The scaffold is a chain of repeating protein units. This page scores every length from 3 to 24 repeats. It asks three questions: does it stay folded at 37 °C, do the two ends stay together, and does the light reporter turn on?"
         steps={[
-          "Leave the Kd at 0.19 nM, or type the affinity you want to test.",
-          "Leave the graft blank to use the named M13 position. Type an index if you want a fixed second site.",
+          "Leave Kd at 0.19 nM unless you want to test a tighter or looser sensor. Smaller Kd means tighter sticking.",
+          "Leave the peptide site blank to use the usual M13 position. Type a number only if you want a fixed second site.",
           "Click Score every length.",
-          "Click a colored cell to read that length.",
+          "Click a colored square to read that length.",
         ]}
         read={[
-          "Melting temperature above 37 °C means the model still calls the scaffold folded at a typical E. coli assay.",
-          "Bound fraction is how often the two ends stay together. At or above 0.5, they hold.",
-          "LgBiT–SmBiT occupancy is how often the reporter is on at that same local concentration. Higher is brighter. 0.5 is half on.",
-          "Spy half-life is how long the covalent lock takes. Shorter is faster. Clash near 0 means the two payloads are unlikely to overlap.",
+          "Melting temperature is where half the protein unfolds. Above 37 °C, the model still calls it folded in a typical E. coli assay.",
+          "Bound fraction is how often the two ends stay together. At 0.5 they are together half the time. We call that holding.",
+          "Reporter on-fraction is how often LgBiT and SmBiT assemble at that same crowding. 0.5 is half on. Higher is brighter.",
+          "Spy half-life is how long the covalent lock takes. Shorter is faster. Clash near 0 means the two proteins are unlikely to overlap.",
         ]}
         rules={[
-          "Green: folded, ends held, reporter at least half occupied.",
-          "Orange: folded and held, but the reporter stays mostly off.",
-          "Blue: folded, but the ends do not stay together.",
-          "The marked length is the green cell, or the orange cell with the highest reporter occupancy if none are green.",
+          "Green: stays folded, ends stay together, reporter at least half on.",
+          "Orange: stays folded and ends stay together, but the reporter stays mostly off.",
+          "Blue: stays folded, but the two ends do not stay together.",
+          "The marked length is the green square, or the orange square with the brightest reporter if none are green.",
         ]}
         next={[
-          "If only n = 3 is green, longer planned constructs will not turn the reporter on at this Kd.",
-          "Open Docking if you want one length in more detail.",
-          "Open Melting temperature if you want the fold curve on its own.",
+          "If only n = 3 is green, longer planned constructs will not turn the reporter on at this tightness.",
+          "Open Will it bind? for one length in more detail.",
+          "Open Stay folded? for the melting curve on its own.",
         ]}
       />
 
       <section className="mt-8 rounded-2xl border border-studio-border bg-studio-card p-6">
         <p className="text-sm text-studio-muted">
-          Start with the peptide Kd, 0.19 nM. Change it if you want to test a tighter or looser sensor.
-          A blank graft uses each length’s named M13 site. Lengths without a named site use the last repeat.
+          Start with the peptide Kd, 0.19 nM. Kd is how tightly CaM and M13 stick: smaller is tighter.
+          Change it if you want to test a looser or tighter sensor.
+          Leave the peptide site blank to use each length’s usual M13 position. Lengths without a named site use the last repeat.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           <label className="block text-sm font-medium">
@@ -201,8 +202,8 @@ export function DesignBoard() {
               value={kind}
               onChange={(event) => setKind(event.target.value === "ka" ? "ka" : "kd")}
             >
-              <option value="kd">Dissociation, Kd</option>
-              <option value="ka">Association, Ka</option>
+              <option value="kd">Kd (smaller = tighter)</option>
+              <option value="ka">Ka (larger = tighter)</option>
             </select>
           </label>
           <label className="block text-sm font-medium">
@@ -228,11 +229,11 @@ export function DesignBoard() {
             </select>
           </label>
           <label className="block text-sm font-medium">
-            Graft index
+            Peptide site
             <input
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono"
               value={graft}
-              placeholder="blank = named"
+              placeholder="blank = usual site"
               onChange={(event) => setGraft(event.target.value)}
             />
           </label>
@@ -253,14 +254,14 @@ export function DesignBoard() {
           <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
             <h2 className="text-lg font-medium">
               {report.marked_n === null
-                ? "No length both stays folded and holds together"
-                : `Marked length: n = ${report.marked_n}`}
+                ? "No length both stays folded and keeps the ends together"
+                : `Best length on this page: n = ${report.marked_n}`}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-studio-muted">{report.ranking_rule}</p>
             <p className="mt-2 text-sm leading-relaxed text-studio-muted">
               {report.any_length_drives_reporter
-                ? `LgBiT–SmBiT occupancy reaches one half at n = ${report.reporter_lengths.join(", ")}.`
-                : "No length in this sweep puts LgBiT–SmBiT occupancy at or above one half. The mark, when present, is only the highest occupancy among lengths that fold and hold."}
+                ? `The light reporter is at least half on at n = ${report.reporter_lengths.join(", ")}.`
+                : "No length in this sweep puts the light reporter at or above half on. The mark, when present, is only the highest reporter score among lengths that fold and hold."}
             </p>
             <p className="mt-2 text-sm text-studio-muted">{report.graft_rule}</p>
             <div className="mt-5 flex flex-wrap gap-1" aria-label="Length calls">
@@ -297,7 +298,7 @@ export function DesignBoard() {
               ))}
             </ul>
             <p className="mt-3 text-xs text-studio-label">
-              Planned construct lengths are 3, 8, and 14. Click a cell to read that length.
+              Planned build lengths are 3, 8, and 14. Click a square to read that length.
             </p>
           </section>
 
@@ -305,14 +306,13 @@ export function DesignBoard() {
             <section className="mt-6 rounded-2xl border border-studio-border bg-studio-card p-6">
               <h2 className="text-lg font-medium">
                 n = {focus.n_repeats}
-                {PLANNED.has(focus.n_repeats) ? " · planned construct" : ""}
-                {report.marked_n === focus.n_repeats ? " · marked by the ranking rule" : ""}
+                {PLANNED.has(focus.n_repeats) ? " · planned build" : ""}
+                {report.marked_n === focus.n_repeats ? " · marked as best on this page" : ""}
               </h2>
               <p className="mt-2 text-sm text-studio-muted">{CALL_LABEL[focus.call] ?? focus.call}</p>
               {focus.past_longest_cited_length ? (
                 <p className="mt-2 text-sm text-studio-muted">
-                  This length is past the longest cited melt. The melting temperature is an
-                  extrapolation of the length fit.
+                  This length is longer than the longest melt in the paper. The melting temperature is the same fit, read outside that range.
                 </p>
               ) : null}
               {focus.docking_skip_reason ? (
@@ -324,11 +324,11 @@ export function DesignBoard() {
                   <dd className="font-mono">{plain(focus.tm_C)} °C</dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">Unfolding ΔG at the anchor temperature</dt>
+                  <dt className="text-studio-label">Unfolding energy at 10 °C</dt>
                   <dd className="font-mono">{plain(focus.delta_g)} kcal/mol</dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">Bound fraction</dt>
+                  <dt className="text-studio-label">How often the ends stay together</dt>
                   <dd className="font-mono">
                     {plain(focus.association_theta, 3)}{" "}
                     {focus.association_holds === null
@@ -339,26 +339,26 @@ export function DesignBoard() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">Local concentration</dt>
+                  <dt className="text-studio-label">How crowded the two ends are</dt>
                   <dd className="font-mono">{sci(focus.c_eff_M)} M</dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">LgBiT–SmBiT occupancy</dt>
+                  <dt className="text-studio-label">Light reporter on-fraction</dt>
                   <dd className="font-mono">
                     {sci(focus.nanobit_theta)}{" "}
-                    {focus.drives_lgbit_smbit ? "at or above one half" : "below one half"}
+                    {focus.drives_lgbit_smbit ? "at or above half on" : "below half on"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">SpyCatcher–SpyTag half-life</dt>
+                  <dt className="text-studio-label">Spy lock half-life</dt>
                   <dd className="font-mono">{sci(focus.spy_half_life_s)} s</dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">Clash probability</dt>
+                  <dt className="text-studio-label">Chance the two proteins overlap</dt>
                   <dd className="font-mono">{plain(focus.p_clash, 3)}</dd>
                 </div>
                 <div>
-                  <dt className="text-studio-label">Chord</dt>
+                  <dt className="text-studio-label">Straight-line end distance</dt>
                   <dd className="font-mono">{focus.chord_A === null ? "—" : `${focus.chord_A.toFixed(2)} Å`}</dd>
                 </div>
               </dl>
@@ -369,7 +369,7 @@ export function DesignBoard() {
             <div>
               <h2 className="text-lg font-medium">Melting temperature</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Dashed line: 37 °C. Above it, the model calls the scaffold folded.
+                Dashed line: 37 °C. Above it, the model still calls the protein folded.
               </p>
               <SeriesChart
                 label="Melting temperature versus repeat count"
@@ -395,7 +395,7 @@ export function DesignBoard() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-medium">Does the association hold?</h2>
+              <h2 className="text-lg font-medium">Do the two ends stay together?</h2>
               <p className="mt-1 text-sm text-studio-muted">
                 Dashed line: half bound. At or above it, your Kd holds the two ends together.
               </p>
@@ -414,12 +414,12 @@ export function DesignBoard() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-medium">Does that proximity drive LgBiT–SmBiT?</h2>
+              <h2 className="text-lg font-medium">Does the light reporter turn on?</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Dashed line: half occupied. A line along the bottom means the reporter stays dark.
+                Dashed line: half on. A line along the bottom means the reporter stays dark.
               </p>
               <SeriesChart
-                label="LgBiT–SmBiT occupancy versus repeat count"
+                label="Light reporter on-fraction versus repeat count"
                 xLabel="Repeat count"
                 yLabel="Occupancy"
                 guideY={{ y: 0.5, label: "1/2" }}
@@ -433,9 +433,9 @@ export function DesignBoard() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-medium">SpyCatcher–SpyTag half-life</h2>
+              <h2 className="text-lg font-medium">Spy lock half-life</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Time for half of the Spy pairs to lock. The axis is log scale. Higher local concentration makes this shorter.
+                Time for half of the Spy pairs to lock. The axis is log scale. Shorter means faster.
               </p>
               <SeriesChart
                 label="SpyCatcher–SpyTag half-life versus repeat count"
@@ -452,9 +452,9 @@ export function DesignBoard() {
               />
             </div>
             <div>
-              <h2 className="text-lg font-medium">Clash</h2>
+              <h2 className="text-lg font-medium">Do the two proteins overlap?</h2>
               <p className="mt-1 text-sm text-studio-muted">
-                Chance the SpyCatcher and LgBiT spheres overlap. Near zero is what you want.
+                Chance the SpyCatcher and LgBiT sizes overlap in space. Near zero is what you want.
               </p>
               <SeriesChart
                 label="Clash probability versus repeat count"
@@ -473,8 +473,7 @@ export function DesignBoard() {
 
           <p className="mt-4 text-sm text-studio-muted">{report.note}</p>
           <p className="mt-2 text-sm text-studio-muted">
-            Kd used: {sci(report.kd_M)} M. This sweep is not calibrated to a measurement of
-            the fusion.
+            Kd used: {sci(report.kd_M)} M. These scores are calculations, not a measurement of the fusion.
           </p>
           <button
             type="button"

@@ -14,8 +14,8 @@ export function PageGuide({
 }) {
   const blocks = [
     { title: "How to use it", items: steps },
-    { title: "How to read the numbers", items: read },
-    { title: "What the software decides", items: rules },
+    { title: "What the numbers mean", items: read },
+    { title: "What this page is telling you", items: rules },
     { title: "What to do next", items: next },
   ];
   return (

@@ -183,27 +183,27 @@ export function StructuralStudio() {
             Hong Kong team · ISEF 2026 · ORIGAMI
           </p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-studio-foreground md:text-5xl">
-            Where do the ends sit?
+            Where do the two ends sit?
           </h1>
           <PageGuide
-            intro="This page draws the CTPR screw for a repeat count you choose. Use it to see where the M13 graft sits and how far the two ends are."
+            intro="The scaffold is a protein chain made of repeating units. This page draws that chain in 3D so you can see how far the two ends are, and where we attach the M13 peptide. n is the number of repeats: n = 8 means eight units."
             steps={[
-              "Pick n = 3, 8, or 14, or run another count in the panel below.",
-              "Drag the model to orbit it. Scroll to zoom.",
-              "Blue is the SpyCatcher end. Orange is the M13 graft. Brown is the other end.",
+              "Start with n = 3, 8, or 14 (the lengths we plan to build), or type another count from 3 to 24.",
+              "Drag the model to spin it. Scroll to zoom.",
+              "Blue is the SpyCatcher end. Orange is the M13 peptide. Brown is the other end.",
             ]}
             read={[
-              "The pale tube is the CTPR backbone from deposited crystal structures (Cα trace).",
-              "Use the numbers under the viewer for distances in ångströms. The 3D view is for geometry, not a readout scale.",
-              "SpyCatcher, linkers, and LgBiT appear as labels on the side panel. They are not part of the backbone trace you orbit.",
+              "The pale tube is the protein backbone from published crystal structures. It is a drawing of the scaffold, not a photo of our fusion.",
+              "Read distances in the numbers under the model. Those are in ångströms (Å). The 3D view is only for looking around.",
+              "SpyCatcher, the flexible linker, and LgBiT are listed on the side. They are not built into the 3D tube.",
             ]}
             rules={[
-              "Named M13 grafts: repeat 2 when n = 3, repeat 4 when n = 8, repeat 7 when n = 14.",
-              "The screw shape follows published CTPR coordinates. It is a scaffold template, not a predicted structure of our Spy–CaM–M13 fusion.",
+              "We attach M13 on repeat 2 when n = 3, repeat 4 when n = 8, and repeat 7 when n = 14.",
+              "The shape comes from published CTPR crystals. It is a template, not a predicted structure of our full fusion.",
             ]}
             next={[
-              "Compare lengths plots end-to-end distance for n = 3, 8, and 14 on one chart.",
-              "Choose a length scores every repeat from 3 to 24 for melting, end binding, and NanoBiT on one page.",
+              "Compare lengths if you want those end-to-end distances as a chart.",
+              "Choose a length if you also want folding, binding, and the light reporter on one page.",
             ]}
           />
         </div>
@@ -213,14 +213,14 @@ export function StructuralStudio() {
             className="rounded-full bg-studio-button text-studio-button-text"
             title="Distances come from published CTPR crystals, not from a measurement of this fusion."
           >
-            Not a lab measurement
+            Calculated, not measured
           </Badge>
           {data?.source === "snapshot" ? (
-            <Badge variant="outline">Saved file. API is down. n = 8 graft may be the old repeat.</Badge>
+            <Badge variant="outline">Using a saved file. The live calculator is down. The n = 8 peptide site may be an older position.</Badge>
           ) : null}
           {data?.source === "live" ? (
             <Badge variant="outline" className="border-studio-blue text-studio-blue">
-              live model
+              live calculator
             </Badge>
           ) : null}
         </div>
@@ -229,19 +229,19 @@ export function StructuralStudio() {
       <section className="mt-6" id="screw-model">
         {!data && !loading ? (
           <div className="flex h-[520px] items-center justify-center rounded-2xl border border-dashed border-studio-border bg-studio-viewport text-center text-sm text-studio-viewport-text">
-            Run the backbone model to place the CTPR screw.
+            Run the 3D model to place the scaffold.
           </div>
         ) : null}
         {loading && !data ? (
           <div className="flex h-[520px] items-center justify-center rounded-2xl bg-studio-viewport text-sm text-studio-viewport-text">
-            Placing the deposited screw…
+            Drawing the published scaffold…
           </div>
         ) : null}
         {data && construct ? (
           <Card className="border-studio-border bg-studio-card shadow-none">
             <CardHeader className="flex-row items-center justify-between gap-3">
               <CardTitle className="font-heading text-2xl">
-                CTPR{construct.n_repeats} screw
+                CTPR{construct.n_repeats} scaffold
               </CardTitle>
               <div className="flex flex-wrap items-center gap-2">
                 {data.constructs.map((row) => (
@@ -257,13 +257,13 @@ export function StructuralStudio() {
                     n={row.n_repeats}
                   </Toggle>
                 ))}
-                <span className="text-xs text-studio-label">{construct.ca_count} Cα · drag to orbit</span>
+                <span className="text-xs text-studio-label">{construct.ca_count} backbone atoms · drag to spin</span>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <ScrewView scene={scene} selected={site} />
               <p className="text-xs text-studio-muted">
-                Drag to orbit. Scroll to zoom. Pixel distance on screen is not angstroms.
+                Drag to spin. Scroll to zoom. Distances on the screen are not the ångström numbers in the table.
               </p>
             </CardContent>
           </Card>
@@ -273,11 +273,11 @@ export function StructuralStudio() {
       <Card className="mt-8 border-studio-border bg-studio-surface/80 shadow-none">
         <CardContent className="space-y-4 pt-6">
           <p className="text-[11px] tracking-[0.16em] text-studio-label uppercase">
-            Architecture, N to C
+            Full construct, N-end to C-end
           </p>
           <ConstructStrip labels={data?.n_to_c ?? ["FL", "rigid_spacer", "rigid_spacer", "FL", "SpyCatcher", "CTPR", "flx", "flx", "flx", "LgBiT"]} />
           <p className="text-sm text-studio-muted">
-            Only the orange CTPR block is modeled. The M13 peptide sits on repeat 2 (n = 3), repeat 4 (n = 8), or repeat 7 (n = 14).
+            Only the orange CTPR block is drawn in 3D. The M13 peptide sits on repeat 2 (n = 3), repeat 4 (n = 8), or repeat 7 (n = 14).
           </p>
         </CardContent>
       </Card>
@@ -285,12 +285,12 @@ export function StructuralStudio() {
       <section className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="border-studio-border bg-studio-card/80 shadow-none">
           <CardHeader>
-            <CardTitle className="font-heading text-2xl">Run a backbone prediction</CardTitle>
+            <CardTitle className="font-heading text-2xl">Draw a length</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-studio-muted">
-              Choose the repeat counts to measure. Team lengths 3, 8, and 14 are
-              selected. Add any other n in 3–24 if you need it for a figure.
+              Choose how many repeats to draw. n = 3, 8, and 14 are the lengths we plan to build.
+              You can add any other count from 3 to 24.
             </p>
             <div className="flex flex-wrap gap-2">
               {PRESET.map((n) => (
@@ -321,19 +321,19 @@ export function StructuralStudio() {
                 Add repeat count
               </Button>
               <span className="text-sm text-studio-label">
-                measuring {nOptions.length ? nOptions.join(", ") : "nothing"}
+                drawing {nOptions.length ? nOptions.join(", ") : "nothing"}
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button type="button" onClick={run} disabled={loading || nOptions.length === 0} size="lg">
                 {loading ? <Loader2 className="animate-spin" /> : <Check />}
-                Run structural analysis
+                Draw the scaffold
               </Button>
               <Button variant="outline" type="button" onClick={downloadJson} disabled={!data}>
-                <Download /> Download JSON
+                <Download /> Download numbers
               </Button>
               <Button variant="ghost" type="button" onClick={() => setWiki((value) => !value)} aria-pressed={wiki}>
-                <Printer /> {wiki ? "Switch to edit layout" : "Switch to wiki figure layout"}
+                <Printer /> {wiki ? "Back to the usual layout" : "Wiki-figure layout"}
               </Button>
             </div>
             {error ? (
@@ -346,12 +346,12 @@ export function StructuralStudio() {
         </Card>
         <Card className="border-studio-border bg-studio-card/80 shadow-none">
           <CardHeader>
-            <CardTitle className="font-heading text-2xl">What this predicts</CardTitle>
+            <CardTitle className="font-heading text-2xl">What you get here</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-relaxed text-studio-muted">
-            <p>Length along the repeats, straight-line distance between two repeats, how far the helix bows off the axis, and whether the ends face the same way.</p>
-            <p>Clash, local concentration, and luminescence are on other pages. They need radii or concentrations this page does not use.</p>
-            <p>The 95% band is the spread among the published crystal structures. It is not a lab error bar.</p>
+            <p>How long the chain is, the straight-line distance between the two ends, how much the helix bends, and whether the two ends point the same way.</p>
+            <p>Whether the ends bump into each other, how crowded they are, and whether the reporter lights up are on other pages. Those need sizes or concentrations this page does not use.</p>
+            <p>The 95% band is how much the published crystal structures disagree. It is not a lab error bar.</p>
           </CardContent>
         </Card>
       </section>
@@ -359,24 +359,24 @@ export function StructuralStudio() {
       {data && construct ? (
         <div className="mt-8 space-y-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Metric label="End chord" value={`${fmt(construct.end_junction.chord_A)} Å`} hint={`${fmt(construct.end_junction.chord_95_low_A, 1)}–${fmt(construct.end_junction.chord_95_high_A, 1)} Å 95% band`} />
-              <Metric label="Axial span" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° screw phase, repeat 0 to ${construct.n_repeats - 1}`} />
-              <Metric label="Length along repeats" value={`${fmt(construct.contour_nm, 3)} nm`} hint="Sum of the repeat steps. Not the straight-line end distance." />
-              <Metric label="Facing" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 = ends face the same way. −1 = opposite." />
+              <Metric label="Straight-line end distance" value={`${fmt(construct.end_junction.chord_A)} Å`} hint={`${fmt(construct.end_junction.chord_95_low_A, 1)}–${fmt(construct.end_junction.chord_95_high_A, 1)} Å range among crystals`} />
+              <Metric label="Distance along the helix axis" value={`${fmt(construct.axial_span_A)} Å`} hint={`${fmt(construct.end_junction.phase_deg, 1)}° of turn from repeat 0 to ${construct.n_repeats - 1}`} />
+              <Metric label="Path length along the chain" value={`${fmt(construct.contour_nm, 3)} nm`} hint="Walking along the repeats. Not the straight-line jump." />
+              <Metric label="Do the ends point the same way?" value={fmt(construct.end_junction.facing_cosine, 3)} hint="1 = same direction. −1 = opposite." />
               {construct.m13_graft ? (
                 <Metric
-                  label={`m13 repeat ${construct.m13_graft.repeat_1based}`}
-                  value={`${fmt(construct.m13_graft.to_n_end.chord_A)} Å to N`}
-                  hint={`${fmt(construct.m13_graft.to_c_end.chord_A)} Å to C · index ${construct.m13_graft.repeat_index}`}
+                  label={`M13 on repeat ${construct.m13_graft.repeat_1based}`}
+                  value={`${fmt(construct.m13_graft.to_n_end.chord_A)} Å to N-end`}
+                  hint={`${fmt(construct.m13_graft.to_c_end.chord_A)} Å to C-end · site index ${construct.m13_graft.repeat_index}`}
                 />
               ) : null}
             </div>
 
           <div className="grid gap-3 md:grid-cols-4">
-            <Metric label="Rise" value={`${fmt(Number(data.screw.rise_A), 3)} Å`} />
-            <Metric label="Twist" value={`${fmt(Number(data.screw.twist_deg), 1)}°`} />
-            <Metric label="Pitch" value={`${fmt(Number(data.screw.pitch_A), 3)} Å`} />
-            <Metric label="Junction radius" value={`${fmt(Number(data.screw.junction_radius_A), 3)} Å`} />
+            <Metric label="Rise per repeat" value={`${fmt(Number(data.screw.rise_A), 3)} Å`} />
+            <Metric label="Twist per repeat" value={`${fmt(Number(data.screw.twist_deg), 1)}°`} />
+            <Metric label="Pitch of the helix" value={`${fmt(Number(data.screw.pitch_A), 3)} Å`} />
+            <Metric label="Helix radius" value={`${fmt(Number(data.screw.junction_radius_A), 3)} Å`} />
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -387,46 +387,46 @@ export function StructuralStudio() {
               <CardContent>
                 <dl className="space-y-3 text-sm leading-relaxed text-studio-foreground">
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">CTPR repeat number</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">How many repeats</dt>
                     <dd>{construct.n_repeats}</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Docking-site positions</dt>
-                    <dd>Repeats 0 through {construct.n_repeats - 1}. Index 0 is the SpyCatcher side.</dd>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Sites along the chain</dt>
+                    <dd>Repeats 0 through {construct.n_repeats - 1}. Index 0 is the SpyCatcher end.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Scaffold orientation</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">How the helix turns</dt>
                     <dd>
-                      {fmt(Number(data.screw.twist_deg), 1)}° per repeat. End screw phase {fmt(construct.end_junction.phase_deg, 1)}°. Facing cosine {fmt(construct.end_junction.facing_cosine, 3)}.
+                      {fmt(Number(data.screw.twist_deg), 1)}° of twist per repeat. Total turn from end to end {fmt(construct.end_junction.phase_deg, 1)}°. Facing score {fmt(construct.end_junction.facing_cosine, 3)} (1 = same direction, −1 = opposite).
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Fusion termini</dt>
-                    <dd>{data.n_to_c.join(" — ")}. SpyCatcher is on the N-side of the CTPR. LgBiT follows flx ×3 on the C-side.</dd>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">What sits at each end</dt>
+                    <dd>{data.n_to_c.join(" — ")}. SpyCatcher is on the N-side of the CTPR. LgBiT sits after three flexible linkers on the C-side.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Linker length and type</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Flexible linker</dt>
                     <dd>
-                      (GGGGS)₃. RMS {reading ? fmt(reading.reach.linker_rms_A, 2) : "—"} Å. Comparison window {reading ? fmt(reading.reach.comparison_window_A, 2) : "—"} Å, twice that RMS.
+                      (GGGGS)₃. Typical reach {reading ? fmt(reading.reach.linker_rms_A, 2) : "—"} Å. Comparison window {reading ? fmt(reading.reach.comparison_window_A, 2) : "—"} Å (twice that reach). This is a size check, not a lab measurement of the linker.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Functional-site location</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Where the M13 peptide sits</dt>
                     <dd>
                       {construct.m13_graft
-                        ? `m13 graft on repeat ${construct.m13_graft.repeat_1based} of ${construct.n_repeats} (index ${construct.m13_graft.repeat_index}).`
-                        : "No graft was named for this n."}
+                        ? `Repeat ${construct.m13_graft.repeat_1based} of ${construct.n_repeats} (index ${construct.m13_graft.repeat_index}, counting from 0 at the SpyCatcher end).`
+                        : "No peptide site is named for this length."}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Sensor and reporter arrangement</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Sensor and reporter</dt>
                     <dd>
-                      SpyCatcher sits on the N-side of the scaffold; LgBiT sits after (GGGGS)₃ on the C-side. Those fusion pieces are annotated here but not built into the deposited CTPR trace.
+                      SpyCatcher sits on the N-side of the scaffold. LgBiT sits after (GGGGS)₃ on the C-side. Those fusion pieces are listed here but are not built into the published CTPR drawing.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Payload dimensions</dt>
-                    <dd>Omitted. A radius is a docking input, not a structural measurement.</dd>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Protein sizes for bumping</dt>
+                    <dd>Not used on this page. Sizes are an input on the binding pages, not a measurement from this drawing.</dd>
                   </div>
                 </dl>
               </CardContent>
@@ -438,36 +438,36 @@ export function StructuralStudio() {
               <CardContent>
                 <dl className="space-y-3 text-sm leading-relaxed text-studio-foreground">
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">3D scaffold coordinates</dt>
-                    <dd>{construct.ca_count} Cα atoms and {construct.n_repeats} docking sites, in ångströms. The orbit view above is those coordinates.</dd>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">3D coordinates</dt>
+                    <dd>{construct.ca_count} backbone atoms and {construct.n_repeats} sites, in ångströms. The spinning view above uses these coordinates.</dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance between docking sites</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance between the two ends</dt>
                     <dd>
-                      End chord {fmt(construct.end_junction.chord_A)} Å. Axial span {fmt(construct.axial_span_A)} Å. Bow {fmt(construct.end_junction.chord_A - construct.axial_span_A)} Å.
+                      Straight-line {fmt(construct.end_junction.chord_A)} Å. Along the helix axis {fmt(construct.axial_span_A)} Å. Extra length from the curve {fmt(construct.end_junction.chord_A - construct.axial_span_A)} Å.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance between functional site and the ends</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Distance from the peptide to each end</dt>
                     <dd>
                       {construct.m13_graft
-                        ? `Graft to N-end ${fmt(construct.m13_graft.to_n_end.chord_A)} Å. Graft to C-end ${fmt(construct.m13_graft.to_c_end.chord_A)} Å. Junction to junction, not SpyCatcher to LgBiT.`
-                        : "Unset until a graft repeat is named."}
+                        ? `To the N-end ${fmt(construct.m13_graft.to_n_end.chord_A)} Å. To the C-end ${fmt(construct.m13_graft.to_c_end.chord_A)} Å. These are CTPR-to-CTPR distances, not SpyCatcher-to-LgBiT.`
+                        : "Unset until a peptide site is named for this length."}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Structural uncertainty</dt>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">How sure the distances are</dt>
                     <dd>
-                      End chord 95% {fmt(construct.end_junction.chord_95_low_A, 1)}–{fmt(construct.end_junction.chord_95_high_A, 1)} Å.
+                      Straight-line end distance range {fmt(construct.end_junction.chord_95_low_A, 1)}–{fmt(construct.end_junction.chord_95_high_A, 1)} Å.
                       {construct.m13_graft
-                        ? ` Graft to N ${fmt(construct.m13_graft.to_n_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_n_end.chord_95_high_A, 1)} Å. Graft to C ${fmt(construct.m13_graft.to_c_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_c_end.chord_95_high_A, 1)} Å.`
+                        ? ` Peptide to N-end ${fmt(construct.m13_graft.to_n_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_n_end.chord_95_high_A, 1)} Å. Peptide to C-end ${fmt(construct.m13_graft.to_c_end.chord_95_low_A, 1)}–${fmt(construct.m13_graft.to_c_end.chord_95_high_A, 1)} Å.`
                         : ""}
-                      {" "}Deposited screw scatter, not a wet-lab interval.
+                      {" "}That range is how much the published crystals disagree, not a wet-lab interval.
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">3D visualization</dt>
-                    <dd>Shaded orbit view of the Cα trace and docking spheres. Distances in the tables are the measurements, in ångströms. PDB files are in data/exports/ctpr_3d.</dd>
+                    <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">The 3D view</dt>
+                    <dd>A drawing of the backbone and the docking spheres. Trust the tables for distances in ångströms. PDB files live in data/exports/ctpr_3d.</dd>
                   </div>
                 </dl>
               </CardContent>
@@ -487,9 +487,9 @@ export function StructuralStudio() {
                 ))}
                 <Separator />
                 <p className="text-sm text-studio-muted">
-                  Repeats near the N-end comparison window: {reading.reach.repeats_near_n_end.join(", ") || "none"}.
-                  Near the C-end: {reading.reach.repeats_near_c_end.join(", ") || "none"}.
-                  Near both: {reading.reach.repeats_near_both_ends.join(", ") || "none"}.
+                  Repeats close to the N-end: {reading.reach.repeats_near_n_end.join(", ") || "none"}.
+                  Close to the C-end: {reading.reach.repeats_near_c_end.join(", ") || "none"}.
+                  Close to both: {reading.reach.repeats_near_both_ends.join(", ") || "none"}.
                 </p>
               </CardContent>
             </Card>
@@ -497,9 +497,9 @@ export function StructuralStudio() {
 
           <Tabs defaultValue="junctions">
             <TabsList className="bg-studio-secondary">
-              <TabsTrigger value="junctions">Junctions</TabsTrigger>
-              <TabsTrigger value="pairs">Pairs from 0</TabsTrigger>
-              <TabsTrigger value="deposited">Deposited steps</TabsTrigger>
+              <TabsTrigger value="junctions">Each repeat</TabsTrigger>
+              <TabsTrigger value="pairs">Distances from the N-end</TabsTrigger>
+              <TabsTrigger value="deposited">Published crystals</TabsTrigger>
               <TabsTrigger value="notes">Caption</TabsTrigger>
             </TabsList>
             <TabsContent value="junctions">
@@ -507,11 +507,11 @@ export function StructuralStudio() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>i</TableHead>
-                      <TableHead>phase</TableHead>
-                      <TableHead>face vs 0</TableHead>
+                      <TableHead>repeat</TableHead>
+                      <TableHead>turn (°)</TableHead>
+                      <TableHead>same direction as 0?</TableHead>
                       <TableHead>x, y, z (Å)</TableHead>
-                      <TableHead>RMS (Å)</TableHead>
+                      <TableHead>scatter (Å)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -533,7 +533,7 @@ export function StructuralStudio() {
                       >
                         <TableCell className="font-medium">
                           {row.repeat_index}
-                          {row.m13_graft ? " · m13" : ""}
+                          {row.m13_graft ? " · M13" : ""}
                         </TableCell>
                         <TableCell>{fmt(row.phase_mod_360_deg, 1)}°</TableCell>
                         <TableCell>{fmt(row.facing_cosine_vs_repeat_0, 3)}</TableCell>
@@ -552,12 +552,12 @@ export function StructuralStudio() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Δi</TableHead>
-                      <TableHead>phase</TableHead>
-                      <TableHead>facing</TableHead>
-                      <TableHead>chord (Å)</TableHead>
-                      <TableHead>95% (Å)</TableHead>
-                      <TableHead>axial (Å)</TableHead>
+                      <TableHead>repeats apart</TableHead>
+                      <TableHead>turn (°)</TableHead>
+                      <TableHead>same direction?</TableHead>
+                      <TableHead>straight-line (Å)</TableHead>
+                      <TableHead>range (Å)</TableHead>
+                      <TableHead>along axis (Å)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -586,7 +586,7 @@ export function StructuralStudio() {
                       <TableHead>step</TableHead>
                       <TableHead>rise (Å)</TableHead>
                       <TableHead>twist (°)</TableHead>
-                      <TableHead>junction R (Å)</TableHead>
+                      <TableHead>helix radius (Å)</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -607,11 +607,11 @@ export function StructuralStudio() {
               <Card className="border-studio-border bg-studio-card shadow-none">
                 <CardContent className="space-y-3 pt-6 text-sm leading-relaxed text-studio-muted">
                   <p>
-                    <strong>Wiki caption.</strong> CTPR screw for n = {construct.n_repeats},
-                    fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7
+                    <strong>Wiki caption.</strong> CTPR scaffold for n = {construct.n_repeats},
+                    fit to published backbone coordinates in PDB 2AVP, 2HYZ, and 2FO7
                     (Kajander et al. 2007, DOI 10.1107/S0907444907024353).
                     Straight-line distance between the ends: {fmt(construct.end_junction.chord_A)} Å.
-                    Not a structure of this fusion. Not a lab measurement.
+                    This is a template from published crystals, not a structure of our fusion and not a lab measurement.
                   </p>
                   {data.notes.map((note) => (
                     <p key={note}>{note}</p>
@@ -633,7 +633,7 @@ export function StructuralStudio() {
         >
           GitLab repository
         </a>
-        . A green software test is not a lab result.
+        . A passing software test is not a lab result.
       </footer>
     </div>
   );

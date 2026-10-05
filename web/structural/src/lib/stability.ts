@@ -117,7 +117,7 @@ export const SERIES_COPY: readonly SeriesCopy[] = [
     citation:
       "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
     doi: "10.1002/pro.2018",
-    detail: "Default series. CTPRa, DSC, 50 mM phosphate, pH 7.0, Table I.",
+    detail: "Default numbers. CTPRa proteins measured by DSC in 50 mM phosphate, pH 7.0, Table I.",
   },
   {
     id: "cortajarena2011_ctpra_dsc",
@@ -126,7 +126,7 @@ export const SERIES_COPY: readonly SeriesCopy[] = [
     citation:
       "Cortajarena AL, Regan L. Calorimetric study of a series of designed repeat proteins: modular structure and modular folding. Protein Sci. 2011;20(2):336-340.",
     doi: "10.1002/pro.564",
-    detail: "CTPRa, DSC, 150 mM NaCl, 50 mM phosphate, pH 6.8, Table I.",
+    detail: "CTPRa proteins measured by DSC in 150 mM NaCl, 50 mM phosphate, pH 6.8, Table I.",
   },
   {
     id: "phillips2012_ctpra_cd",
@@ -135,7 +135,7 @@ export const SERIES_COPY: readonly SeriesCopy[] = [
     citation:
       "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
     doi: "10.1002/pro.2018",
-    detail: "CTPRa, CD, 50 mM phosphate, pH 7.0, Table I.",
+    detail: "CTPRa proteins measured by circular dichroism in 50 mM phosphate, pH 7.0, Table I.",
   },
   {
     id: "phillips2012_ctpr_dsc",
@@ -144,7 +144,7 @@ export const SERIES_COPY: readonly SeriesCopy[] = [
     citation:
       "Phillips JJ, Javadi Y, Millership C, Main ERG. Modulation of the multistate folding of designed TPR proteins through intrinsic and extrinsic factors. Protein Sci. 2012;21(3):327-338.",
     doi: "10.1002/pro.2018",
-    detail: "CTPR, DSC, 50 mM phosphate, pH 7.0, Table I.",
+    detail: "CTPR proteins measured by DSC in 50 mM phosphate, pH 7.0, Table I.",
   },
 ];
 
