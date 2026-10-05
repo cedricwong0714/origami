@@ -201,7 +201,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
           ]}
           next={[
             "If the ends do not hold, try a tighter Kd or a shorter length.",
-            "If they hold but the reporter is near zero, the sensor is tight enough and the reporter still is not. Open Choose a length to see if any length fixes that.",
+            "If the ends hold but the reporter stays off, binding is fine and the reporter Kd is the limit. Try Choose a length to see whether another repeat count turns NanoBiT on.",
           ]}
         />
       ) : (

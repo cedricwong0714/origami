@@ -71,10 +71,10 @@ function captionFor(data: PredictResponse): string {
     return `n=${row.n_repeats}: straight-line end distance ${fmt(row.end_junction.chord_A, 1)} Å (95% ${fmt(row.end_junction.chord_95_low_A, 1)}–${fmt(row.end_junction.chord_95_high_A, 1)} Å), facing ${fmt(row.end_junction.facing_cosine, 2)} (1 = same way, −1 = opposite)`;
   });
   return [
-    "Figure. CTPR screw for the planned lengths. SpyCatcher, the flexible linkers, and LgBiT are not in these distances.",
+    "Figure. End-to-end distances on the CTPR screw for the lengths you selected. SpyCatcher, linkers, and LgBiT are outside these chord numbers.",
     "Fit to published Cα coordinates in PDB 2AVP, 2HYZ, and 2FO7 (Kajander et al. 2007, DOI 10.1107/S0907444907024353).",
     bits.join(". ") + ".",
-    "The 95% band is the spread among those crystal structures. This is not a structure of the fusion and not a lab measurement.",
+    "The shaded band is the spread among those crystal structures. It is not a fold of our fusion construct and not wet-lab data.",
   ].join(" ");
 }
 

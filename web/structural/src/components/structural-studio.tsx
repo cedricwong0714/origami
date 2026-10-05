@@ -193,17 +193,17 @@ export function StructuralStudio() {
               "Blue is the SpyCatcher end. Orange is the M13 graft. Brown is the other end.",
             ]}
             read={[
-              "The pale tube is the protein backbone trace from deposited CTPR crystals.",
-              "Distances on screen are not angstroms until you read the numbers under the model.",
-              "SpyCatcher, the flexible linkers, and LgBiT are labels only. They are not drawn in the trace.",
+              "The pale tube is the CTPR backbone from deposited crystal structures (Cα trace).",
+              "Use the numbers under the viewer for distances in ångströms. The 3D view is for geometry, not a readout scale.",
+              "SpyCatcher, linkers, and LgBiT appear as labels on the side panel. They are not part of the backbone trace you orbit.",
             ]}
             rules={[
-              "Named grafts: repeat 2 of n = 3, repeat 4 of n = 8, repeat 7 of n = 14.",
-              "This is a geometric model of published screws. It is not a structure of our fusion.",
+              "Named M13 grafts: repeat 2 when n = 3, repeat 4 when n = 8, repeat 7 when n = 14.",
+              "The screw shape follows published CTPR coordinates. It is a scaffold template, not a predicted structure of our Spy–CaM–M13 fusion.",
             ]}
             next={[
-              "Open Compare lengths if you want the end distances as a bar chart.",
-              "Open Choose a length if you want fold, binding, and reporter on the same sweep.",
+              "Compare lengths plots end-to-end distance for n = 3, 8, and 14 on one chart.",
+              "Choose a length scores every repeat from 3 to 24 for melting, end binding, and NanoBiT on one page.",
             ]}
           />
         </div>
@@ -420,7 +420,9 @@ export function StructuralStudio() {
                   </div>
                   <div>
                     <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Sensor and reporter arrangement</dt>
-                    <dd>SpyCatcher abuts the N-end junction. LgBiT is after three flexible linkers off the C-end. Those parts have no lengths in this screw.</dd>
+                    <dd>
+                      SpyCatcher sits on the N-side of the scaffold; LgBiT sits after (GGGGS)₃ on the C-side. Those fusion pieces are annotated here but not built into the deposited CTPR trace.
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-[11px] tracking-[0.14em] text-studio-label uppercase">Payload dimensions</dt>
