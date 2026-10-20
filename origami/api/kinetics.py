@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+from origami.kinetics.scaffold_sweep import scaffold_kinetic_sweep
 from origami.kinetics.schema import kinetics_schema
 from origami.kinetics.simulate import KineticsSimError, simulate_kinetics
 
@@ -16,6 +17,12 @@ router = APIRouter()
 def get_kinetics_schema() -> dict[str, Any]:
     """Vacant vs literature rate slots and supported simulate modes."""
     return kinetics_schema()
+
+
+@router.get("/api/kinetics/scaffold")
+def get_scaffold_kinetics() -> dict[str, Any]:
+    """Occupancy and tethered half-life at every CTPR length."""
+    return scaffold_kinetic_sweep()
 
 
 @router.post("/api/kinetics/simulate")

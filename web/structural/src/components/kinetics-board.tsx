@@ -2,61 +2,42 @@
 
 import { useEffect, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
 import { PageGuide } from "@/components/page-guide";
 import {
-  fetchKineticsSchema,
+  fetchScaffoldKinetics,
   simulateCovalent,
   simulateNanoBit,
   simulateRecruitment,
   type CovalentSim,
-  type KineticsSchema,
   type NanoBitSim,
-  type RateSlot,
   type RecruitmentSim,
+  type ScaffoldKineticSweep,
 } from "@/lib/kinetics";
 
 const DEFAULT_C_FREE = 1e-8;
 const DEFAULT_TAG = 10e-6;
 
-const SLOT_LABEL: Record<string, string> = {
-  cam_m13_kd_M: "CaM–M13 peptide Kd",
-  spy_k_on_per_M_s: "Spy lock rate",
-  spy_k_rev_per_s: "Spy reverse rate",
-  spy_k_bond_per_s: "Spy bond rate",
-  nanobit_kd_M: "LgBiT–SmBiT Kd",
-  nanobit_k_on_per_M_s: "LgBiT–SmBiT on-rate",
-  nanobit_k_off_per_s: "LgBiT–SmBiT off-rate",
-};
-
-function slotBadge(slot: RateSlot) {
-  if (slot.origin === "literature_prior" && slot.status === "literature") {
-    return "Published value";
-  }
-  if (slot.status === "vacant") return "Empty until you measure it";
-  return "Value you typed";
-}
-
-function formatVal(slot: RateSlot) {
-  if (slot.value === null) return "—";
-  return `${slot.value.toExponential(2)} ${slot.units}`;
+function formatSeconds(seconds: number | null): string {
+  if (seconds === null || !Number.isFinite(seconds)) return "outside linker reach";
+  if (seconds < 60) return `${seconds.toFixed(1)} s`;
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)} min`;
+  if (seconds < 86400) return `${(seconds / 3600).toFixed(1)} h`;
+  return `${(seconds / 86400).toExponential(2)} d`;
 }
 
 export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "nanobit" }) {
-  const [schema, setSchema] = useState<KineticsSchema | null>(null);
+  const [sweep, setSweep] = useState<ScaffoldKineticSweep | null>(null);
   const [sim, setSim] = useState<RecruitmentSim | null>(null);
   const [cov, setCov] = useState<CovalentSim | null>(null);
   const [cFree, setCFree] = useState(String(DEFAULT_C_FREE));
   const [tag0, setTag0] = useState(String(DEFAULT_TAG));
   const [catcher0, setCatcher0] = useState(String(DEFAULT_TAG));
   const [labOn, setLabOn] = useState("");
-  const [labRev, setLabRev] = useState("");
-  const [labBond, setLabBond] = useState("");
   const [nano, setNano] = useState<NanoBitSim | null>(null);
-  const [lg0, setLg0] = useState("");
-  const [sm0, setSm0] = useState("");
+  const [lg0, setLg0] = useState("1e-6");
+  const [sm0, setSm0] = useState("1e-6");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,8 +45,8 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
     let cancelled = false;
     (async () => {
       try {
-        const s = await fetchKineticsSchema();
-        if (!cancelled) setSchema(s);
+        const library = await fetchScaffoldKinetics();
+        if (!cancelled) setSweep(library);
         const r = await simulateRecruitment(DEFAULT_C_FREE);
         if (!cancelled) setSim(r);
         const c = await simulateCovalent({
@@ -73,6 +54,8 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           catcher0_M: DEFAULT_TAG,
         });
         if (!cancelled) setCov(c);
+        const tube = await simulateNanoBit(1e-6, 1e-6);
+        if (!cancelled) setNano(tube);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Load failed");
       } finally {
@@ -124,16 +107,6 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       }
       body.spy_k_on_per_M_s = k;
     }
-    if (labRev.trim() !== "" || labBond.trim() !== "") {
-      const kr = Number(labRev);
-      const kb = Number(labBond);
-      if (!Number.isFinite(kr) || kr <= 0 || !Number.isFinite(kb) || kb <= 0) {
-        setError("Fill both lab k_rev and k_bond with positive numbers, or leave both empty.");
-        return;
-      }
-      body.spy_k_rev_per_s = kr;
-      body.spy_k_bond_per_s = kb;
-    }
     setLoading(true);
     try {
       setCov(await simulateCovalent(body));
@@ -162,7 +135,15 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
     }
   }
 
-  const spyOn = schema?.rate_slots.find((s) => s.name === "spy_k_on_per_M_s");
+  const camPoints = sweep?.rows.map((row) => ({ x: row.n_repeats, y: row.theta_cam })) ?? [];
+  const teamHalf = sweep?.rows.flatMap((row) =>
+    row.t_half_team_s === null ? [] : [{ x: row.n_repeats, y: row.t_half_team_s }],
+  ) ?? [];
+  const literatureHalf = sweep?.rows.flatMap((row) =>
+    row.t_half_literature_s === null ? [] : [{ x: row.n_repeats, y: row.t_half_literature_s }],
+  ) ?? [];
+  const nanoKinetic = sweep?.rows.map((row) => ({ x: row.n_repeats, y: row.theta_nanobit_kinetic })) ?? [];
+  const nanoPrinted = sweep?.rows.map((row) => ({ x: row.n_repeats, y: row.theta_nanobit_printed })) ?? [];
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
@@ -187,7 +168,7 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
               "If it is still climbing at the end of the plot, you need a longer wait or a higher concentration.",
             ]}
             rules={[
-              "The default path is one irreversible step. Reverse and bond rates stay empty until you supply both.",
+              "The lock is one irreversible step. Reverse and bond rates are omitted because they have not been measured.",
               "This is a mixed solution. It is not the crowding between the two ends of the scaffold.",
             ]}
             next={[
@@ -217,21 +198,20 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
           />
         ) : (
           <PageGuide
-            intro="The CaM–M13 sensor sticks with a published tightness of 0.19 nM. This page shows how much of it is bound at a free concentration you choose. Use it before you pick a working concentration."
+            intro="Bound fraction is calculated at every scaffold length. The screw sets the distance, the linker turns that distance into a local concentration, and the peptide Kd turns that concentration into a fraction bound."
             steps={[
-              "Look at the filled-in Kd. Empty rate rows stay empty until you measure them.",
-              "Type a free concentration in molar.",
-              "Click Run bound fraction.",
-              "Find your concentration on the curve.",
+              "Read the scaffold curve first. It is already calculated.",
+              "The drop is where the screw chord leaves the linker.",
+              "The box below is a separate well-mixed tube, if you want one free concentration.",
             ]}
             read={[
-              "Bound fraction = free concentration ÷ (free concentration + Kd). Near 1 means almost all sensor is bound. Near 0.5 means you are at the Kd. Near 0 means almost nothing is bound.",
-              "The peptide Kd is 0.19 nM. The 80 nM fusion number is a different measurement and is not used here.",
-              "The shaded range on the point comes from the uncertainty on that Kd.",
+              "θ = C_eff(n) / (C_eff(n) + Kd).",
+              "Kd is 0.19 nM from the peptide titration. It is the parameter, not the result.",
+              "A fraction near 1 means the local concentration is still far above that Kd.",
             ]}
             rules={[
-              "Higher free concentration binds more sensor.",
-              "This is well mixed. It is not the crowding between the two ends of the scaffold.",
+              "The scaffold curve uses the screw chord, not a concentration you type.",
+              "The tube curve below is well mixed and does not use the scaffold.",
             ]}
             next={[
               "If you are on the steep part of the curve, small concentration errors will change the signal a lot.",
@@ -248,35 +228,27 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
         </div>
       ) : null}
 
-      {loading && !schema ? (
+      {loading && !sweep ? (
         <div className="flex items-center gap-2 text-sm text-studio-muted">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading schema…
+          Calculating every scaffold length…
         </div>
       ) : null}
 
-      {schema && pane === "bound" ? (
+      {pane === "bound" && sweep ? (
         <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
-          <h2 className="text-lg font-medium">Rates</h2>
+          <h2 className="text-lg font-medium">Bound fraction on the scaffold</h2>
           <p className="mt-1 text-sm text-studio-muted">
-            Published numbers are already filled in. Leave a row blank if you have not measured it.
+            Each point is θ = C_eff(n) / (C_eff(n) + Kd). The separation is the
+            screw chord at that repeat count. Kd is the peptide value{" "}
+            {sweep.cam_kd_M.toExponential(2)} M, not a result and not this fusion.
           </p>
-          <ul className="mt-4 space-y-3">
-            {schema.rate_slots.map((slot) => (
-              <li
-                key={slot.name}
-                className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#F0E8DC] pb-3 last:border-0"
-              >
-                <div>
-                  <span className="text-sm">{SLOT_LABEL[slot.name] ?? slot.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{slotBadge(slot)}</Badge>
-                  <span className="text-sm tabular-nums">{formatVal(slot)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <SeriesChart
+            label="Cam occupancy versus repeat count"
+            xLabel="CTPR repeats n"
+            yLabel="Fraction bound"
+            series={[{ color: "#C45C12", points: camPoints }]}
+          />
         </section>
       ) : null}
 
@@ -345,9 +317,30 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       </section>
       ) : null}
 
+      {pane === "nanobit" && sweep ? (
+        <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
+          <h2 className="text-lg font-medium">Reporter occupancy on the scaffold</h2>
+          <p className="mt-1 text-sm text-studio-muted">
+            Both curves use the screw chord. The solid curve uses k_off / k_on
+            ({sweep.nanobit_kinetic_kd_M.toExponential(2)} M). The second curve
+            uses the printed Kd ({sweep.nanobit_printed_kd_M.toExponential(2)} M).
+            They are not substituted for each other.
+          </p>
+          <SeriesChart
+            label="NanoBiT occupancy versus repeat count"
+            xLabel="CTPR repeats n"
+            yLabel="Fraction bound"
+            series={[
+              { color: "#C45C12", points: nanoKinetic },
+              { color: "#7A7A7A", points: nanoPrinted },
+            ]}
+          />
+        </section>
+      ) : null}
+
       {pane === "nanobit" ? (
       <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
-        <h2 className="text-lg font-medium">Light reporter complex</h2>
+        <h2 className="text-lg font-medium">Same reporter in a well-mixed tube</h2>
         <p className="mt-1 text-sm text-studio-muted">
           Type both starting concentrations. There is no default mix. The
           amount of complex at equilibrium uses Dixon et al. 2016
@@ -418,12 +411,37 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
       </section>
       ) : null}
 
+      {pane === "spy" && sweep ? (
+        <section className="mb-10 rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
+          <h2 className="text-lg font-medium">Tethered lock versus scaffold length</h2>
+          <p className="mt-1 text-sm text-studio-muted">
+            t½ = ln 2 / (k × C_eff). Orange is the team fit,{" "}
+            {sweep.spy_team_per_M_s.toExponential(2)} M⁻¹ s⁻¹. Grey is the
+            literature rate, {sweep.spy_literature_per_M_s.toExponential(2)} M⁻¹ s⁻¹.
+            The two curves are not averaged.
+          </p>
+          <SeriesChart
+            label="Spy half-life versus repeat count"
+            xLabel="CTPR repeats n"
+            yLabel="Half-life (s)"
+            yLog
+            series={[
+              { color: "#C45C12", points: teamHalf },
+              { color: "#7A7A7A", points: literatureHalf },
+            ]}
+          />
+          <p className="mt-2 text-sm text-studio-muted">
+            At n = 8 the team half-life is {formatSeconds(sweep.rows.find((row) => row.n_repeats === 8)?.t_half_team_s ?? null)}
+            {" "}and the literature half-life is {formatSeconds(sweep.rows.find((row) => row.n_repeats === 8)?.t_half_literature_s ?? null)}.
+          </p>
+        </section>
+      ) : null}
+
       {pane === "spy" ? (
       <section className="rounded-2xl border border-studio-border bg-studio-card p-6 shadow-sm">
         <h2 className="text-lg font-medium">Spy lock over time</h2>
         <p className="mt-1 text-sm text-studio-muted">
-          Default path: one irreversible step. Locked product grows as on-rate × Tag × Catcher. The starting on-rate is{" "}
-          {spyOn ? formatVal(spyOn) : "the Zakeri 2012 rate"}. Leave the reverse and bond boxes empty. Filling both switches the model to reversible binding plus an irreversible lock.
+          The chart is the tethered half-life at each screw length. The time course below is a separate well-mixed tube at the concentrations you type. Reverse and bond rates are not in either calculation: they have not been measured.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
@@ -448,24 +466,6 @@ export function KineticsBoard({ pane = "bound" }: { pane?: "bound" | "spy" | "na
               className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
               value={labOn}
               onChange={(e) => setLabOn(e.target.value)}
-              placeholder="leave empty"
-            />
-          </label>
-          <label className="block text-sm">
-            Reverse rate (per second). Leave empty.
-            <input
-              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
-              value={labRev}
-              onChange={(e) => setLabRev(e.target.value)}
-              placeholder="leave empty"
-            />
-          </label>
-          <label className="block text-sm sm:col-span-2">
-            Bond rate (per second). Leave empty.
-            <input
-              className="mt-1 w-full rounded-lg border border-studio-border px-3 py-2 font-mono text-sm"
-              value={labBond}
-              onChange={(e) => setLabBond(e.target.value)}
               placeholder="leave empty"
             />
           </label>

@@ -5,6 +5,36 @@
 
 import { readApiJson } from "@/lib/api";
 
+export type ScaffoldKineticRow = {
+  n_repeats: number;
+  chord_A: number;
+  c_eff_M: number;
+  theta_cam: number;
+  theta_cam_95_lower: number;
+  theta_cam_95_upper: number;
+  t_half_literature_s: number | null;
+  t_half_team_s: number | null;
+  theta_nanobit_kinetic: number;
+  theta_nanobit_printed: number;
+};
+
+export type ScaffoldKineticSweep = {
+  calibrated: false;
+  linker_sigma_A: number;
+  cam_kd_M: number;
+  spy_literature_per_M_s: number;
+  spy_team_per_M_s: number;
+  nanobit_kinetic_kd_M: number;
+  nanobit_printed_kd_M: number;
+  rows: ScaffoldKineticRow[];
+  assumptions: string[];
+};
+
+export async function fetchScaffoldKinetics(): Promise<ScaffoldKineticSweep> {
+  const res = await fetch("/api/kinetics/scaffold", { cache: "no-store" });
+  return readApiJson<ScaffoldKineticSweep>(res);
+}
+
 export type RateSlot = {
   name: string;
   status: "literature" | "vacant" | "user_supplied";

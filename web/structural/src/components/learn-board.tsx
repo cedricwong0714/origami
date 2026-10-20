@@ -495,7 +495,9 @@ export function LearnBoard() {
               );
             })}
           </ul>
-          {report.multifidelity_luminescence ? (
+          {report.multifidelity_luminescence &&
+          report.multifidelity_luminescence.fitted &&
+          report.multifidelity_luminescence.threshold_luminescence.status !== "unmeasured" ? (
             <div className="mt-6 border-t border-studio-border pt-4">
               <h3 className="font-medium">Multi-fidelity luminescence gates</h3>
               <p className="mt-1 text-studio-muted">{report.multifidelity_luminescence.note}</p>
