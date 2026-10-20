@@ -1629,4 +1629,4 @@ Required classes of tests:
 - Physical invariant tests (non-negative concentrations, etc.)  
 - Profile / mode / allowlist smoke tests (`tests/unit_tests/test_profiles_modes_compiler.py`)
 
-CI configuration: [`.gitlab-ci.yml`](.gitlab-ci.yml) (pytest on Python 3.12).
+Tests are run locally with `pytest`. [`.gitlab-ci.yml`](.gitlab-ci.yml) is not executed on GitHub.

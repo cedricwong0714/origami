@@ -26,7 +26,7 @@ Other ISEF teams can clone the repository, change the repeat count and the conce
 
 ## What a judge can open
 
-**Static demo.** GitLab → Deploy → Pages, on the default branch `main`. That URL is a landing page plus an in-browser CTPR spacing demo. It does not run the Python chassis.
+**Static demo.** Open `web/index.html` and `web/ctpr_scaffold_optimizer.html` from a clone of `main`. Those pages are a landing screen and an in-browser CTPR spacing demo. They do not run the Python chassis. This repository is not published through GitHub Pages.
 
 **Full program**, on a computer with Python 3.10+ and Node:
 

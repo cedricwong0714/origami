@@ -27,9 +27,11 @@ You will:
 
 ### A1. Repository
 
-Push this git tree to **GitHub** (public or private). Render and Vercel both connect to GitHub.
+Connect Render and Vercel to the public GitHub repository:
 
-If the code only lives on Cursor Origin today, add a GitHub remote and push the branch you want to deploy (for example `cursor/software-exports-a70b` or `main` after merge).
+https://github.com/cedricwong0714/origami
+
+Use branch `main`. The repo root is the Python project. The Next.js app is `web/structural`.
 
 ### A2. Create the web service
 

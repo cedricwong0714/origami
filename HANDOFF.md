@@ -81,14 +81,16 @@ Physics without GP is valid. GP without physics is forbidden. BO without a GP ha
 ## How to run (other computer)
 
 ```bash
+git clone https://github.com/cedricwong0714/origami.git
+cd origami
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-pytest
-streamlit run app.py --server.port 48651 --server.address 0.0.0.0
+pip install -e ".[dev,ui]"
+pytest -q
+python host_sa.py
 ```
 
-Requires Python ≥ 3.11, numpy, scipy, pydantic, streamlit, plotly, pytest.
+Python 3.10 or newer. The package is not on PyPI. Streamlit is the `ui` extra: `streamlit run sandbox/app.py` is the design sandbox, and `streamlit run app.py` is the older Explore / Design / Learn dashboard. The studio is `cd web/structural && npm install && npm run dev` while `host_sa.py` is on port 41287. Full steps are in `docs/USER_MANUAL.md`.
 
 ---
 

@@ -56,4 +56,4 @@ Note: Φ is Tier-3 computational ranking, not calibrated fitness.
 pytest
 ```
 
-GitLab CI runs pytest on Python 3.12 and publishes `web/` to **GitLab Pages** on `main`.
+Run `pytest` on your own machine. GitHub does not run a workflow for this repository and does not publish `web/` as a Pages site. Open `web/index.html` locally for the static landing page.

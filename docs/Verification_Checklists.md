@@ -86,7 +86,7 @@ Refusal rule: if confidence &lt; project threshold, Explore Mode must return ins
 
 ## F. Pre-wiki / judging freeze
 
-- [ ] `pytest` green on `main` (GitLab CI)  
+- [ ] `pytest` green locally on a clone of GitHub `main`  
 - [ ] README install path works on a clean machine  
 - [ ] No secrets, API keys, or unpublished third-party data in the repo  
 - [ ] Claims match evidence tier (no “validated diagnostic” language without support)  
@@ -104,4 +104,4 @@ Refusal rule: if confidence &lt; project threshold, Explore Mode must return ins
 | C | `src/evidence_engine/`, `src/ui/explore_mode.py` |
 | D | `src/ui/learn_mode.py`, `src/data_ingestion/learn_timeseries.py`, `data/stage1_ingestion/templates/`, `src/gp_model/` |
 | E | `src/compiler/` |
-| F | `.gitlab-ci.yml`, `README.md` |
+| F | `README.md`, `docs/USER_MANUAL.md` |

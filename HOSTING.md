@@ -9,12 +9,11 @@ and start **`host_app.py`**, not `app.py`.
 
 ## Fastest free option: Streamlit Community Cloud (~always-on)
 
-1. Put this git tree on **GitHub** (public repo is easiest). Cursor Origin
-   alone is not enough for Streamlit Cloud.
+1. The public tree is already on GitHub:
+   https://github.com/cedricwong0714/origami
 2. Open [https://share.streamlit.io](https://share.streamlit.io) and sign in
    with GitHub.
-3. **New app** → that repo → branch `cursor/origami-math-engine-9d85` or
-   `main` after you merge → **Main file path: `host_app.py`**.
+3. **New app** → `cedricwong0714/origami` → branch `main` → **Main file path: `host_app.py`**.
 4. Deploy. The HTTPS URL they give you stays up while the GitHub repo and
    the Streamlit app exist (months on the free tier). Idle apps may sleep
    and take a minute to wake.

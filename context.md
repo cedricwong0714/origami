@@ -5,7 +5,7 @@
 **Working branch (math chassis):** `cursor/ssdk-baseline-plan-5511`  
 **Preferred PR base:** `cursor/origami-math-engine-9d85`  
 **Draft PR (Origin):** https://cursor.com/codebase/origami-pchk/origami/pull/1  
-**Latest pushed tip (at last update):** `b0e0714` on origin branch and GitLab `main`  
+**Public branch:** GitHub `main` at https://github.com/cedricwong0714/origami  
 **Software freeze target (team):** 21 October — lab continues after; do not predeclare which assays will be missed.
 
 Read **`AGENTS.md`** before changing biology, sequences, priors, or safety checks. **`calibrated: false`** everywhere until the team approves a dataset for a claim. A green pytest run is not wet-lab validation.
@@ -21,7 +21,7 @@ The running stack has two layers:
 1. **Deterministic chassis** (structure, stability lookup, docking, kinetics) — does not change when surrogate luminescence is posted.
 2. **SSDK active learning** (Gaussian processes on wet/dry readouts) — recommends the next repeat count `n` and optional batch; does not edit the screw or Phillips curves.
 
-**UI:** Next.js wiki at `web/structural` (dev port 3000, proxies API). API: `python host_sa.py` on port **41287**. GitLab Pages is static HTML only — it does not run the Python chassis.
+**UI:** Next.js studio at `web/structural`. `npm run dev` defaults to port 3000 and proxies `/api` only while the dev server is running. API: `python host_sa.py` on port **41287**. Files in `web/` are static HTML. GitHub does not run the Python chassis.
 
 ---
 
@@ -156,13 +156,9 @@ origami freeze --scaffold --n-repeats 8 --prediction-id scaffold-n8
 
 ---
 
-## Git / push notes for agents
+## Git
 
-- Push feature work: `git push -u origin cursor/ssdk-baseline-plan-5511`  
-- GitLab main (team): push with env **`CURSORPLEASEPUSH`** as oauth2; do not leave token in remote URL.  
-- Do **not** use `gh`; use **ManagePullRequest** for PRs.  
-- Do **not** stage unrelated dirty files if they reappear (e.g. `.cursor/agents/orchestrator.md`, `CLASP Docs.md`, `src/evidence_engine/retriever.py`).  
-- Do **not** force-push; do **not** `pkill -f`.
+The public repository is https://github.com/cedricwong0714/origami, branch `main`. Clone that URL. Do not put a token in the remote URL. A push that returns 403 needs repository write access on the GitHub token.
 
 ---
 
@@ -172,7 +168,7 @@ origami freeze --scaffold --n-repeats 8 --prediction-id scaffold-n8
 - CD, thermal shift, SEC, cryo-EM wet assays  
 - Inventing biological constants, sequences, citations, or ODE σ  
 - Reconciling Phillips ΔG gap without sourced missing inputs  
-- Claiming Pages runs the Python chassis
+- Claiming that GitHub or a static HTML file runs the Python chassis
 
 ---
 

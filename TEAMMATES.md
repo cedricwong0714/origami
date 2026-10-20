@@ -24,8 +24,8 @@ The older n = 8 checkpoint is still `web/checkpoint/`.
 On a laptop (Python 3.10+):
 
 ```bash
-git clone <this-repo>
-cd <this-repo>
+git clone https://github.com/cedricwong0714/origami.git
+cd origami
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[ui]"

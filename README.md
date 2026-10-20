@@ -33,7 +33,7 @@ Three operating modes:
 | Active learning | `src/experiment_design/bayesian_selector.py` | EI / EIG next-experiment selection |
 | Prospective freeze | `src/predictions/freeze.py` | Timestamped + checksummed predictions vs observation |
 
-CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install origami[ml]`).
+CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install -e ".[ml]"` from this clone, not from PyPI).
 
 Streamlit Learn also surfaces Fisher/CRLB identifiability on a phenomenological fit and a synthetic Ca²⁺ stacked-ensemble demo; Design supports freeze → compare against frozen predictions.
 
@@ -118,8 +118,7 @@ Standalone HTML demo (same palette / corrected ORIGAMI CTPR priors):
 web/ctpr_scaffold_optimizer.html
 ```
 
-**GitLab Pages** (after CI deploy on `main`): project **Deploy → Pages** in GitLab shows the public URL.
-Static demos only: landing page + CTPR optimizer. The full chassis (SSDK learn, lab quality, multi-fidelity gates) needs `host_sa.py` + Next.js dev or Streamlit as above.
+The HTML files in `web/` are static demos only: the landing page and the CTPR optimizer. GitHub does not publish them as a Pages site. Open `web/index.html` and `web/ctpr_scaffold_optimizer.html` in a browser. The full chassis (SSDK learn, lab quality, multi-fidelity gates) needs `host_sa.py` plus `npm run dev` in `web/structural`, or Streamlit as above.
 
 Wiki UI includes **Dependencies** (`/guide`), **Wizard** (`/wizard`), **SSDK** luminescence gates, **Data intake**, and **Active learning** with multi-fidelity output when the API is running.
 
@@ -221,7 +220,7 @@ print(learn(spec, experimental_product=exp)["next_experiment_recommendations"][:
 pytest
 ```
 
-CI on GitLab runs the same suite (see [`.gitlab-ci.yml`](.gitlab-ci.yml)).
+Run that command on your machine. This GitHub repository has no Actions workflow. [`.gitlab-ci.yml`](.gitlab-ci.yml) is not executed here.
 
 ## Repository layout
 

@@ -1987,7 +1987,7 @@ Deliver:
 Deliver:
 
 * Stable public release   
-* ISEF GitLab mirror   
+* Public GitHub repository (https://github.com/cedricwong0714/origami)   
 * OSI-approved license   
 * Offline demo   
 * Three guaranteed demo presets   
@@ -2115,9 +2115,7 @@ That is large enough to support the Foundational Advance narrative while remaini
 
 # Folder Hierarchy
 
-To set up the official GitLab Repository for the ORIGAMI / CLASP engine, you want a directory structure that cleanly separates the software engine (ORIGAMI), the dry-lab modeling/data files, the wet-lab specs, and the OpenCode AI system agent configurations.  
-Based on the ORIGAMI tab in the CLASP Docs, here is the recommended production-grade folder structure for your GitLab repository:  
-Recommended GitLab Repository Structure  
+The running source is already on GitHub: https://github.com/cedricwong0714/origami, branch `main`. Clone that repository. Do not recreate the tree in a web editor. Install and run steps are in `docs/USER_MANUAL.md`. The sketch below is an older outline. The layout that actually runs is the Repository layout section of `README.md`.  
 ISEF-clasp-origami/  
 ├── .opencode/  
 │   ├── agents/  
@@ -2125,7 +2123,7 @@ ISEF-clasp-origami/
 │   └── commands/  
 │       └── assure.md                   \# /assure slash command shortcut  
 │  
-├── .gitlab-ci.yml                      \# Automated CI/CD pipeline for testing dry-lab code  
+├── .gitlab-ci.yml                      \# Not run by GitHub. Tests are `pytest` on a local clone.  
 ├── AGENTS.md                           \# Master system context, biophysical rules & invariants  
 ├── CLASP Docs.md                       \# Platform architectural specifications  
 ├── ISEF 2026 Dry Lab Megadoc.md        \# Dry-lab testing checklist & reporting standards  
@@ -2172,21 +2170,19 @@ ISEF-clasp-origami/
     ├── physical\_invariants/            \# Distance checks, zero-payload validation  
     └── golden\_references/              \# Known reference constructs for benchmark evaluation
 
-Step-by-Step Implementation Guide for GitLab Web IDE  
-Open the GitLab Web IDE for your project.  
-Click the New File (+) button at the root level for each of the following files:  
-Root Level Config Files:  
-opencode.json  
-AGENTS.md  
-OpenCode Agent Configuration:  
-.opencode/agents/synbio-assurance.md  
-.opencode/commands/assure.md  
-Source Code Directory (creating subfolder paths directly in the filename field):  
-src/core/ctpr\_geometry.py  
-src/core/calcium\_kinetics.py  
-src/profiles/trehalose\_synthesis.py  
-src/compiler/approved\_parts.json  
-Commit & Push: Once created, click the Source Control icon on the left navigation panel, add a commit message (e.g., structure: initialize ORIGAMI repo hierarchy and opencode configurations), and push directly to your main branch.
+Setup on a new computer
+
+```bash
+git clone https://github.com/cedricwong0714/origami.git
+cd origami
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev,ui]"
+pytest -q
+python host_sa.py
+```
+
+In a second terminal: `cd web/structural && npm install && npm run dev`. Open http://127.0.0.1:3000 . The API is http://127.0.0.1:41287/docs . Details and the failure notes are in `docs/USER_MANUAL.md`.
 
 # Use case 1: Diagnosis
 

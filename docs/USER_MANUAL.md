@@ -23,10 +23,10 @@ Judge summary: [JUDGE.md](JUDGE.md). Model cards: [MODEL_CARDS.md](MODEL_CARDS.m
 
 | Surface | What it runs | How |
 |---|---|---|
-| GitLab Pages | Static HTML only (landing + CTPR optimizer demo) | Deploy → Pages on `main` |
-| Full chassis | Python API + Next.js wiki, or Streamlit | Your laptop or a host you own |
+| Files in `web/` | Static HTML only (landing page and the in-browser CTPR spacing demo) | Open the HTML file, or serve the `web/` folder. This GitHub repository does not publish a Pages site. |
+| Full chassis | Python API plus the Next.js studio, or Streamlit | Your laptop, or a host you configure. See [HOSTING.md](../HOSTING.md) and [web/structural/DEPLOY.md](../web/structural/DEPLOY.md). |
 
-Pages does not execute `run_design`, the Gaussian process, or the lab intake.
+The static HTML does not execute `run_design`, the Gaussian process, or the lab intake. GitHub stores the source. It does not run the Python chassis.
 
 ## 3. Install
 
@@ -38,9 +38,11 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-Optional Streamlit UI: `pip install -e ".[ui]"`.
+Optional Streamlit UI: `pip install -e ".[ui]"`. The studio also needs Node.js 20 and npm, installed separately. They are not part of the Python extra.
 
-Python 3.10+ (3.12 in CI). The package is not on PyPI. Do not `pip install origami`.
+Python 3.10 or newer. 3.12 is what the test suite was run with. The package is not on PyPI. `pip install origami` fails. Install from this clone with `pip install -e`.
+
+The public repository is https://github.com/cedricwong0714/origami on branch `main`. There is no GitHub Actions workflow in the tree. `.gitlab-ci.yml` is not run by GitHub. Run the tests yourself with `pytest -q`.
 
 ## 4. Wiki UI (recommended for the team)
 
@@ -60,7 +62,9 @@ npm install
 npm run dev -- --port 3000
 ```
 
-Open http://127.0.0.1:3000 . The dev server rewrites `/api` to port 41287.
+Open http://127.0.0.1:3000 . `npm run dev` is the live studio. It rewrites `/api` to `STRUCTURAL_API_URL`, which defaults to http://127.0.0.1:41287. Pass `--port` if 3000 is taken.
+
+`npm run build` on a laptop sets Next.js `output: "export"`. That static build does not proxy `/api`. Use `npm run dev` when you want the calculators. A Vercel deploy is different: it stays a server build and only reaches the chassis when `STRUCTURAL_API_URL` is a public API, not localhost. See [DEPLOY.md](../web/structural/DEPLOY.md).
 
 | Page | Use |
 |---|---|
@@ -204,10 +208,10 @@ A passing test checks code and pinned literature figures. It does not validate a
 - UI says the API is down: start `python host_sa.py` and confirm http://127.0.0.1:41287/health .
 - Next.js calls 404 on `/api`: you are on `next export` or a static host. Use `npm run dev` with the rewrite, or call port 41287 directly.
 - Learn returns 400: `n_repeats` outside `n_min`–`n_max`, sigma ≤ 0, or fidelity not 0 or 1.
-- Git push 403: the token needs write access to this project.
+- `git push` to GitHub returns 403: the token needs repository write access (Contents: Read and write on a fine-grained token, or the `repo` scope on a classic token). Do not put the token in the remote URL.
 
 ## 11. Repository
 
-Judging remote: https://github.com/cedricwong0714/origami
+Public source: https://github.com/cedricwong0714/origami
 
-Default branch `main` holds the chassis described here. Static Pages update when the `pages` CI job runs on `main`.
+Branch `main` is the chassis described here. Clone that branch. GitHub does not run the test suite or publish the static HTML for you.
