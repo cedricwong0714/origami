@@ -7,6 +7,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const SECTIONS = [
   {
+    label: "All models",
+    tabs: [{ href: "/models", label: "Choose a model" }],
+  },
+  {
     label: "Structural analysis",
     tabs: [
       { href: "/", label: "3D scaffold" },

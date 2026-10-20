@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 import { PageGuide } from "@/components/page-guide";
 
 type SweepPoint = {
@@ -130,11 +131,7 @@ export function DesignBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(typeof data.detail === "string" ? data.detail : "Length sweep failed.");
-      }
-      const sweep = data as SweepReport;
+      const sweep = await readApiJson<SweepReport>(res);
       setReport(sweep);
       setSelected(sweep.marked_n ?? 8);
     } catch (err: unknown) {

@@ -1,3 +1,5 @@
+import { readApiJson } from "@/lib/api";
+
 export type LabSlot = {
   name: string;
   units: string;
@@ -71,10 +73,7 @@ export type LabRun = {
 
 export async function fetchLabSchema(): Promise<LabSchema> {
   const response = await fetch("/api/lab/schema");
-  if (!response.ok) {
-    throw new Error(`Schema request failed (${response.status}).`);
-  }
-  return response.json() as Promise<LabSchema>;
+  return readApiJson<LabSchema>(response);
 }
 
 export async function runLab(body: Record<string, unknown>): Promise<LabRun> {
@@ -83,15 +82,5 @@ export async function runLab(body: Record<string, unknown>): Promise<LabRun> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!response.ok) {
-    let detail = `Run failed (${response.status}).`;
-    try {
-      const payload = (await response.json()) as { detail?: string };
-      if (payload.detail) detail = payload.detail;
-    } catch {
-      /* keep the status line */
-    }
-    throw new Error(detail);
-  }
-  return response.json() as Promise<LabRun>;
+  return readApiJson<LabRun>(response);
 }

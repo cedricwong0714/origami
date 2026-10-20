@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { SeriesChart } from "@/components/model-chart";
 import { StudioNav } from "@/components/studio-nav";
 import { PageGuide } from "@/components/page-guide";
+import { readApiJson } from "@/lib/api";
 import { PHILLIPS_PRINTED_DELTA_G_T_C } from "@/lib/thermo";
 import {
   CANONICAL_SERIES_ID,
@@ -399,8 +400,8 @@ export function StabilityBoard() {
     setRunError(null);
     try {
       const response = await fetch(`/api/stability/predict?n=${n}&t_assay_C=37`);
-      const body = (await response.json()) as { detail?: string; row?: PredictedLength };
-      if (!response.ok || !body.row) {
+      const body = await readApiJson<{ detail?: string; row?: PredictedLength }>(response);
+      if (!body.row) {
         throw new Error(body.detail || "The length model did not return a melting temperature.");
       }
       setPredicted(body.row);
@@ -416,8 +417,7 @@ export function StabilityBoard() {
     let alive = true;
     fetch("/api/stability/curve?t_assay_C=37")
       .then(async (response) => {
-        if (!response.ok) return;
-        const body = (await response.json()) as { points?: PredictedLength[] };
+        const body = await readApiJson<{ points?: PredictedLength[] }>(response);
         if (alive && body.points) setCurve(body.points);
       })
       .catch(() => {

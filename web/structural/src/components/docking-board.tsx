@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 import { PageGuide } from "@/components/page-guide";
 
 type AffinityReport = {
@@ -135,11 +136,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
           unit,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(typeof data.detail === "string" ? data.detail : "Affinity check failed.");
-      }
-      setAffinity(data as AffinityReport);
+      setAffinity(await readApiJson<AffinityReport>(res));
     } catch (err: unknown) {
       setAffinity(null);
       setError(err instanceof Error ? err.message : "Affinity check failed.");
@@ -157,11 +154,7 @@ export function DockingBoard({ pane }: { pane: "affinity" | "geometry" }) {
     setRunning(true);
     try {
       const res = await fetch(`/api/docking/geometry?n=${n}`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(typeof data.detail === "string" ? data.detail : "Geometry request failed.");
-      }
-      setGeometry(data as GeometryReport);
+      setGeometry(await readApiJson<GeometryReport>(res));
     } catch (err: unknown) {
       setGeometry(null);
       setError(err instanceof Error ? err.message : "Geometry request failed.");

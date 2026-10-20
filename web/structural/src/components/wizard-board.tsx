@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 
 const STEPS = [
   "What this is",
@@ -25,12 +26,7 @@ export function WizardBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ n_repeats: n }),
       });
-      const data = (await res.json()) as Record<string, unknown>;
-      if (!res.ok) {
-        const detail = typeof data.detail === "string" ? data.detail : "Chassis request failed.";
-        throw new Error(detail);
-      }
-      setChassis(data);
+      setChassis(await readApiJson<Record<string, unknown>>(res));
       setStep(2);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Chassis request failed.");
@@ -45,11 +41,7 @@ export function WizardBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ n_repeats: n }),
       });
-      const data = (await res.json()) as Record<string, unknown>;
-      if (!res.ok) {
-        const detail = typeof data.detail === "string" ? data.detail : "Summary request failed.";
-        throw new Error(detail);
-      }
+      const data = await readApiJson<Record<string, unknown>>(res);
       setPassport(data);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);

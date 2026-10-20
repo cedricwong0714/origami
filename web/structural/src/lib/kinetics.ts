@@ -3,6 +3,8 @@
  * Lab overrides stay empty until assay data.
  */
 
+import { readApiJson } from "@/lib/api";
+
 export type RateSlot = {
   name: string;
   status: "literature" | "vacant" | "user_supplied";
@@ -65,10 +67,7 @@ export type CovalentSim = {
 
 export async function fetchKineticsSchema(): Promise<KineticsSchema> {
   const res = await fetch("/api/kinetics/schema", { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`schema ${res.status}`);
-  }
-  return res.json() as Promise<KineticsSchema>;
+  return readApiJson<KineticsSchema>(res);
 }
 
 export async function simulateRecruitment(cFreeM: number): Promise<RecruitmentSim> {
@@ -77,11 +76,7 @@ export async function simulateRecruitment(cFreeM: number): Promise<RecruitmentSi
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ mode: "recruitment_steady", c_free_M: cFreeM }),
   });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(detail || `simulate ${res.status}`);
-  }
-  return res.json() as Promise<RecruitmentSim>;
+  return readApiJson<RecruitmentSim>(res);
 }
 
 export type NanoBitSim = {
@@ -112,11 +107,7 @@ export async function simulateNanoBit(lg0M: number, sm0M: number): Promise<NanoB
       num_points: 40,
     }),
   });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(detail || `simulate ${res.status}`);
-  }
-  return res.json() as Promise<NanoBitSim>;
+  return readApiJson<NanoBitSim>(res);
 }
 
 export async function simulateCovalent(body: {
@@ -144,9 +135,5 @@ export async function simulateCovalent(body: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(detail || `simulate ${res.status}`);
-  }
-  return res.json() as Promise<CovalentSim>;
+  return readApiJson<CovalentSim>(res);
 }

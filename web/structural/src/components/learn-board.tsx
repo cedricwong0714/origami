@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 
 type Row = { n: string; y: string; sigma: string };
 
@@ -108,7 +109,22 @@ const STARTER: Row[] = [
   { n: "17", y: "", sigma: "" },
 ];
 
-function LiteraturePanel({ training }: { training: LiteratureTraining | null }) {
+function LiteraturePanel({
+  training,
+  offline,
+}: {
+  training: LiteratureTraining | null;
+  offline: boolean;
+}) {
+  if (offline) {
+    return (
+      <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5 text-sm leading-relaxed text-studio-muted">
+        The Phillips curves did not load. This host returned a page instead of
+        calculator data, so the recommendation cannot run until the Python API
+        is connected.
+      </section>
+    );
+  }
   if (!training) {
     return (
       <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5 text-sm leading-relaxed text-studio-muted">
@@ -179,6 +195,7 @@ export function LearnBoard() {
   const [acquisition, setAcquisition] = useState("ucb");
   const [report, setReport] = useState<LearnReport | null>(null);
   const [literature, setLiterature] = useState<LiteratureTraining | null>(null);
+  const [literatureOffline, setLiteratureOffline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -191,13 +208,12 @@ export function LearnBoard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ observations: [] }),
         });
-        if (!response.ok) return;
-        const payload = (await response.json()) as LearnReport;
+        const payload = await readApiJson<LearnReport>(response);
         if (!cancelled && payload.literature_training) {
           setLiterature(payload.literature_training);
         }
       } catch {
-        // The surrogate form still works if this background load fails.
+        if (!cancelled) setLiteratureOffline(true);
       }
     }
     void loadLiterature();
@@ -265,11 +281,7 @@ export function LearnBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!response.ok) {
-        const payload = (await response.json()) as { detail?: string };
-        throw new Error(payload.detail || `Run failed (${response.status}).`);
-      }
-      const payload = (await response.json()) as LearnReport;
+      const payload = await readApiJson<LearnReport>(response);
       setReport(payload);
       if (payload.literature_training) setLiterature(payload.literature_training);
     } catch (caught) {
@@ -303,7 +315,7 @@ export function LearnBoard() {
         </p>
       </header>
 
-      <LiteraturePanel training={literature} />
+      <LiteraturePanel training={literature} offline={literatureOffline} />
 
       {error ? (
         <div className="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">

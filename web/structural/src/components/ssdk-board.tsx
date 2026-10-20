@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 
 type ChassisReport = {
   calibrated: false;
@@ -179,11 +180,7 @@ export function SsdkBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!response.ok) {
-        const payload = (await response.json()) as { detail?: string };
-        throw new Error(payload.detail || `Run failed (${response.status}).`);
-      }
-      setReport((await response.json()) as ChassisReport);
+      setReport(await readApiJson<ChassisReport>(response));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Run failed.");
     } finally {
@@ -364,11 +361,7 @@ function LearnLuminescencePanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ n_min, n_max, observations, acquisition: "ei" }),
       });
-      if (!response.ok) {
-        const payload = (await response.json()) as { detail?: string };
-        throw new Error(payload.detail || `Learn failed (${response.status}).`);
-      }
-      setLearn((await response.json()) as LearnReport);
+      setLearn(await readApiJson<LearnReport>(response));
     } catch (caught) {
       setLearnError(caught instanceof Error ? caught.message : "Learn failed.");
     } finally {
