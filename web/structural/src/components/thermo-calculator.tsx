@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 import { PageGuide } from "@/components/page-guide";
 import { CANONICAL_SERIES_ID, SERIES_COPY, TEAM_LENGTHS } from "@/lib/stability";
 import {
@@ -377,14 +378,14 @@ export function ThermoCalculator() {
         const response = await fetch(`/api/stability/predict?n=${n}&t_assay_C=37`);
         if (!alive) return;
         if (response.ok) {
-          const body = (await response.json()) as {
+          const body = await readApiJson<{
             anchor_temperature_C?: number;
             row?: {
               tm_C?: number | null;
               delta_g?: number | null;
               past_longest_cited_length?: boolean;
             };
-          };
+          }>(response);
           const row = body.row;
           if (row && typeof row.tm_C === "number") {
             setTmC(String(row.tm_C));

@@ -418,7 +418,12 @@ async function fetchLivePanel(path: string): Promise<StabilityPanel> {
   if (!response.ok) {
     throw new Error(`API ${response.status}`);
   }
-  const body: unknown = await response.json();
+  const text = await response.text();
+  const trimmed = text.trim();
+  if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+    throw new Error("Stability API returned a page instead of model data.");
+  }
+  const body: unknown = JSON.parse(trimmed);
   return { ...parseStabilityPanel(body), source: "live" };
 }
 

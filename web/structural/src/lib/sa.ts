@@ -97,7 +97,12 @@ export async function fetchPrediction(nList: number[]): Promise<PredictResponse>
     if (!response.ok) {
       throw new Error(`API ${response.status}`);
     }
-    const body = (await response.json()) as PredictResponse;
+    const text = await response.text();
+    const trimmed = text.trim();
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+      throw new Error("Structural API returned a page instead of model data.");
+    }
+    const body = JSON.parse(trimmed) as PredictResponse;
     return { ...body, source: "live" };
   } catch {
     const snapshot = await fetch("/sa-snapshot.json");

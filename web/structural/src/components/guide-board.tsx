@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { StudioNav } from "@/components/studio-nav";
+import { readApiJson } from "@/lib/api";
 
 type Deps = {
   version: string;
@@ -25,8 +26,8 @@ export function GuideBoard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/meta/dependencies").then((r) => r.json()),
-      fetch("/api/meta/active-learning-config").then((r) => r.json()),
+      fetch("/api/meta/dependencies").then((r) => readApiJson(r)),
+      fetch("/api/meta/active-learning-config").then((r) => readApiJson(r)),
     ])
       .then(([d, c]) => {
         setDeps(d as Deps);
