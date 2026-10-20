@@ -24,6 +24,8 @@ dev = [
   "httpx2>=2",
   # The 15-row XGBoost gate is part of the math stack and is tested here.
   "xgboost>=2.0",
+  # tests/test_learned_kinetics.py imports the active-learning figure.
+  "plotly>=5.18",
 ]
 ui = [
   "streamlit>=1.30",

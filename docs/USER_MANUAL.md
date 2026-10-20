@@ -42,7 +42,7 @@ Optional Streamlit UI: `pip install -e ".[ui]"`. The studio also needs Node.js 2
 
 Python 3.10 or newer. 3.12 is what the test suite was run with. The package is not on PyPI. `pip install origami` fails. Install from this clone with `pip install -e`.
 
-The public repository is https://github.com/cedricwong0714/origami on branch `main`. There is no GitHub Actions workflow in the tree. `.gitlab-ci.yml` is not run by GitHub. Run the tests yourself with `pytest -q`.
+The public repository is https://github.com/cedricwong0714/origami on branch `main`. There is no GitHub Actions workflow in the tree. `.gitlab-ci.yml` is not run by GitHub. After `pip install -e ".[dev]"`, run the tests yourself with `pytest -q`. That extra includes Plotly because the active-learning tests import the figure module.
 
 ## 4. Wiki UI (recommended for the team)
 
