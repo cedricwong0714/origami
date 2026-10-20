@@ -1,10 +1,10 @@
 # ORIGAMI / CLASP — handoff context for new agents and chats
 
 **Team:** Hong Kong team, ISEF 2026  
-**Repository:** https://gitlab.ISEF.org/2026/software/hong-kong-team/origami  
+**Repository:** https://github.com/cedricwong0714/origami  
 **Working branch (math chassis):** `cursor/ssdk-baseline-plan-5511`  
 **Preferred PR base:** `cursor/origami-math-engine-9d85`  
-**Draft PR (Origin):** https://cursor.com/codebase/origami-pchk/ISEF-clone/pull/1  
+**Draft PR (Origin):** https://cursor.com/codebase/origami-pchk/origami/pull/1  
 **Latest pushed tip (at last update):** `b0e0714` on origin branch and GitLab `main`  
 **Software freeze target (team):** 21 October — lab continues after; do not predeclare which assays will be missed.
 

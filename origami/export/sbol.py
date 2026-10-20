@@ -22,7 +22,7 @@ def sbol3_protein_xml(
         raise ConstructError("sequence is empty")
     if not display_id.replace("_", "").isalnum():
         raise ConstructError("display_id must be alphanumeric")
-    uri = f"https://ISEF.org/2026/hong-kong-team/origami/{display_id}"
+    uri = f"https://github.com/cedricwong0714/origami/{display_id}"
     seq_uri = f"{uri}_seq"
     return (
         '<?xml version="1.0" encoding="utf-8"?>\n'

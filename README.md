@@ -37,7 +37,7 @@ CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install orig
 
 Streamlit Learn also surfaces Fisher/CRLB identifiability on a phenomenological fit and a synthetic Ca²⁺ stacked-ensemble demo; Design supports freeze → compare against frozen predictions.
 
-Repository (judging artifact): [gitlab.ISEF.org/2026/software/hong-kong-team/origami](https://gitlab.ISEF.org/2026/software/hong-kong-team/origami)
+Repository (judging artifact): [github.com/cedricwong0714/origami](https://github.com/cedricwong0714/origami)
 
 > **Using an AI assistant?** Read [.claude/RESPONSIBLE_AI_USE.md](.claude/RESPONSIBLE_AI_USE.md) and [AGENTS.md](AGENTS.md). You remain responsible for every claim and every commit.
 
@@ -49,7 +49,7 @@ Repository (judging artifact): [gitlab.ISEF.org/2026/software/hong-kong-team/ori
 ## Installation
 
 ```bash
-git clone https://gitlab.ISEF.org/2026/software/hong-kong-team/origami.git
+git clone https://github.com/cedricwong0714/origami.git
 cd origami
 python -m venv .venv
 
@@ -462,7 +462,7 @@ What each paper is allowed to support is recorded in `docs/MODEL_AUDIT.md`. This
 
 ## Data and large files
 
-Keep this repository for **source code**. Datasets, model weights, and heavy media belong on [Zenodo](https://teams.ISEF.org/go/deliverables/software/zenodo) with DOIs linked from this README once uploaded.
+Keep this repository for **source code**. Datasets, model weights, and heavy media belong on [Zenodo](https://zenodo.org) with DOIs linked from this README once uploaded.
 
 ## Authors
 

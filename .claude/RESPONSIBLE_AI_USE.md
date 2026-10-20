@@ -9,8 +9,7 @@ Read this before you start.
 ## 1. You are accountable
 - Judges evaluate **your team's** work. Be able to explain and defend every line
   of code and every claim on your wiki.
-- Follow the official ISEF competition rules and policies at
-  [competition.ISEF.org](https://competition.ISEF.org).
+- Follow the official ISEF competition rules and policies.
 
 ## 2. Never fabricate
 - Do **not** let an AI invent experimental results, data, measurements,

@@ -627,11 +627,11 @@ export function StructuralStudio() {
         Hong Kong team · ORIGAMI ·{" "}
         <a
           className="underline decoration-studio-border underline-offset-2 hover:decoration-studio-accent"
-          href="https://gitlab.ISEF.org/2026/software/hong-kong-team/origami"
+          href="https://github.com/cedricwong0714/origami"
           rel="noopener noreferrer"
           target="_blank"
         >
-          GitLab repository
+          GitHub repository
         </a>
         . A passing software test is not a lab result.
       </footer>

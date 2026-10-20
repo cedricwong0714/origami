@@ -31,7 +31,7 @@ Pages does not execute `run_design`, the Gaussian process, or the lab intake.
 ## 3. Install
 
 ```bash
-git clone https://gitlab.ISEF.org/2026/software/hong-kong-team/origami.git
+git clone https://github.com/cedricwong0714/origami.git
 cd origami
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
@@ -204,10 +204,10 @@ A passing test checks code and pinned literature figures. It does not validate a
 - UI says the API is down: start `python host_sa.py` and confirm http://127.0.0.1:41287/health .
 - Next.js calls 404 on `/api`: you are on `next export` or a static host. Use `npm run dev` with the rewrite, or call port 41287 directly.
 - Learn returns 400: `n_repeats` outside `n_min`–`n_max`, sigma ≤ 0, or fidelity not 0 or 1.
-- GitLab push 403: the token needs **Code: Push** on the ISEF project.
+- Git push 403: the token needs write access to this project.
 
 ## 11. Repository
 
-Judging remote: https://gitlab.ISEF.org/2026/software/hong-kong-team/origami
+Judging remote: https://github.com/cedricwong0714/origami
 
 Default branch `main` holds the chassis described here. Static Pages update when the `pages` CI job runs on `main`.

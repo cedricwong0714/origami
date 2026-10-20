@@ -11,7 +11,7 @@ AI-optimized structural foundation with customizable plug-and-play modules, this
 establishes a standardized biochemical toolkit capable of advancing non-invasive diagnostics,  
 climate-resilient crop engineering, and highly efficient green energy manufacturing \[cite: 5\].
 
-[https://competition.ISEF.org/judging/awards/special](https://competition.ISEF.org/judging/awards/special) 
+[] 
 
 # Problems 
 
@@ -2002,7 +2002,7 @@ Deliver:
 * Reproducibility instructions   
 * Backup video   
 * Tagged code, model and dataset versions  
-  ISEF’s 2026 Best Software criteria explicitly emphasize standards compatibility, validation, usefulness to other projects and integration with external tools. The software must also be open-source and hosted in the dedicated ISEF GitLab repository to be eligible. ([competition.ISEF.org](https://competition.ISEF.org/judging/special-prizes?utm_source=openai))
+  ISEF’s 2026 Best Software criteria explicitly emphasize standards compatibility, validation, usefulness to other projects and integration with external tools. The software must also be open-source and hosted in the public GitHub repository to be eligible.
 
 ---
 
@@ -2957,7 +2957,7 @@ Fallbacks should follow a hierarchy:
 6\. Return to an established host or construct.    
 7\. Restrict the system to modelling and laboratory characterization.    
 8\. Stop the application entirely if residual risk cannot be justified.    
-For ISEF specifically, engineered organisms must not be released or deployed outside the laboratory, and taking products of synthetic biology beyond containment requires prior review under the competition’s current policies. (\[responsibility.ISEF.org\](https://responsibility.ISEF.org/safety-policies?utm\_source=openai))  
+For ISEF specifically, engineered organisms must not be released or deployed outside the laboratory, and taking products of synthetic biology beyond containment requires prior review under the competition’s current policies.  
 \---  
 \# Manual for other teams  
 A reusable manual should require every team to complete the following sequence.  
@@ -3013,7 +3013,7 @@ Assess the host, plasmids, selection markers, proteins, culture scale, storage, 
 Controls should prioritize standard physical and procedural containment, appropriate host selection, validated inactivation, inventory control, and institutional review.  
 \#\#\# Cell-free diagnostic  
 Explain how purified or cell-free operation reduces the risks associated with replication and environmental persistence.  
-Still assess reagent safety, sample handling, contamination, product disposal, diagnostic overclaiming, and any human-sample restrictions. Under current ISEF policy, experiments involving humans or human samples require prior review, and testing on humans is prohibited. (\[responsibility.ISEF.org\](https://responsibility.ISEF.org/safety-policies?utm\_source=openai))  
+Still assess reagent safety, sample handling, contamination, product disposal, diagnostic overclaiming, and any human-sample restrictions. Under current ISEF policy, experiments involving humans or human samples require prior review, and testing on humans is prohibited.  
 \#\#\# Agricultural concept  
 Clearly state that no engineered organism will be environmentally released during the ISEF project.  
 Separate laboratory proof of concept from future field deployment.  

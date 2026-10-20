@@ -2,7 +2,7 @@
 
 Hong Kong team, ISEF 2026. This page is the software exhibit for CLASP. It says what the program does, how to run it, and what a screen must not be read as. It is not a wet-lab result.
 
-Repository: https://gitlab.ISEF.org/2026/software/hong-kong-team/origami
+Repository: https://github.com/cedricwong0714/origami
 
 Longer operator notes: [USER_MANUAL.md](USER_MANUAL.md). One card per calculator: [MODEL_CARDS.md](MODEL_CARDS.md). HTTP routes: [API.md](API.md). Which numbers still need the lab: [DATA_DEPENDENCY_MATRIX.md](DATA_DEPENDENCY_MATRIX.md).
 
@@ -31,7 +31,7 @@ Other ISEF teams can clone the repository, change the repeat count and the conce
 **Full program**, on a computer with Python 3.10+ and Node:
 
 ```bash
-git clone https://gitlab.ISEF.org/2026/software/hong-kong-team/origami.git
+git clone https://github.com/cedricwong0714/origami.git
 cd origami
 python -m venv .venv
 source .venv/bin/activate

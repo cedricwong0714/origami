@@ -16,7 +16,7 @@ from typing import Any
 
 USER_AGENT = (
     "ORIGAMI-ISEF-Hong Kong team/0.1 "
-    "(https://gitlab.ISEF.org/2026/software/hong-kong-team/origami; "
+    "(https://github.com/cedricwong0714/origami; "
     "literature-metadata-only)"
 )
 CROSSREF = "https://api.crossref.org/works"
