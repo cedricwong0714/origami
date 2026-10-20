@@ -12,6 +12,7 @@ const SECTIONS = [
       { href: "/", label: "3D scaffold" },
       { href: "/present", label: "Compare lengths" },
       { href: "/design", label: "Choose a length" },
+      { href: "/learn", label: "Next length" },
     ],
   },
   {
