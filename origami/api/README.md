@@ -44,4 +44,4 @@ python -m pytest tests/unit_tests/test_structural_api.py
 
 ## Owner
 
-Hong Kong team ORIGAMI software.
+Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming. ORIGAMI software.

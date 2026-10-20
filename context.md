@@ -1,6 +1,6 @@
 # ORIGAMI / CLASP — handoff context for new agents and chats
 
-**Team:** Hong Kong team, ISEF 2026  
+**Team:** Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming, ISEF 2026  
 **Repository:** https://github.com/cedricwong0714/origami  
 **Working branch (math chassis):** `cursor/ssdk-baseline-plan-5511`  
 **Preferred PR base:** `cursor/origami-math-engine-9d85`  

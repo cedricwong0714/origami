@@ -1,6 +1,6 @@
 # ORIGAMI
 
-**Hong Kong team · ISEF 2026 Software**
+**Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · ISEF 2026 Software**
 
 Mechanism-aware design engine for **CLASP** (*Conditional Localized Assembly of Synthetic Proteins*).
 
@@ -466,7 +466,7 @@ Keep this repository for **source code**. Datasets, model weights, and heavy med
 
 ## Authors
 
-**ISEF 2026 Hong Kong team** — CLASP / ORIGAMI software track.
+**ISEF 2026 · Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming** — CLASP / ORIGAMI software track.
 
 ## License
 

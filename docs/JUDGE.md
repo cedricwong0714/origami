@@ -1,6 +1,6 @@
 # ORIGAMI for judges
 
-Hong Kong team, ISEF 2026. This page is the software exhibit for CLASP. It says what the program does, how to run it, and what a screen must not be read as. It is not a wet-lab result.
+Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming, ISEF 2026. This page is the software exhibit for CLASP. It says what the program does, how to run it, and what a screen must not be read as. It is not a wet-lab result.
 
 Repository: https://github.com/cedricwong0714/origami
 

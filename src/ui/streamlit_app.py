@@ -1263,7 +1263,7 @@ def run() -> None:
 
     with st.sidebar:
         st.markdown("## ORIGAMI")
-        st.caption("Hong Kong team · ISEF 2026")
+        st.caption("Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · ISEF 2026")
         mode = st.radio(
             "Mode",
             [

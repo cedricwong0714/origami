@@ -1,6 +1,6 @@
 # ISEF 2026 Dry Lab Megadoc
 
-**Hong Kong team · CLASP / ORIGAMI**
+**Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · CLASP / ORIGAMI**
 
 This megadoc is the **operational dry-lab checklist** for measurement, modeling, and how wet-lab outputs enter ORIGAMI.  
 Full narrative, equations, and human-practices context live in [`CLASP Docs.md`](CLASP%20Docs.md). Do not treat this file as a substitute for primary data or peer-reviewed sources.

@@ -180,7 +180,7 @@ export function StructuralStudio() {
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
           <p className="text-[11px] font-semibold tracking-[0.22em] text-studio-accent uppercase">
-            Hong Kong team · ISEF 2026 · ORIGAMI
+            Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · ISEF 2026 · ORIGAMI
           </p>
           <h1 className="mt-2 font-heading text-4xl leading-[1.1] text-studio-foreground md:text-5xl">
             Where do the two ends sit?
@@ -624,7 +624,7 @@ export function StructuralStudio() {
       ) : null}
 
       <footer className="mt-12 border-t border-studio-border pt-6 text-xs leading-relaxed text-studio-label">
-        Hong Kong team · ORIGAMI ·{" "}
+        Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · ORIGAMI ·{" "}
         <a
           className="underline decoration-studio-border underline-offset-2 hover:decoration-studio-accent"
           href="https://github.com/cedricwong0714/origami"

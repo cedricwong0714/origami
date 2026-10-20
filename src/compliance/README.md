@@ -30,4 +30,4 @@ pytest tests/unit_tests/test_compliance.py tests/unit_tests/test_verification.py
 
 ## Owner
 
-Hong Kong team dry lab — see repository README.
+Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming. Dry lab — see repository README.

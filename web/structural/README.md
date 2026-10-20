@@ -51,4 +51,4 @@ Do not label the helix as a crystal of the fusion.
 
 ## Owner
 
-Hong Kong team ORIGAMI software.
+Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming. ORIGAMI software.

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 USER_AGENT = (
-    "ORIGAMI-ISEF-Hong Kong team/0.1 "
+    "ORIGAMI-ISEF-Hong-Kong-team/0.1 "
     "(https://github.com/cedricwong0714/origami; "
     "literature-metadata-only)"
 )

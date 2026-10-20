@@ -1,6 +1,6 @@
 # ORIGAMI user manual
 
-Hong Kong team ISEF 2026 software. This manual is how to install and use the chassis. It is not a scientific validation. Every prediction stays `calibrated = false` until a human approves a project dataset for that claim.
+Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming, ISEF 2026 software. This manual is how to install and use the chassis. It is not a scientific validation. Every prediction stays `calibrated = false` until a human approves a project dataset for that claim.
 
 Policy for AI assistants: [.claude/RESPONSIBLE_AI_USE.md](../.claude/RESPONSIBLE_AI_USE.md). Engineering rules: [AGENTS.md](../AGENTS.md). What still needs lab numbers: [DATA_DEPENDENCY_MATRIX.md](DATA_DEPENDENCY_MATRIX.md).
 
