@@ -17,7 +17,7 @@ export const MODEL_GROUPS: ModelGroup[] = [
     blurb: "Shape of the CTPR screw and which repeat count to build next.",
     models: [
       {
-        href: "/",
+        href: "/scaffold",
         title: "3D scaffold",
         summary: "Helical coordinates of the repeats, drawn as a screw.",
       },

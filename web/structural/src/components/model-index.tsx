@@ -9,12 +9,9 @@ export function ModelIndex() {
     <main className="mx-auto max-w-5xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
       <header className="mb-8">
-        <p className="text-sm uppercase tracking-wide text-studio-label">ORIGAMI</p>
-        <h1 className="mt-1 text-3xl font-semibold">Choose a model</h1>
+        <h1 className="text-3xl font-semibold">Choose a mode</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          Each card is one calculation. The four groups match the dry-lab
-          work: structure, stability, docking, and kinetics. Open a card to
-          run that model. The section bar above jumps to the same screens.
+          Four modes come first. Open a card to run that calculation. The last group combines them or records a measurement.
         </p>
       </header>
       <div className="space-y-10">

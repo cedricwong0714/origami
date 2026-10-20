@@ -13,7 +13,7 @@ const SECTIONS = [
   {
     label: "Structural analysis",
     tabs: [
-      { href: "/", label: "3D scaffold" },
+      { href: "/scaffold", label: "3D scaffold" },
       { href: "/present", label: "Compare lengths" },
       { href: "/design", label: "Choose a length" },
       { href: "/learn", label: "Next length" },
@@ -56,7 +56,7 @@ export function StudioNav() {
   return (
     <div className="mb-6 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="inline-flex items-center" aria-label="ORIGAMI home">
+        <Link href="/models" className="inline-flex items-center" aria-label="Choose a model">
           <Image
             src="/origami-wordmark.png"
             alt="ORIGAMI"
