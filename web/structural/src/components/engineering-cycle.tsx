@@ -7,35 +7,37 @@ type StageId = (typeof STAGES)[number];
 
 const CYCLES = [1, 2, 3, 4, 5] as const;
 
-const PLACE: Record<StageId, string> = {
-  design: "top-0 left-1/2 -translate-x-1/2",
-  build: "top-1/2 right-0 -translate-y-1/2",
-  test: "bottom-0 left-1/2 -translate-x-1/2",
-  learn: "top-1/2 left-0 -translate-y-1/2",
-};
-
 export function EngineeringCycle() {
   const [stage, setStage] = useState<StageId>("learn");
   const [cycle, setCycle] = useState<(typeof CYCLES)[number]>(1);
 
   return (
-    <div className="w-52 shrink-0 text-studio-foreground">
-      <div className="relative mx-auto h-44 w-44">
-        <svg viewBox="0 0 176 176" className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)]" aria-hidden="true">
-          <circle cx="88" cy="88" r="62" fill="none" stroke="currentColor" strokeWidth="1" className="text-studio-border" />
-        </svg>
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
-          <div>
-            <p className="text-[10px] tracking-[0.22em] text-studio-label uppercase">Cycle</p>
-            <p className="mt-1 text-2xl leading-none font-light tabular-nums">{cycle}</p>
+    <div className="w-fit shrink-0 text-studio-foreground">
+      <div className="grid grid-cols-[auto_4.75rem_auto] grid-rows-[auto_4.75rem_auto] items-center justify-items-center gap-x-3 gap-y-1">
+        <StageButton id="design" active={stage === "design"} className="col-start-2 row-start-1" onSelect={setStage} />
+        <StageButton id="learn" active={stage === "learn"} className="col-start-1 row-start-2" onSelect={setStage} />
+        <div className="relative col-start-2 row-start-2 size-[4.75rem]">
+          <svg viewBox="0 0 76 76" className="size-full" aria-hidden="true">
+            <circle
+              cx="38"
+              cy="38"
+              r="32"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="text-studio-label"
+            />
+          </svg>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1">
+            <p className="text-[9px] leading-none tracking-[0.2em] text-studio-label uppercase">Cycle</p>
+            <p className="text-[22px] leading-none font-light tabular-nums">{cycle}</p>
           </div>
         </div>
-        {STAGES.map((id) => (
-          <StageButton key={id} id={id} active={stage === id} className={PLACE[id]} onSelect={setStage} />
-        ))}
+        <StageButton id="build" active={stage === "build"} className="col-start-3 row-start-2" onSelect={setStage} />
+        <StageButton id="test" active={stage === "test"} className="col-start-2 row-start-3" onSelect={setStage} />
       </div>
-      <div className="mt-2 flex items-center justify-center gap-2">
-        <span className="text-[10px] tracking-[0.18em] text-studio-label uppercase">Jump</span>
+      <div className="mt-3 flex items-center justify-center gap-1.5">
+        <span className="mr-1 text-[11px] text-studio-label">Jump</span>
         {CYCLES.map((item) => {
           const on = item === cycle;
           return (
@@ -43,11 +45,12 @@ export function EngineeringCycle() {
               key={item}
               type="button"
               aria-pressed={on}
+              aria-label={`Jump to cycle ${item}`}
               onClick={() => setCycle(item)}
               className={
                 on
-                  ? "text-[13px] text-studio-accent"
-                  : "text-[13px] text-studio-muted hover:text-studio-foreground"
+                  ? "grid size-5 place-items-center rounded-full border border-studio-accent text-[12px] leading-none font-medium tabular-nums text-studio-accent"
+                  : "grid size-5 place-items-center rounded-full text-[12px] leading-none tabular-nums text-studio-muted hover:text-studio-foreground"
               }
             >
               {item}
@@ -75,9 +78,10 @@ function StageButton({
     <button
       type="button"
       aria-pressed={active}
+      aria-label={`${label} stage`}
       onClick={() => onSelect(id)}
-      className={`absolute bg-background px-1 text-[11px] tracking-[0.16em] uppercase ${className} ${
-        active ? "text-studio-accent" : "text-studio-muted hover:text-studio-foreground"
+      className={`text-[12px] leading-none whitespace-nowrap focus-visible:underline focus-visible:outline-none ${className} ${
+        active ? "font-medium text-studio-accent" : "text-studio-muted hover:text-studio-foreground"
       }`}
     >
       {label}
