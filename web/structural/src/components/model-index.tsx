@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { EngineeringCycle } from "@/components/engineering-cycle";
 import { StudioNav } from "@/components/studio-nav";
 import { MODEL_GROUPS } from "@/lib/model-catalog";
 
@@ -8,11 +9,14 @@ export function ModelIndex() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 font-[family-name:var(--font-inter)] text-studio-foreground">
       <StudioNav />
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold">Choose a mode</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          Open a card to run that calculation. The last group combines the models or records a measurement.
-        </p>
+      <header className="mb-10 flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold">Choose a mode</h1>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-studio-muted">
+            Open a card to run that calculation. The last group combines the models or records a measurement.
+          </p>
+        </div>
+        <EngineeringCycle />
       </header>
       <div className="space-y-10">
         {MODEL_GROUPS.map((group) => (
