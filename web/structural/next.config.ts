@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const onVercel = process.env.VERCEL === "1";
-const apiBase = (process.env.STRUCTURAL_API_URL ?? "http://127.0.0.1:41287").replace(/\/$/, "");
 
 if (onVercel && !process.env.STRUCTURAL_API_URL) {
   console.warn(
@@ -11,23 +10,15 @@ if (onVercel && !process.env.STRUCTURAL_API_URL) {
 }
 
 const nextConfig: NextConfig = {
-  // Static export for local/wiki builds; on Vercel use serverless Next so rewrites reach Render.
-  ...(onVercel ? {} : { output: "export" as const }),
+  // The app directory includes a route handler, so this build stays a Node
+  // server. Static export cannot host that handler and `next build` fails.
   images: { unoptimized: true },
   basePath: process.env.NEXT_BASE_PATH || "",
   async rewrites() {
-    // A private or localhost target makes Vercel answer with the plain-text
-    // page "The page could not be found" (DNS_HOSTNAME_RESOLVED_PRIVATE).
-    // The browser then crashes on response.json(). Leave /api to the route
-    // handler, which always returns JSON.
-    if (onVercel && !process.env.STRUCTURAL_API_URL) return [];
-    if (onVercel && /localhost|127\.0\.0\.1|\.internal\b/.test(apiBase)) return [];
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiBase}/api/:path*`,
-      },
-    ];
+    // /api is handled by src/app/api/[...path]/route.ts, which always returns
+    // JSON. A rewrite to a private host makes Vercel answer with plain text
+    // and the browser then crashes on response.json().
+    return [];
   },
 };
 

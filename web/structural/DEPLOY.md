@@ -96,7 +96,7 @@ Before the first deploy, open **Environment Variables** and add:
 
 Use your Render URL from Part A. **No trailing slash.**
 
-On Vercel, `VERCEL=1` is set automatically. The build **does not** use static export; Next.js rewrites proxy `/api/*` to `STRUCTURAL_API_URL`.
+The studio build is a Node server, not a static export. `/api/*` is handled by `src/app/api/[...path]/route.ts`, which calls `STRUCTURAL_API_URL` and always returns JSON.
 
 You do **not** need `NEXT_PUBLIC_SA_API` if rewrites work (default). The app calls `/api/...` on the same Vercel origin.
 

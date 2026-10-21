@@ -41,6 +41,7 @@ export function HelixCanvas({ scene, selected = null }: HelixCanvasProps) {
   const { theme } = useStudioTheme();
 
   const paint = useCallback(() => {
+    void theme;
     const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");

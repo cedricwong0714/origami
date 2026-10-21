@@ -1,6 +1,6 @@
 # API cheat sheet
 
-Base URL on a laptop: `http://127.0.0.1:41287`. Interactive schema: `/docs`. The Next.js dev server proxies `/api` to that port. A static export does not.
+Base URL on a laptop: `http://127.0.0.1:41287`. Interactive schema: `/docs`. The Next.js server (`npm run dev` or `npm start`) sends `/api` to that port through `web/structural/src/app/api/[...path]/route.ts` and returns JSON when the calculator is down.
 
 All responses that are predictions include `calibrated: false` unless a future, explicit wet-lab flag is added. Do not treat HTTP 200 as validation.
 
@@ -31,7 +31,9 @@ All responses that are predictions include `calibrated: false` unless a future, 
 
 Optional: `indices`, `radii_A` (two Å values), `lab_tm_C`, `kinetics`.
 
-`POST /api/ssdk/learn`
+`GET /api/ssdk/length-posterior` returns the dry-lab end-to-end table in angstroms. It is not a luminescence fit. `calibrated` is false.
+
+`POST /api/ssdk/learn` rejects an observation whose `units` are angstroms. That call reads a light reading.
 
 ```json
 {

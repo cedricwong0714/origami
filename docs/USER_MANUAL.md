@@ -62,9 +62,7 @@ npm install
 npm run dev -- --port 3000
 ```
 
-Open http://127.0.0.1:3000 . `npm run dev` is the live studio. It rewrites `/api` to `STRUCTURAL_API_URL`, which defaults to http://127.0.0.1:41287. Pass `--port` if 3000 is taken.
-
-`npm run build` on a laptop sets Next.js `output: "export"`. That static build does not proxy `/api`. Use `npm run dev` when you want the calculators. A Vercel deploy is different: it stays a server build and only reaches the chassis when `STRUCTURAL_API_URL` is a public API, not localhost. See [DEPLOY.md](../web/structural/DEPLOY.md).
+Open http://127.0.0.1:3000 . `npm run dev` and `npm start` (after `npm run build`) both send `/api` through the studio’s route handler to `STRUCTURAL_API_URL`, which defaults to http://127.0.0.1:41287. Pass `--port` to `npm run dev` if 3000 is taken. The Python process has to be running, or the handler returns a JSON error instead of a web page. A hosted studio reaches the chassis only when `STRUCTURAL_API_URL` is a public API, not localhost. See [DEPLOY.md](../web/structural/DEPLOY.md).
 
 | Page | Use |
 |---|---|
