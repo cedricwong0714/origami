@@ -35,14 +35,15 @@ git clone https://github.com/cedricwong0714/origami.git
 cd origami
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -r requirements-lock.txt
+pip install -e . --no-deps
 ```
 
-Optional Streamlit UI: `pip install -e ".[ui]"`. The studio also needs Node.js 20 and npm, installed separately. They are not part of the Python extra.
+Optional Streamlit pieces are already in that lockfile. The studio also needs Node.js 20 and npm, installed separately.
 
-Python 3.10 or newer. 3.12 is what the test suite was run with. The package is not on PyPI. `pip install origami` fails. Install from this clone with `pip install -e`.
+Python 3.12 matches the lockfile and the test run. The package is not on PyPI. `pip install origami` fails. Install from this clone with the two commands above.
 
-The public repository is https://github.com/cedricwong0714/origami on branch `main`. GitHub Actions runs `pytest` on `main` and on pull requests (`.github/workflows/pytest.yml`). `.gitlab-ci.yml` is not used. After `pip install -e ".[dev]"`, you can run the same suite locally with `pytest -q`. That extra includes Plotly because the active-learning tests import the figure module.
+This repository is https://github.com/cedricwong0714/origami on branch `main`. GitHub Actions runs `pytest`. The exact Python environment is `requirements-lock.txt`: `pip install -r requirements-lock.txt` then `pip install -e . --no-deps`, then `pytest -q`.
 
 ## 4. Wiki UI (recommended for the team)
 

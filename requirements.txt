@@ -1,9 +1,13 @@
-# Host install (Streamlit Community Cloud, Hugging Face Spaces).
-# Do not pip-install the name "origami" from PyPI — that package is not published.
-numpy>=1.26
-scipy>=1.11
-pydantic>=2.5
-scikit-learn>=1.3
-streamlit>=1.30
-plotly>=5.18
-pandas>=2.0
+# Pinned host install for Streamlit Community Cloud, Hugging Face, and Docker.
+# These are the versions installed with the test environment.
+# The full transitive lock is requirements-lock.txt.
+# Do not pip-install the name "origami" from PyPI. That package is not published.
+numpy==2.5.4
+scipy==1.18.1
+pydantic==2.14.1
+scikit-learn==1.9.1
+streamlit==1.66.0
+plotly==7.1.0
+pandas==3.0.6
+fastapi==0.154.0
+uvicorn==0.54.0

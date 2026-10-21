@@ -2,6 +2,65 @@
 
 **Hong Kong team by Wong Shun Hei, Cheuk Mivon, and Fong Ming · ISEF 2026 Software**
 
+Official submission repository: [github.com/cedricwong0714/origami](https://github.com/cedricwong0714/origami)
+
+This page is for a judge or another reader who has not seen the project. ORIGAMI is the design program for CLASP, a protein scaffold that brings two parts together when calcium is present. It calculates shape, folding temperature, whether the parts fit, how fast they lock, and which scaffold length to measure next. It does not invent a DNA sequence, and it does not mark a design as experimentally validated. Every prediction stays `calibrated: false` until this team approves a dataset for that claim.
+
+The license is [Apache 2.0](LICENSE). Source, tests, and small assets are in this git repository. Do not commit compiled binaries. Large datasets belong on Zenodo, with the DOI added here once they exist.
+
+## Install
+
+Python 3.12. Node.js 20 is needed only for the studio.
+
+```bash
+git clone https://github.com/cedricwong0714/origami.git
+cd origami
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements-lock.txt
+pip install -e . --no-deps
+```
+
+`requirements-lock.txt` is the exact Python environment used for the tests. `web/structural/package-lock.json` pins the studio. `requirements.txt` pins the smaller set used by the Streamlit host image.
+
+## Run
+
+Tests and the main numerical checks:
+
+```bash
+pytest -q
+origami benchmark
+origami ssdk chassis --json-body '{"n_repeats":8,"radii_A":[25,25]}'
+origami ssdk learn --json-body '{"n_min":3,"n_max":24,"observations":[]}'
+```
+
+`origami benchmark` must report `"passed": true`. Chassis and learn print a result with `"calibrated": false`.
+
+The same checks inside Docker, from a clean machine:
+
+```bash
+docker build -t origami .
+docker run --rm origami python -m pytest -q
+```
+
+The image's default command is the Streamlit sandbox (`host_app.py`) on port 8501. Override it, as above, to reproduce the tests.
+
+Studio, with the Python API already installed:
+
+```bash
+python host_sa.py
+```
+
+In a second terminal:
+
+```bash
+cd web/structural
+npm ci
+npm run dev
+```
+
+Open http://127.0.0.1:3000 . The API document is http://127.0.0.1:41287/docs . Longer notes are in [docs/USER_MANUAL.md](docs/USER_MANUAL.md).
+
 Mechanism-aware design engine for **CLASP** (*Conditional Localized Assembly of Synthetic Proteins*).
 
 ORIGAMI does not score every payload with one universal “proximity” heuristic. It uses a **shared physical engine** (scaffold geometry, linker reach, steric accessibility, Ca²⁺–CaM–M13 recruitment) connected to **separate functional models** for six mechanism profiles:
@@ -37,7 +96,7 @@ CLI: `origami freeze`, `origami compare`. XGBoost is optional (`pip install -e "
 
 Streamlit Learn also surfaces Fisher/CRLB identifiability on a phenomenological fit and a synthetic Ca²⁺ stacked-ensemble demo; Design supports freeze → compare against frozen predictions.
 
-Repository (judging artifact): [github.com/cedricwong0714/origami](https://github.com/cedricwong0714/origami)
+Repository: [github.com/cedricwong0714/origami](https://github.com/cedricwong0714/origami), branch `main`.
 
 > **Using an AI assistant?** Read [.claude/RESPONSIBLE_AI_USE.md](.claude/RESPONSIBLE_AI_USE.md) and [AGENTS.md](AGENTS.md). You remain responsible for every claim and every commit.
 
