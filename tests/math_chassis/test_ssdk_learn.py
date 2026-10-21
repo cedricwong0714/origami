@@ -15,6 +15,33 @@ from origami.ssdk.learn import learn_ssdk
 client = TestClient(app)
 
 
+def test_angstrom_units_are_refused_on_the_luminescence_learner():
+    with pytest.raises(Exception) as exc:
+        learn_ssdk(
+            {
+                "n_min": 3,
+                "n_max": 14,
+                "observations": [
+                    {"n_repeats": 3, "y": 48.51, "sigma": 0.73, "units": "Å"},
+                ],
+            }
+        )
+    assert "angstrom" in str(exc.value).lower()
+
+
+def test_length_posterior_endpoint_keeps_angstroms_apart_from_light():
+    response = client.get("/api/ssdk/length-posterior")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["calibrated"] is False
+    assert body["units"] == "Å"
+    assert body["reading"] == "end_to_end_length"
+    observed = {row["n_repeats"] for row in body["rows"] if row["observed"]}
+    assert observed == {3, 8, 14}
+    assert body["literature_best_n"] != body["issued_next_n"]
+    assert set(body["unconstrained_next_n"]) == {"ucb", "ei", "entropy"}
+
+
 def test_no_observations_recommends_a_length_without_fitting():
     report = learn_ssdk({"n_min": 8, "n_max": 12, "observations": []})
     assert report["calibrated"] is False

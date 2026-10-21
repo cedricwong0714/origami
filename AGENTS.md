@@ -1555,12 +1555,12 @@ If code and docs disagree on a physical constant, **stop and ask a human** befor
 
 | Quantity | Canonical value / rule | Code home |
 |----------|------------------------|-----------|
-| CTPR rise per repeat | **1.1 nm** | `src/core/ctpr_geometry.py` |
+| CTPR rise per repeat | **0.8416 nm** (deposited mean; the old 1.1 nm prior is not the runtime value) | `src/core/ctpr_geometry.py` `CTPR_RISE_NM` |
 | CTPR twist per repeat | **45°** (8 repeats ≈ 1 turn; Kajander 2007; cylindrical screw) | `src/core/ctpr_geometry.py` |
 | Docking position indexing | **1-based** repeats in `[1, N]` | `ScaffoldSpec` / `ctpr_geometry.py` |
-| Persistence length | **15 nm** (rigid-rod approx. for short scaffolds) | `src/core/ctpr_geometry.py` |
-| Scaffold cylinder radius | **1.8 nm** | `src/core/steric_checker.py` |
-| CaM–M13 Kd (Ca²⁺-saturated) | **~1×10⁻⁷ M** | `src/core/calcium_kinetics.py` |
+| Persistence length | **15 nm** (project rigid-rod cutoff, not a measured persistence length) | `src/core/ctpr_geometry.py` |
+| Scaffold radius | **1.219 nm** repeat-centroid radius (the old 1.8 nm cylinder is not the runtime value) | `src/core/ctpr_geometry.py` `CTPR_RADIUS_NM` |
+| CaM–M13 Kd (Ca²⁺-saturated peptide) | **0.19 nM** (0.19×10⁻⁹ M). Not a fusion measurement | `src/core/calcium_kinetics.py` |
 | CaM–Ca²⁺ Hill n | **~4** | `src/core/calcium_kinetics.py` |
 | CaM–Ca²⁺ EC50 | **~2 µM** free Ca²⁺ | `src/core/calcium_kinetics.py` |
 | NanoBiT reconstitution distance | **≤ 3.0 nm** | `src/core/nanobit_reporter.py` |
@@ -1629,4 +1629,4 @@ Required classes of tests:
 - Physical invariant tests (non-negative concentrations, etc.)  
 - Profile / mode / allowlist smoke tests (`tests/unit_tests/test_profiles_modes_compiler.py`)
 
-Tests are run locally with `pytest`. [`.gitlab-ci.yml`](.gitlab-ci.yml) is not executed on GitHub.
+Tests run in GitHub Actions (`.github/workflows/pytest.yml`) and locally with `pytest`. [`.gitlab-ci.yml`](.gitlab-ci.yml) is not used.

@@ -11,7 +11,7 @@ export function ModelIndex() {
       <header className="mb-8">
         <h1 className="text-3xl font-semibold">Choose a mode</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          Four modes come first. Open a card to run that calculation. The last group combines them or records a measurement.
+          Open a card to run that calculation. The last group combines the models or records a measurement.
         </p>
       </header>
       <div className="space-y-10">

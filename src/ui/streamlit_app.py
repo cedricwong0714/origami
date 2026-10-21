@@ -18,6 +18,7 @@ import streamlit as st
 from src.compiler.expression_vector import ExpressionPlan
 from src.core.asset_paths import REPO_ROOT
 from src.core.schema import DesignSpec, MechanismType, MoCloPart, ScaffoldSpec
+from src.core.ctpr_geometry import CTPR_RISE_NM, CTPR_TWIST_DEG
 from src.scaffold_optimizer import InteractionClass, optimize_ctpr_spacing
 from src.ui.design_mode import DesignMode
 from src.ui.explore_mode import ExploreMode
@@ -1151,7 +1152,8 @@ def page_optimize() -> None:
     st.header("Optimize CTPR spacing")
     st.caption(
         "Rank docking-repeat spacings (Δi) with ORIGAMI screw geometry "
-        "(1.1 nm rise, 45° twist, cylindrical screw). Scores are Tier-3 computational rankings."
+        f"({CTPR_RISE_NM:.3f} nm rise, {CTPR_TWIST_DEG:.0f}° twist, cylindrical screw). "
+        "Scores are Tier-3 computational rankings. The retired rise was 1.1 nm."
     )
 
     col_in, col_out = st.columns([1, 2], gap="large")

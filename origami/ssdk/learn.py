@@ -528,6 +528,13 @@ def _observations(
             raise SsdkLearnError(
                 f"observations[{index}].source must be a non-empty string"
             )
+        units = str(row.get("units") or "surrogate_readout").strip()
+        if units in {"Å", "A", "angstrom", "angstroms"}:
+            raise SsdkLearnError(
+                "This learner reads a luminescence reading, not an end-to-end "
+                "length in angstroms. The dry-lab length posterior is "
+                "GET /api/ssdk/length-posterior."
+            )
         output = row.get("output", "luminescence")
         if output not in (
             "luminescence",
@@ -545,7 +552,7 @@ def _observations(
                 y=y,
                 sigma=sigma_value,
                 source=source.strip(),
-                units=str(row.get("units") or "surrogate_readout"),
+                units=units,
                 notes="Caller-supplied surrogate. Not invented by the chassis.",
             )
         )

@@ -43,11 +43,32 @@ const SECTIONS = [
   },
 ];
 
+const LAB_SECTION = {
+  label: "One construct and lab",
+  tabs: [
+    { href: "/ssdk", label: "One length" },
+    { href: "/wizard", label: "Step through" },
+    { href: "/lab", label: "Lab numbers" },
+    { href: "/intake", label: "Data intake" },
+    { href: "/guide", label: "What you can run" },
+  ],
+};
+
+const NAV_SECTIONS = [...SECTIONS, LAB_SECTION];
+
 function sectionFor(path: string) {
-  return (
-    SECTIONS.find((section) => section.tabs.some((tab) => tab.href === path)) ??
-    SECTIONS[0]
-  );
+  let best = NAV_SECTIONS[0];
+  let bestLen = -1;
+  for (const section of NAV_SECTIONS) {
+    for (const tab of section.tabs) {
+      const hit = path === tab.href || path.startsWith(`${tab.href}/`);
+      if (hit && tab.href.length > bestLen) {
+        best = section;
+        bestLen = tab.href.length;
+      }
+    }
+  }
+  return best;
 }
 
 export function StudioNav() {
@@ -69,7 +90,7 @@ export function StudioNav() {
         <ThemeToggle />
       </div>
       <nav className="flex flex-wrap gap-2" aria-label="SSDK">
-        {SECTIONS.map((section) => {
+        {NAV_SECTIONS.map((section) => {
           const on = section === active;
           return (
             <Link

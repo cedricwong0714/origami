@@ -14,15 +14,22 @@ _FLAG_HINTS: tuple[tuple[str, str], ...] = (
 def check_policy(context: dict) -> list[str]:
     """Return advisory ISEF policy flag strings. Does not stop a pipeline.
 
-    Scans string values in ``context`` (and nested simple strings) for
-    high-precision hints. Empty list if none match.
+    Scans string values in ``context``, including nested dictionaries and
+    lists, for high-precision hints. Empty list if none match.
     """
     blobs: list[str] = []
-    for value in context.values():
+
+    def collect(value: object) -> None:
         if isinstance(value, str):
             blobs.append(value.lower())
-        elif isinstance(value, list):
-            blobs.extend(str(item).lower() for item in value)
+        elif isinstance(value, dict):
+            for item in value.values():
+                collect(item)
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                collect(item)
+
+    collect(context)
     joined = " ".join(blobs)
     flags: list[str] = []
     for needle, message in _FLAG_HINTS:

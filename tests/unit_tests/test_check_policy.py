@@ -10,3 +10,9 @@ def test_flags_release() -> None:
 def test_no_halt_empty() -> None:
     flags = check_policy({"notes": "standard lab cloning"})
     assert flags == []
+
+
+def test_nested_release_is_flagged() -> None:
+    flags = check_policy({"notes": {"detail": "planned environmental release"}})
+    assert flags
+    assert any("release" in flag.lower() for flag in flags)

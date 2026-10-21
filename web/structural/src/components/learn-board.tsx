@@ -8,6 +8,23 @@ import { readApiJson } from "@/lib/api";
 
 type Row = { n: string; y: string; sigma: string };
 
+type LengthRow = {
+  n_repeats: number;
+  observed: boolean;
+  literature_chord_A: number;
+  posterior_mean_A: number;
+  posterior_std_A: number;
+};
+
+type LengthPosterior = {
+  calibrated: false;
+  note: string;
+  literature_best_n: number;
+  issued_next_n: number;
+  unconstrained_next_n: { ucb: number; ei: number; entropy: number };
+  rows: LengthRow[];
+};
+
 type Candidate = {
   n_repeats: number;
   physics_score: number;
@@ -188,6 +205,76 @@ function formatNumber(value: number): string {
   return value.toPrecision(3);
 }
 
+function LengthPosteriorPanel() {
+  const [report, setReport] = useState<LengthPosterior | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/ssdk/length-posterior")
+      .then((response) => readApiJson<LengthPosterior>(response))
+      .then((payload) => {
+        if (!cancelled) setReport(payload);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) {
+          setError(caught instanceof Error ? caught.message : "The length table is unavailable.");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
+      <h2 className="text-lg font-semibold">Dry-lab end-to-end lengths</h2>
+      <p className="mt-1 text-sm leading-relaxed text-studio-muted">
+        Crystal chord beside the trajectory posterior, in angstroms. This table
+        is not a light reading.
+      </p>
+      {error ? <p className="mt-3 text-sm text-red-800">{error}</p> : null}
+      {report ? (
+        <div className="mt-4 space-y-3 text-sm">
+          <p>
+            The crystal screw ranks n={report.literature_best_n} first. The issued
+            next assay, after the stability gate, is n={report.issued_next_n}.
+            Without that gate, upper confidence bound and expected improvement
+            name n={report.unconstrained_next_n.ucb} and n=
+            {report.unconstrained_next_n.ei}. Entropy names n=
+            {report.unconstrained_next_n.entropy}. None of these is a validated
+            construct.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="text-studio-label">
+                  <th className="py-1 pr-3">n</th>
+                  <th className="py-1 pr-3">Screw chord (Å)</th>
+                  <th className="py-1 pr-3">Posterior (Å)</th>
+                  <th className="py-1">In the trajectory table</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.rows.map((row) => (
+                  <tr key={row.n_repeats} className="border-t border-studio-border">
+                    <td className="py-1 pr-3">{row.n_repeats}</td>
+                    <td className="py-1 pr-3">{row.literature_chord_A.toFixed(1)}</td>
+                    <td className="py-1 pr-3">
+                      {row.posterior_mean_A.toFixed(1)} ± {row.posterior_std_A.toFixed(1)}
+                    </td>
+                    <td className="py-1">{row.observed ? "yes" : "no"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export function LearnBoard() {
   const [rows, setRows] = useState<Row[]>(STARTER);
   const [radiusA, setRadiusA] = useState("");
@@ -305,15 +392,19 @@ export function LearnBoard() {
         <p className="text-sm uppercase tracking-wide text-studio-label">Which length next</p>
         <h1 className="mt-1 text-3xl font-semibold">Next length to measure</h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-studio-muted">
-          Leave the reading blank and you still get a suggestion from the docking
-          score. Type a luminescence reading (y) and an optional uncertainty to
-          adjust that score. The number to use is the first next length. Other
-          methods may name a different length. They are not averaged. A pass
-          uses a cutoff we have not measured. Do not put that pass on the wiki.
-          The screw and the melting temperature are shown beside the suggestion
-          and are not changed by the reading.
+          The box below is a light reading, not a distance. An end-to-end length
+          in angstroms belongs in the dry-lab table on this page, which is loaded
+          separately and is not mixed into the light reading. Leave a light
+          reading blank and you still get a suggestion from the docking score.
+          Type a luminescence reading and an optional uncertainty to adjust that
+          score. The number to use is the first next length. Other methods may
+          name a different length. They are not averaged. A pass uses a cutoff
+          we have not measured. Do not put that pass on the wiki. The screw and
+          the melting temperature are shown beside the suggestion and are not
+          changed by the reading.
         </p>
       </header>
+      <LengthPosteriorPanel />
 
       <LiteraturePanel training={literature} offline={literatureOffline} />
 
@@ -327,8 +418,9 @@ export function LearnBoard() {
       <section className="mb-6 rounded-xl border border-studio-border bg-studio-card p-5">
         <h2 className="text-lg font-semibold">Luminescence readings</h2>
         <p className="mt-1 text-sm leading-relaxed text-studio-muted">
-          Repeat count, reading, optional uncertainty. Leave the reading blank
-          if that length has not been measured.
+          Repeat count, light reading, optional uncertainty. This number is not
+          an angstrom length. Leave the reading blank if that length has not
+          been measured.
         </p>
         <div className="mt-4 space-y-2">
           {rows.map((row, index) => (

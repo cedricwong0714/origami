@@ -56,4 +56,4 @@ Note: Φ is Tier-3 computational ranking, not calibrated fitness.
 pytest
 ```
 
-Run `pytest` on your own machine. GitHub does not run a workflow for this repository and does not publish `web/` as a Pages site. Open `web/index.html` locally for the static landing page.
+GitHub Actions runs `pytest` on `main` and on pull requests. You can run the same command locally. GitHub does not publish `web/` as a Pages site. Open `web/index.html` locally for the static landing page.

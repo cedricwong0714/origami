@@ -42,7 +42,7 @@ Optional Streamlit UI: `pip install -e ".[ui]"`. The studio also needs Node.js 2
 
 Python 3.10 or newer. 3.12 is what the test suite was run with. The package is not on PyPI. `pip install origami` fails. Install from this clone with `pip install -e`.
 
-The public repository is https://github.com/cedricwong0714/origami on branch `main`. There is no GitHub Actions workflow in the tree. `.gitlab-ci.yml` is not run by GitHub. After `pip install -e ".[dev]"`, run the tests yourself with `pytest -q`. That extra includes Plotly because the active-learning tests import the figure module.
+The public repository is https://github.com/cedricwong0714/origami on branch `main`. GitHub Actions runs `pytest` on `main` and on pull requests (`.github/workflows/pytest.yml`). `.gitlab-ci.yml` is not used. After `pip install -e ".[dev]"`, you can run the same suite locally with `pytest -q`. That extra includes Plotly because the active-learning tests import the figure module.
 
 ## 4. Wiki UI (recommended for the team)
 
@@ -68,15 +68,23 @@ Open http://127.0.0.1:3000 . `npm run dev` is the live studio. It rewrites `/api
 
 | Page | Use |
 |---|---|
-| `/` | Structural run for one n |
-| `/present` | Saved presentation tables |
+| `/` | Logo. Enter the studio from here |
+| `/models` | Every calculation, grouped |
+| `/scaffold` | 3D screw for one repeat count |
+| `/present` | Saved comparison of lengths |
+| `/design` | Docking score from n = 3 to 24 |
+| `/docking/geometry` | Chord and clash |
+| `/learn` | Dry-lab end-to-end table, kept apart from a luminescence reading |
 | `/stability` | Literature Tm check |
 | `/stability/calculator` | ΔG(T) from enthalpy and ΔCp |
-| `/kinetics` | Kinetics forms |
+| `/docking` | Affinity at one repeat count |
+| `/kinetics` | Bound fraction only |
+| `/kinetics/spy` | Spy lock time course |
+| `/kinetics/nanobit` | Light reporter |
 | `/ssdk` | Four chassis for one n, plus luminescence gates |
+| `/wizard` | The same report, one step at a time, for n from 3 to 24 |
 | `/lab` | Lab sections (prep, calcium, lock, bridging) |
 | `/intake` | Plate CSV and ablation JSON |
-| `/learn` | Surrogate rows and next length |
 | `/guide` | Dependency list and placeholder config |
 
 ### 4.1 SSDK luminescence gates

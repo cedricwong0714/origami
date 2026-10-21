@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Any
 
 from origami.dry_lab_md import (
     CALCIUM_HILL_ASSAY,
@@ -250,3 +251,69 @@ def explain_shift(library: ConditionedLibrary, next_n: int) -> str:
         f"The 10 nM, 30 nM, and 28 nM dissociation constants are literature "
         f"and are not in the fit."
     )
+
+
+def dry_lab_length_report() -> dict[str, Any]:
+    """Screw-versus-trajectory length posterior. Not a luminescence fit.
+
+    The studio luminescence form must not send these angstroms as ``y``.
+    """
+    import numpy as np
+
+    from origami.design_engine.active_learning import recommend
+    from origami.dry_lab_md import md_end_to_end_observations
+    from origami.engine import ClaspDesignEngine
+
+    engine = ClaspDesignEngine()
+    for obs in md_end_to_end_observations():
+        engine.add_observation(obs)
+    result = engine.run()
+    library = condition_on_length_posterior(result)
+    if library is None or result.next_experiment is None:
+        raise RuntimeError("dry-lab length posterior did not fit")
+    observed = {obs.n_repeats for obs in result.observations}
+    candidates = np.asarray(result.candidates, dtype=float).reshape(-1, 1)
+    unconstrained: dict[str, int] = {}
+    for key in ("ucb", "ei", "entropy"):
+        choice = recommend(
+            candidates,
+            result.posterior,
+            result.physics_scores,
+            result.p_instability,
+            observed=observed,
+            acquisition=key,
+        )
+        unconstrained[key] = int(choice.n_repeats)
+    show = observed | {
+        int(result.next_experiment.n_repeats),
+        int(library.literature_best_n),
+    }
+    rows: list[dict[str, Any]] = []
+    for row in library.rows:
+        if row.n_repeats not in show:
+            continue
+        bounds = row.half_life_corner_bounds_s
+        rows.append(
+            {
+                "n_repeats": row.n_repeats,
+                "observed": row.observed,
+                "literature_chord_A": row.literature_chord_A,
+                "posterior_mean_A": row.posterior_mean_A,
+                "posterior_std_A": row.posterior_std_A,
+                "half_life_team_s": row.half_life_team_s,
+                "half_life_corner_s": None if bounds is None else [bounds[0], bounds[1]],
+            }
+        )
+    return {
+        "calibrated": False,
+        "units": "Å",
+        "reading": "end_to_end_length",
+        "note": (
+            "These rows are end-to-end lengths in angstroms from the dry-lab "
+            "trajectories. The luminescence form does not use them."
+        ),
+        "literature_best_n": int(library.literature_best_n),
+        "issued_next_n": int(result.next_experiment.n_repeats),
+        "unconstrained_next_n": unconstrained,
+        "rows": rows,
+    }

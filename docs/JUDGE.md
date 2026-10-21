@@ -49,14 +49,18 @@ npm run dev
 
 Open http://127.0.0.1:3000 . The API is http://127.0.0.1:41287/docs .
 
+Open `/` for the logo, then `/models` for the full list. The bar on every later page includes structural analysis, stability, docking, kinetics, and the combined lab pages.
+
 | Page | What to look at |
 |---|---|
-| `/` | Contour, axial span, and rigid versus flexible for an integer repeat count from 3 to 24 |
+| `/scaffold` | Contour, axial span, and the 3D screw for a repeat count from 3 to 24 |
 | `/stability` | Phillips 2012 CTPRa lookup. Missing uncertainty stays blank. Lengths past the cited range are marked extrapolated |
 | `/stability/calculator` | Gibbs–Helmholtz ΔG(T). Enthalpy and ΔCp are filled only where the table has them |
-| `/kinetics` | A time course or occupancy after the user types concentrations |
+| `/kinetics` | Bound fraction after a typed concentration |
+| `/kinetics/spy` | Spy lock time course |
+| `/kinetics/nanobit` | Light reporter. The printed tightness and the rate quotient stay side by side |
 | `/ssdk` | The four calculators for one length, then the luminescence gate |
-| `/learn` | A recommended next repeat count. The sentence on the page says it is the next measurement, not a validated design |
+| `/learn` | Dry-lab end-to-end lengths in their own table. The form under that table is a light reading, not an angstrom length. The suggested next length is the next measurement, not a validated design |
 | `/lab` and `/intake` | Empty slots, and a plate CSV import that subtracts blanks and stores a checksum |
 | `/guide` | The split between literature, lab-pending fields, and team dry-lab inputs |
 

@@ -10,6 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+from origami.learned_kinetics import dry_lab_length_report
 from origami.ssdk.chassis import ChassisError, evaluate_chassis
 from origami.ssdk.learn import SsdkLearnError, learn_ssdk
 
@@ -29,6 +30,12 @@ async def post_ssdk_chassis(request: Request) -> dict[str, Any]:
         return evaluate_chassis(body)
     except ChassisError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/api/ssdk/length-posterior")
+def get_length_posterior() -> dict[str, Any]:
+    """Dry-lab end-to-end posterior. Separate from the luminescence learner."""
+    return dry_lab_length_report()
 
 
 @router.post("/api/ssdk/learn")

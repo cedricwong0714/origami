@@ -39,7 +39,7 @@ export const MODEL_GROUPS: ModelGroup[] = [
       {
         href: "/learn",
         title: "Next length",
-        summary: "Gaussian process on the lengths you enter, then the next assay.",
+        summary: "Dry-lab end-to-end lengths, kept apart from a luminescence reading, then the next assay.",
       },
     ],
   },

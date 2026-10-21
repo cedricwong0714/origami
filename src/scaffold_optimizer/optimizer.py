@@ -2,7 +2,7 @@
 CTPR scaffold spacing optimizer.
 
 Ranks docking-repeat spacings (Δi) with cylindrical-screw distances from
-``src.core.ctpr_geometry`` (rise 1.1 nm, twist 45°, docking on helix radius).
+``src.core.ctpr_geometry`` (deposited rise, twist 45°, docking on the helix radius).
 Scoring heuristics are **Tier-3 computational rankings** for design triage —
 not wet-lab validated Φ scores.
 """
@@ -157,7 +157,7 @@ def optimize_ctpr_spacing(
     Rank Δi spacings for two payloads on a CTPR scaffold.
 
     Payload radii are in Ångströms (UI convention). Geometry uses cylindrical
-    screw distances from ``generate_scaffold_geometry`` (rise 1.1 nm, twist 45°).
+    screw distances from ``generate_scaffold_geometry`` (deposited rise, twist 45°).
 
     ``com_radial_extra_nm`` optionally extends docking COM beyond scaffold+loop
     (e.g. sensor domain). Default 0.

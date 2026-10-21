@@ -220,7 +220,7 @@ print(learn(spec, experimental_product=exp)["next_experiment_recommendations"][:
 pytest
 ```
 
-Run that command from the repository root after `pip install -e ".[dev]"`. This GitHub repository has no Actions workflow. [`.gitlab-ci.yml`](.gitlab-ci.yml) is not executed here.
+Run that command from the repository root after `pip install -e ".[dev]"`. GitHub Actions runs the same suite on `main` and on pull requests (`.github/workflows/pytest.yml`). [`.gitlab-ci.yml`](.gitlab-ci.yml) is not used.
 
 ## Repository layout
 

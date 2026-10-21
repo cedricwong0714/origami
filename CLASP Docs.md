@@ -2345,7 +2345,7 @@ The system consists of a two-part pre-expressed genetic architecture harbored in
 ## **A. The Structural Hardware (CTPR Backbone)**
 
 * Solenoid Geometry: Synthetic Consensus Tetratricopeptide Repeat (CTPR) modules form an alpha-helical solenoid with a rigid persistence length of approximately 15 nm.  
-* Nanometer Precision: Each 34-amino-acid CTPR module extends the scaffold by exactly 1.1 nm along its central axis.  
+* Nanometer Precision: Each 34-amino-acid CTPR module advances by the deposited screw rise, 0.842 nm along the axis. The older 1.1 nm figure is not the runtime value.  
 * Docking Interfaces: Orthogonal peptide interaction domains (such as Calmodulin/M13 or SpyTag/SpyCatcher systems) are engineered into specific repeat turn loops (e.g., Repeat 2 and Repeat 5\) to set a fixed center-to-center payload spacing of \~5.5 nm.
 
   ## **B. The Operational Payloads (Pre-Expressed Enzymes)**
